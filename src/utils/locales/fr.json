@@ -1,0 +1,16 @@
+{
+  "pages": "Pages",
+  "pages-caption": "légende des pages",
+  "maintenance": "entretien",
+  "error-404": "Erreur 404",
+  "error-500": "Erreur 500",
+  "coming-soon": "à venir",
+  "under-construction": "en cours de construction",
+  "contact-us": "Contactez-nous",
+  "sample-page": "Page d'exemple",
+  "documentation": "documentation",
+  "roadmap": "feuille de route",
+  "social-profile": "profil social",
+  "account-settings": "paramètres du compte",
+  "logout": "Se déconnecter"
+}
