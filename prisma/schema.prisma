@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userID           Int             @id @default(autoincrement())
+  email            String          @unique
+  name             String
+  activeStatus     Boolean         @default(true)
+  researchGroupID  Int?            // Nullable if you want to allow users without a group
+  researchGroup    ResearchGroup?  @relation(fields: [researchGroupID], references: [researchGroupID])
+  permission       String          @default("Research Student")
+  logs             Log[]
+  registrationDate DateTime        @default(now())
+
+  // Standard Auth.js Fields
+  password         String?         // can be empty for sso login
+  emailVerified    DateTime?
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
+
+  // Add this field to establish the reverse relation with Audit
+  audits           Audit[]         @relation("UserAudits")
+  auditGenerals    AuditGeneral[]  @relation("UserAuditGenerals") 
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [userID], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [userID], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Chemical {
+  chemicalID        Int            @id @default(autoincrement())
+  casNumber         String
+  restrictionStatus Boolean
+  chemicalName      String
+  locationID        Int?
+  location          Location?      @relation(fields: [locationID], references: [locationID])
+  activeStatus      Boolean        @default(true)
+  researchGroupID   Int?
+  researchGroup     ResearchGroup? @relation(fields: [researchGroupID], references: [researchGroupID])
+  supplier          String?
+  description       String?
+  chemicalType      String         @default("Chemical")
+  auditStatus       Boolean        @default(false)
+  lastAudit         DateTime?
+  quartzyNumber     String?
+  qrID              String?        @unique
+  qrCode            QrCode?
+  quantity          Int            @default(1)
+  dateAdded         DateTime       @default(now())
+  dateUpdated       DateTime       @updatedAt
+  logs              Log[]
+  auditRecords      AuditRecord[]
+
+  @@map("chemicals")
+}
+
+model ResearchGroup {
+  researchGroupID Int        @id @default(autoincrement())
+  groupName       String     @unique
+  users           User[]
+  chemicals       Chemical[]
+}
+
+enum QrCodeType {
+  CHEMICAL
+  LOCATION
+}
+
+model QrCode {
+  qrID       String     @id @default(cuid()) 
+  type       QrCodeType
+  location   Location?   @relation(fields: [locationID], references: [locationID])
+  chemical   Chemical?  @relation(fields: [chemicalID], references: [chemicalID])
+  locationID Int?       @unique
+  chemicalID Int?       @unique
+}
+
+model Location {
+  locationID   Int        @id @default(autoincrement())
+  building     String     
+  room         String     
+  subLocation1 String?     
+  subLocation2 String?     
+  subLocation3 String?     
+  subLocation4 String?     
+  qrID         String?    @unique
+  qrCode       QrCode?
+  chemicals    Chemical[] 
+  audits       Audit[]
+  auditRecords AuditRecord[] 
+
+  @@map("locations")
+}
+
+model Log {
+  logID       Int       @id @default(autoincrement())
+  userID      Int?
+  user        User?      @relation(fields: [userID], references: [userID])
+  actionType  String    
+  chemicalID  Int? 
+  chemical    Chemical?  @relation(fields: [chemicalID], references: [chemicalID])     
+  description String    
+  timestamp   DateTime   @default(now()) 
+
+  @@map("logs")
+}
+
+model AuditGeneral {
+  auditGeneralID Int      @id @default(autoincrement())
+  round          Int
+  auditorID      Int
+  pendingCount   Int      @default(0)
+  finishedCount  Int      @default(0)
+  startDate      DateTime? 
+  lastAuditDate  DateTime? 
+  status         String
+
+  auditor        User     @relation(fields: [auditorID], references: [userID], name: "UserAuditGenerals")
+  
+  @@map("audit_general")
+}
+
+model Audit {
+  auditID        Int       @id @default(autoincrement())
+  locationID     Int
+  auditorID      Int
+  startDate      DateTime  @default(now())
+  lastAuditDate  DateTime? 
+  round          Int       @default(1) 
+  notes          String?   
+  pendingCount   Int      @default(0)
+  finishedCount  Int      @default(0)
+
+  location       Location  @relation(fields: [locationID], references: [locationID])
+  auditor        User      @relation(fields: [auditorID], references: [userID], name: "UserAudits")
+  auditRecords   AuditRecord[]
+
+  @@map("audits")
+}
+
+model AuditRecord {
+  auditRecordID  Int       @id @default(autoincrement())
+  auditID        Int
+  chemicalID     Int
+  status         String   
+  notes          String?   
+  auditDate      DateTime  @default(now())
+  lastAuditDate  DateTime? 
+  locationID     Int
+
+  location       Location  @relation(fields: [locationID], references: [locationID])
+  audit          Audit     @relation(fields: [auditID], references: [auditID])
+  chemical       Chemical  @relation(fields: [chemicalID], references: [chemicalID])
+
+  @@map("audit_records")
+}
