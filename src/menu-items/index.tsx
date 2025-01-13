@@ -1,6 +1,9 @@
 // menu import
-import samplePage from './sample-page';
-import pages from './pages';
+import auditPage from './audit';
+import inventoryPage from './inventory';
+import locationPage from './location';
+import userPage from './user';
+import logsPage from './log';
 
 // types
 import { NavItemType } from 'types';
@@ -8,7 +11,7 @@ import { NavItemType } from 'types';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems: { items: NavItemType[] } = {
-  items: [samplePage, pages]
+  items: [inventoryPage, locationPage, userPage, logsPage, auditPage]
 };
 
 export default menuItems;
