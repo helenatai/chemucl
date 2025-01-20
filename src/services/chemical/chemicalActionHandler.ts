@@ -1,31 +1,40 @@
 'use server';
 
-import { z } from 'zod'; // For validation
-import { db } from 'db'; // Import the Prisma client
+import { z } from 'zod';
+import { db } from 'db';
+import { ChemicalActionResponse } from 'types/chemical';
 
-
-// Define the schema for the "find" action
 const findChemicalsSchema = z.object({
-  chemicalName: z.string().optional(), // Optional search term
-  page: z.number().min(1).default(1), // Page number, default is 1
-  rowsPerPage: z.number().min(1).default(10), // Number of rows per page, default is 10
+  chemicalName: z.string().optional(),
+  page: z.number().min(1).default(1),
+  rowsPerPage: z.number().min(1).default(10),
 });
 
-// Fetch and process chemicals
-export async function validateAndProcessChemical(action: string, params: any) {
-    if (action !== 'find') {
-      return { error: 'Invalid action type. Supported action: "find"', chemicals: [] };
-    }
-  
+const addChemicalSchema = z.object({
+  chemicalName: z.string(),
+  casNumber: z.string().nullable().optional(),
+  qrID: z.string().nullable().optional(),
+  restrictionStatus: z.boolean(),
+  locationID: z.number(),
+  chemicalType: z.string(),
+  researchGroupID: z.number().nullable().optional(),
+  activeStatus: z.boolean().default(true),
+  supplier: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  quartzyNumber: z.string().nullable().optional(),
+  quantity: z.number().min(1),
+});
+
+export async function validateAndProcessChemical(action: string, params: any): Promise<ChemicalActionResponse> {
+  if (action === 'find') {
     const validation = findChemicalsSchema.safeParse(params);
     if (!validation.success) {
       return { error: validation.error.flatten(), chemicals: [] };
     }
-  
+
     const { chemicalName, page, rowsPerPage } = validation.data;
-  
+
     try {
-      console.log('Query Params:', { chemicalName, page, rowsPerPage });
       const chemicals = await db.chemical.findMany({
         where: chemicalName
           ? {
@@ -42,7 +51,7 @@ export async function validateAndProcessChemical(action: string, params: any) {
           researchGroup: true,
         },
       });
-  
+
       const totalCount = await db.chemical.count({
         where: chemicalName
           ? {
@@ -53,13 +62,44 @@ export async function validateAndProcessChemical(action: string, params: any) {
             }
           : undefined,
       });
-      
-      console.log('Fetched Chemicals from DB:', chemicals);
-      
-      return { chemicals, totalCount };
+
+      return { chemicals: chemicals || [], totalCount };
     } catch (error) {
       console.error('Error fetching chemicals:', error);
       return { error: 'An error occurred while fetching chemicals.', chemicals: [] };
     }
+  } else if (action === 'add') {
+    const validation = addChemicalSchema.safeParse(params);
+    if (!validation.success) {
+      return { error: validation.error.flatten(), chemicals: [] };
+    }
+
+    const validatedData = validation.data;
+
+    try {
+      const newChemical = await db.chemical.create({
+        data: {
+          chemicalName: validatedData.chemicalName,
+          casNumber: validatedData.casNumber! ?? null,
+          qrID: validatedData.qrID ?? null,
+          restrictionStatus: validatedData.restrictionStatus,
+          locationID: validatedData.locationID,
+          chemicalType: validatedData.chemicalType,
+          researchGroupID: validatedData.researchGroupID ?? null,
+          activeStatus: validatedData.activeStatus,
+          supplier: validatedData.supplier ?? null,
+          description: validatedData.description ?? null,
+          quartzyNumber: validatedData.quartzyNumber ?? null,
+          quantity: validatedData.quantity,
+        },
+      });
+
+    return { message: 'Chemical added successfully.', chemicals: [newChemical] };
+    } catch (error) {
+        console.error('Error adding chemical:', error);
+        return { error: 'An error occurred while adding the chemical.', chemicals: [] };
+    }
+  } else {
+    return { error: 'Invalid action type. Supported actions: "find", "add".', chemicals: [] };
   }
-  
+}

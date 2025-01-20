@@ -192,6 +192,9 @@
 import React, { useEffect, useState } from 'react';
 import { ChemicalWithRelations } from 'types/chemical';
 import { validateAndProcessChemical } from 'services/chemical/chemicalActionHandler';
+import AddFormModal from 'sections/AddFormModal';
+import ChemForm from 'sections/forms/ChemForm';
+import { addChemicalAction } from 'services/chemical/form-actions/addChemical';
 
 // Material UI Imports
 import Table from '@mui/material/Table';
@@ -226,6 +229,7 @@ const InventoryPage = () => {
   const [search, setSearch] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch chemicals from the database
   useEffect(() => {
@@ -280,6 +284,27 @@ const InventoryPage = () => {
     setPage(0);
   };
 
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+     setIsModalOpen(false);
+   };
+
+  
+  const handleSubmitForm = async (formData: FormData) => {
+    const result = await addChemicalAction(formData);
+
+    if (!result.error) {
+      alert('Chemical added successfully!');
+      setIsModalOpen(false);
+      // You might want to refresh the chemicals list here
+    } else {
+      alert(`Error: ${result.error}`);
+    }
+  };
+
   return (
     <MainCard>
       <CardContent>
@@ -324,7 +349,7 @@ const InventoryPage = () => {
              <Fab
                 color="primary"
                 size="small"
-                //onClick={handleClickOpenDialog}
+                onClick={handleOpenModal}
                 sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
               >
                 <AddIcon /> {/* Add Item Icon */}
@@ -333,9 +358,6 @@ const InventoryPage = () => {
            </Grid>
         </Grid>
       </CardContent>
-
-
-
       <TableContainer>
         <Table>
           <TableHead>
@@ -396,6 +418,10 @@ const InventoryPage = () => {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+
+      <AddFormModal open={isModalOpen} onClose={handleCloseModal} title="Add Chemical">
+        <ChemForm onSubmit={handleSubmitForm} onCancel={handleCloseModal} />
+      </AddFormModal>
     </MainCard>
   );
 };

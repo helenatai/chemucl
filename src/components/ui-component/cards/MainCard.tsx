@@ -25,7 +25,7 @@ const headerSX = {
 export interface MainCardProps extends KeyedObject {
   border?: boolean;
   boxShadow?: boolean;
-  children: React.ReactNode | string;
+  children?: React.ReactNode | string;
   style?: React.CSSProperties;
   content?: boolean;
   className?: string;
