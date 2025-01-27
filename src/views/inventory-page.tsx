@@ -195,6 +195,7 @@ import { validateAndProcessChemical } from 'services/chemical/chemicalActionHand
 import AddFormModal from 'sections/AddFormModal';
 import ChemForm from 'sections/forms/ChemForm';
 import { addChemicalAction } from 'services/chemical/form-actions/addChemical';
+import QrCodeModal from 'components/modals/QrCodeModal';
 
 // Material UI Imports
 import Table from '@mui/material/Table';
@@ -216,12 +217,13 @@ import Fab from '@mui/material/Fab';
 
 // assets
 import FilterListIcon from '@mui/icons-material/FilterList';
-import ViewColumnTwoToneIcon from '@mui/icons-material/ViewColumnTwoTone';
-import GetAppTwoToneIcon from '@mui/icons-material/GetAppTwoTone';
+import ViewColumnTwoToneIcon from '@mui/icons-material/ViewColumnOutlined';
+import GetAppTwoToneIcon from '@mui/icons-material/GetAppOutlined';
 import IosShareIcon from '@mui/icons-material/IosShare';
-import VisibilityTwoToneIcon from '@mui/icons-material/VisibilityTwoTone';
+import VisibilityTwoToneIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/AddTwoTone';
+import InfoIcon from '@mui/icons-material/InfoOutlined';
 
 const InventoryPage = () => {
   const [chemicals, setChemicals] = useState<ChemicalWithRelations[]>([]); // Full list of chemicals
@@ -229,7 +231,9 @@ const InventoryPage = () => {
   const [search, setSearch] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
+  const [selectedQrID, setSelectedQrID] = useState<string | null>(null);
 
   // Fetch chemicals from the database
   useEffect(() => {
@@ -284,25 +288,37 @@ const InventoryPage = () => {
     setPage(0);
   };
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
+  const handleOpenAddModal = () => {
+    setIsAddModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-     setIsModalOpen(false);
+  const handleCloseAddModal = () => {
+     setIsAddModalOpen(false);
    };
-
   
   const handleSubmitForm = async (formData: FormData) => {
     const result = await addChemicalAction(formData);
 
     if (!result.error) {
       alert('Chemical added successfully!');
-      setIsModalOpen(false);
-      // You might want to refresh the chemicals list here
+      setIsAddModalOpen(false);
     } else {
       alert(`Error: ${result.error}`);
     }
+  };
+
+  const handleQRCodeModalOpen = (qrID: string | null| undefined) => {
+    if (qrID) {
+      setSelectedQrID(qrID);
+      setIsQrCodeModalOpen(true);
+    } else {
+      console.error('Invalid QR ID: QR ID is null or undefined.');
+    }
+  };
+  
+  const handleQRCodeModalClose = () => {
+    setIsQrCodeModalOpen(false);
+    setSelectedQrID(null);
   };
 
   return (
@@ -349,7 +365,7 @@ const InventoryPage = () => {
              <Fab
                 color="primary"
                 size="small"
-                onClick={handleOpenModal}
+                onClick={handleOpenAddModal}
                 sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
               >
                 <AddIcon /> {/* Add Item Icon */}
@@ -383,7 +399,15 @@ const InventoryPage = () => {
                 <TableCell padding="checkbox">
                   <Checkbox color="primary" />
                 </TableCell>
-                <TableCell>{chemical.qrID}</TableCell>
+                <TableCell>
+                  {chemical.qrID}
+                  <IconButton
+                    onClick={() => handleQRCodeModalOpen(chemical.qrID)}
+                    title="View QR Code"
+                    >   
+                    <InfoIcon sx={{fontSize: '16px'}}/> {/* QR Info Icon */}
+                  </IconButton>
+                  </TableCell>
                 <TableCell>{chemical.chemicalName}</TableCell>
                 <TableCell>{chemical.supplier}</TableCell>
                 <TableCell>{chemical.quantity}</TableCell>
@@ -419,9 +443,16 @@ const InventoryPage = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
 
-      <AddFormModal open={isModalOpen} onClose={handleCloseModal} title="Add Chemical">
-        <ChemForm onSubmit={handleSubmitForm} onCancel={handleCloseModal} />
+      <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Add Chemical">
+        <ChemForm onSubmit={handleSubmitForm} onCancel={handleCloseAddModal} />
       </AddFormModal>
+
+      <QrCodeModal
+        open={isQrCodeModalOpen}
+        qrID={selectedQrID || ''}
+        onClose={handleQRCodeModalClose}
+      />
+
     </MainCard>
   );
 };
