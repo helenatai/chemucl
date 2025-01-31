@@ -6,18 +6,16 @@ import {
   Button,
   TextField,
   Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   SelectChangeEvent,
   DialogContent,
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 
 import { validateAndProcessResearchGroup } from 'services/research-group/researchGroupActionHandler';
 import { validateAndProcessLocation } from 'services/location/locationActionHandler';
 
 interface ChemFormProps {
+  open: boolean;
   onSubmit: (formData: FormData) => void;
   onCancel: () => void;
 }
@@ -25,6 +23,12 @@ interface ChemFormProps {
 interface Owner {
   researchGroupID: number;
   groupName: string;
+}
+
+interface Location {
+  locationID: number;
+  building: string;
+  room: string;
 }
 
 const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
@@ -35,9 +39,9 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
     chemicalName: '',
     quartzyNumber: '',
     supplier: '',
-    owner: '',
+    owner: null as Owner | null,
     chemicalType: '',
-    location: '',
+    location: null as Location | null,
     building: '',
     room: '',
     subLocation1: '',
@@ -156,7 +160,12 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-  
+    
+    if (!formValues.owner) {
+      alert("Please select an owner.");
+      return;
+    }
+
     if (!formValues.location) {
       alert('Please select a location.');
       return;
@@ -167,8 +176,8 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
       formData.append(key, value ? value.toString() : '');
     });
 
-    formData.append('researchGroupID', formValues.owner)
-    formData.append('locationID', formValues.location); 
+    formData.append('researchGroupID', formValues.owner.researchGroupID.toString());
+    formData.append('locationID', formValues.location.locationID.toString()); 
   
   
     onSubmit(formData);
@@ -176,7 +185,12 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
 
 return (
   <form onSubmit={handleSubmit}>
-      <DialogContent>
+      <DialogContent
+        sx={{
+          maxHeight: '500px', // Set fixed height for the modal content
+          overflowY: 'auto', // Enable vertical scrolling
+        }}
+      >
         <Grid container spacing={1}>
           <Grid item xs={6}>
             <TextField
@@ -264,81 +278,58 @@ return (
         </Grid>
         <Grid container spacing={1}>
           <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Select Owner</InputLabel>
-              <Select
-                autoFocus
-                fullWidth
-                margin="dense"
-                name="owner"
+            <Autocomplete
+                options={owners}
+                getOptionLabel={(option) => option.groupName}
                 value={formValues.owner}
-                onChange={handleChange}
-                required
-                sx={{ marginBottom: 1.5}}
-              >
-                {owners.map((owner) => (
-                  <MenuItem
-                    key={owner.researchGroupID}
-                    value={owner.researchGroupID}
-                  >
-                    {owner.groupName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Chemical Type</InputLabel>
-              <Select
-                name="chemicalType"
-                value={formValues.chemicalType}
-                onChange={handleChange}
-                required
-                sx={{ marginBottom: 0.5}}
-              >
-                {[
-                  'Chemical',
-                  'Poisons',
-                  'Explosives',
-                  'Chemical Weapon',
-                  'Pyrophorics',
-                  'Drug Precursor',
-                  'Other',
-                ].map((type) => (
-                  <MenuItem key={type} value={type}>
-                    {type}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Select Existing Location</InputLabel>
-              <Select
-                name="location"
-                value={formValues.location}
-                onChange={(e) => {
-                  const selectedLocation = locations.find(
-                    (loc) => loc.locationID === parseInt(e.target.value)
-                  );
+                onChange={(event, newValue) =>
                   setFormValues((prev) => ({
                     ...prev,
-                    location: e.target.value, // Store location ID
-                    building: selectedLocation?.building || '',
-                    room: selectedLocation?.room || '',
-                  }));
-                }}
-                required
-              >
-                {locations.map((loc) => (
-                  <MenuItem key={loc.locationID} value={loc.locationID.toString()}>
-                    {`${loc.building} | ${loc.room}`}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                    owner: newValue,
+                  }))
+                }
+                renderInput={(params) => <TextField {...params} label="Select Owner" required />}
+                sx={{ marginBottom: 1.5 }}
+              />
+            </Grid>
+          <Grid item xs={12}>
+          <Autocomplete
+            options={[
+              'Chemical',
+              'Poisons',
+              'Explosives',
+              'Chemical Weapon',
+              'Pyrophorics',
+              'Drug Precursor',
+              'Other'
+            ]}
+            value={formValues.chemicalType || null}
+            onChange={(event, newValue) =>
+              setFormValues((prev) => ({
+                ...prev,
+                chemicalType: newValue || '', // Ensures proper type assignment
+              }))
+            }
+            renderInput={(params) => <TextField {...params} label="Select Chemical Type" required />}
+            sx={{ marginBottom: 1.5 }}
+          />
+          </Grid>
+          <Grid item xs={12}>
+            <Autocomplete
+                options={locations}
+                getOptionLabel={(option) => `${option.building} | ${option.room}`}
+                value={formValues.location} 
+                onChange={(event, newValue) =>
+                  setFormValues((prev) => ({
+                    ...prev,
+                    location: newValue, 
+                    building: newValue?.building || '',
+                    room: newValue?.room || '',
+                  }))
+                }
+                renderInput={(params) => <TextField {...params} label="Select Existing Location" required />}
+                sx={{ marginBottom: 0.5 }}
+              />
           </Grid>
           <Grid item xs={6}>
             <TextField

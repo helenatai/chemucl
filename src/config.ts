@@ -8,7 +8,7 @@ import { ConfigProps, MenuOrientation, ThemeDirection, ThemeMode } from 'types/c
 // like '/berry-material-react/react/default'
 export const BASE_PATH = '';
 
-export const DASHBOARD_PATH = '/sample-page';
+export const DASHBOARD_PATH = '/inventory-page';
 export const HORIZONTAL_MAX_ITEM = 7;
 
 const roboto = Roboto({ subsets: ['latin'], weight: ['300', '400', '500', '700'] });

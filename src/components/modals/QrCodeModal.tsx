@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Modal, IconButton, Typography, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import MainCard from 'ui-component/cards/MainCard';
 import QRCode from 'qrcode';
+import { getChemicalByQrCode } from 'services/qr-code/qrCodeActionHandler';
 
 interface QrCodeModalProps {
   open: boolean;
@@ -12,9 +13,30 @@ interface QrCodeModalProps {
 
 const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [chemical, setChemical] = useState<{ chemicalName: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open && qrID) {
+      const fetchChemical = async () => {
+        try {
+          const result = await getChemicalByQrCode(qrID);
+          
+          if ('error' in result) { 
+            console.error('Error fetching chemical:', result.error);
+            setError(result.error);
+          } else {
+            setChemical(result);
+            setError(null);
+          }
+        } catch (err) {
+          console.error('Unexpected error fetching chemical:', err);
+          setError('Unexpected error fetching chemical.');
+        }
+      };
+
+      fetchChemical();
+
       const timeout = setTimeout(() => {
         const canvas = canvasRef.current;
         if (canvas) {
@@ -29,10 +51,8 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose }) => {
           }).catch((err) => {
             console.error('Failed to render QR Code:', err);
           });
-        } else {
-          console.error('Canvas element not found.');
         }
-      }, 100); // Slight delay
+      }, 100);
 
       return () => clearTimeout(timeout);
     }
@@ -65,7 +85,7 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose }) => {
         }}
       >
         <MainCard
-          title="QR Code"
+          title={error ? "Error" : chemical ? chemical.chemicalName : 'Loading...'}
           secondary={
             <IconButton onClick={onClose}>
               <CloseIcon />
@@ -75,11 +95,7 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose }) => {
           <Box sx={{ textAlign: 'center', mt: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
               <canvas
-                ref={canvasRef}
-                style={{
-                  width: '200px',
-                  height: '200px',
-                }}
+                ref={canvasRef} style={{width: '200px', height: '200px'}}
               ></canvas>
             </Box>
             <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>

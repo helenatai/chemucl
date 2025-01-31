@@ -89,7 +89,7 @@ model Chemical {
   lastAudit         DateTime?
   quartzyNumber     String?
   qrID              String?        @unique
-  qrCode            QrCode?
+  qrCode            QrCode?        @relation(fields: [qrID], references: [qrID])
   quantity          Int            @default(1)
   dateAdded         DateTime       @default(now())
   dateUpdated       DateTime       @updatedAt
@@ -112,7 +112,7 @@ enum QrCodeType {
 }
 
 model QrCode {
-  qrID       String     @id @default(cuid()) 
+  qrID       String     @id 
   type       QrCodeType
   location   Location?   @relation(fields: [locationID], references: [locationID])
   chemical   Chemical?  @relation(fields: [chemicalID], references: [chemicalID])
@@ -129,7 +129,7 @@ model Location {
   subLocation3 String?     
   subLocation4 String?     
   qrID         String?    @unique
-  qrCode       QrCode?
+  qrCode       QrCode?    @relation(fields: [qrID], references: [qrID])
   chemicals    Chemical[] 
   audits       Audit[]
   auditRecords AuditRecord[] 
