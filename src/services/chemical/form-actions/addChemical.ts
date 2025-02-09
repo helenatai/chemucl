@@ -36,6 +36,10 @@ export async function addChemicalAction(formData: FormData) {
     description: formData.get('description') as string,
     quartzyNumber: formData.get('quartzyNumber') as string,
     quantity: parseInt(formData.get('quantity') as string, 10),
+    subLocation1: formData.get('subLocation1') as string,
+    subLocation2: formData.get('subLocation2') as string,
+    subLocation3: formData.get('subLocation3') as string,
+    subLocation4: formData.get('subLocation4') as string,
   };
 
   const chemicalResult = await validateAndProcessChemical('add', params);

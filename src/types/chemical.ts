@@ -8,10 +8,6 @@ export interface ChemicalWithRelations {
     locationID: number;
     building: string;
     room: string;
-    subLocation1?: string | null;
-    subLocation2?: string | null;
-    subLocation3?: string | null;
-    subLocation4?: string | null;
   } | null;
   chemicalType: string;
   researchGroup?: {
@@ -25,6 +21,10 @@ export interface ChemicalWithRelations {
   quantity: number;
   dateAdded?: Date | null;
   dateUpdated?: Date | null;
+  subLocation1?: string | null;
+  subLocation2?: string | null;
+  subLocation3?: string | null;
+  subLocation4?: string | null;
 }
 
 export interface ChemicalActionResponse {

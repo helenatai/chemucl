@@ -246,7 +246,7 @@ const InventoryPage = () => {
 
       if (!result.error) {
         setChemicals(result.chemicals);
-        setFilteredChemicals(result.chemicals); // Set the initial filtered list
+        setFilteredChemicals(result.chemicals); 
       } else {
         console.error('Error fetching chemicals:', result.error);
       }
@@ -262,11 +262,7 @@ const InventoryPage = () => {
 
     const filtered = chemicals.filter((chemical) => {
       const location = chemical.location
-        ? `${chemical.location.building} ${chemical.location.room} ${
-            chemical.location.subLocation1 || ''
-          } ${chemical.location.subLocation2 || ''} ${
-            chemical.location.subLocation3 || ''
-          } ${chemical.location.subLocation4 || ''}`.toLowerCase()
+        ? `${chemical.location.building} ${chemical.location.room}`.toLowerCase()
         : '';
 
       return (

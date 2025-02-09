@@ -23,6 +23,10 @@ const addChemicalSchema = z.object({
   description: z.string().nullable().optional(),
   quartzyNumber: z.string().nullable().optional(),
   quantity: z.number().min(1),
+  subLocation1: z.string().nullable().optional(),
+  subLocation2: z.string().nullable().optional(),
+  subLocation3: z.string().nullable().optional(),
+  subLocation4: z.string().nullable().optional(),
 });
 
 export async function validateAndProcessChemical(action: string, params: any): Promise<ChemicalActionResponse> {
@@ -91,6 +95,10 @@ export async function validateAndProcessChemical(action: string, params: any): P
           description: validatedData.description ?? null,
           quartzyNumber: validatedData.quartzyNumber ?? null,
           quantity: validatedData.quantity,
+          subLocation1: validatedData.subLocation1 ?? null,
+          subLocation2: validatedData.subLocation2 ?? null,
+          subLocation3: validatedData.subLocation3 ?? null,
+          subLocation4: validatedData.subLocation4 ?? null,
         },
       });
 

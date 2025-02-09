@@ -1,21 +1,14 @@
 -- CreateEnum
 CREATE TYPE "QrCodeType" AS ENUM ('CHEMICAL', 'LOCATION');
 
--- CreateTable
-CREATE TABLE "User" (
-    "userID" SERIAL NOT NULL,
-    "email" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "activeStatus" BOOLEAN NOT NULL DEFAULT true,
-    "researchGroupID" INTEGER,
-    "permission" TEXT NOT NULL DEFAULT 'Research Student',
-    "registrationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "password" TEXT,
-    "emailVerified" TIMESTAMP(3),
-    "image" TEXT,
-
-    CONSTRAINT "User_pkey" PRIMARY KEY ("userID")
-);
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "activeStatus" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "emailVerified" TIMESTAMP(3),
+ADD COLUMN     "image" TEXT,
+ADD COLUMN     "password" TEXT,
+ADD COLUMN     "permission" TEXT NOT NULL DEFAULT 'Research Student',
+ADD COLUMN     "registrationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "researchGroupID" INTEGER;
 
 -- CreateTable
 CREATE TABLE "Account" (
@@ -71,6 +64,10 @@ CREATE TABLE "chemicals" (
     "quantity" INTEGER NOT NULL DEFAULT 1,
     "dateAdded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "dateUpdated" TIMESTAMP(3) NOT NULL,
+    "subLocation1" TEXT,
+    "subLocation2" TEXT,
+    "subLocation3" TEXT,
+    "subLocation4" TEXT,
 
     CONSTRAINT "chemicals_pkey" PRIMARY KEY ("chemicalID")
 );
@@ -98,10 +95,6 @@ CREATE TABLE "locations" (
     "locationID" SERIAL NOT NULL,
     "building" TEXT NOT NULL,
     "room" TEXT NOT NULL,
-    "subLocation1" TEXT,
-    "subLocation2" TEXT,
-    "subLocation3" TEXT,
-    "subLocation4" TEXT,
     "qrID" TEXT,
 
     CONSTRAINT "locations_pkey" PRIMARY KEY ("locationID")
@@ -158,12 +151,10 @@ CREATE TABLE "audit_records" (
     "auditDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastAuditDate" TIMESTAMP(3),
     "locationID" INTEGER NOT NULL,
+    "people" TEXT NOT NULL,
 
     CONSTRAINT "audit_records_pkey" PRIMARY KEY ("auditRecordID")
 );
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
@@ -208,31 +199,31 @@ ALTER TABLE "chemicals" ADD CONSTRAINT "chemicals_locationID_fkey" FOREIGN KEY (
 ALTER TABLE "chemicals" ADD CONSTRAINT "chemicals_researchGroupID_fkey" FOREIGN KEY ("researchGroupID") REFERENCES "ResearchGroup"("researchGroupID") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "QrCode" ADD CONSTRAINT "QrCode_locationID_fkey" FOREIGN KEY ("locationID") REFERENCES "locations"("locationID") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "QrCode" ADD CONSTRAINT "QrCode_chemicalID_fkey" FOREIGN KEY ("chemicalID") REFERENCES "chemicals"("chemicalID") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "logs" ADD CONSTRAINT "logs_userID_fkey" FOREIGN KEY ("userID") REFERENCES "User"("userID") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "QrCode" ADD CONSTRAINT "QrCode_locationID_fkey" FOREIGN KEY ("locationID") REFERENCES "locations"("locationID") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "logs" ADD CONSTRAINT "logs_chemicalID_fkey" FOREIGN KEY ("chemicalID") REFERENCES "chemicals"("chemicalID") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "audit_general" ADD CONSTRAINT "audit_general_auditorID_fkey" FOREIGN KEY ("auditorID") REFERENCES "User"("userID") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "logs" ADD CONSTRAINT "logs_userID_fkey" FOREIGN KEY ("userID") REFERENCES "User"("userID") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "audits" ADD CONSTRAINT "audits_locationID_fkey" FOREIGN KEY ("locationID") REFERENCES "locations"("locationID") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "audit_general" ADD CONSTRAINT "audit_general_auditorID_fkey" FOREIGN KEY ("auditorID") REFERENCES "User"("userID") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "audits" ADD CONSTRAINT "audits_auditorID_fkey" FOREIGN KEY ("auditorID") REFERENCES "User"("userID") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "audit_records" ADD CONSTRAINT "audit_records_locationID_fkey" FOREIGN KEY ("locationID") REFERENCES "locations"("locationID") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "audits" ADD CONSTRAINT "audits_locationID_fkey" FOREIGN KEY ("locationID") REFERENCES "locations"("locationID") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "audit_records" ADD CONSTRAINT "audit_records_auditID_fkey" FOREIGN KEY ("auditID") REFERENCES "audits"("auditID") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "audit_records" ADD CONSTRAINT "audit_records_chemicalID_fkey" FOREIGN KEY ("chemicalID") REFERENCES "chemicals"("chemicalID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "audit_records" ADD CONSTRAINT "audit_records_locationID_fkey" FOREIGN KEY ("locationID") REFERENCES "locations"("locationID") ON DELETE RESTRICT ON UPDATE CASCADE;

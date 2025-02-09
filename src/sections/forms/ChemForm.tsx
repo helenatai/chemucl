@@ -178,7 +178,10 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
 
     formData.append('researchGroupID', formValues.owner.researchGroupID.toString());
     formData.append('locationID', formValues.location.locationID.toString()); 
-  
+    formData.append('subLocation1', formValues.subLocation1 || '');
+    formData.append('subLocation2', formValues.subLocation2 || '');
+    formData.append('subLocation3', formValues.subLocation3 || '');
+    formData.append('subLocation4', formValues.subLocation4 || '');
   
     onSubmit(formData);
   };
