@@ -64,5 +64,5 @@ export async function addChemicalAction(formData: FormData) {
     return { error: 'Chemical added, but QR Code could not be stored.' };
   }
 
-return { message: 'Chemical added successfully', chemicals: [chemical], qrCode: qrCodeResult.qrCode };
+return { success: true, message: 'Chemical added successfully', chemicals: [chemical], qrCode: qrCodeResult.qrCode };
 }

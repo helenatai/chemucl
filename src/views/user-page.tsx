@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import MainCard from 'ui-component/cards/MainCard';
 
 const UserPage = () => (
-  <MainCard title="User">
+  <MainCard title="User2">
     <Typography variant="body2">
       This is the user page.
     </Typography>

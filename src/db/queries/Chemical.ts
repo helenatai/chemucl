@@ -133,22 +133,46 @@ export const addChemical = async (params: AddChemicalParams) => {
 
 interface UpdateChemicalParams extends Partial<AddChemicalParams> {
   chemicalID: number;
+  chemicalName: string;
+  casNumber?: string;
+  chemicalType: string;
+  restrictionStatus: boolean;
+  supplier?: string;
+  description?: string;
+  quantity: number;
+  subLocation1?: string;
+  subLocation2?: string;
+  subLocation3?: string;
+  subLocation4?: string;
+  locationID?: number;
 }
 
 export const updateChemical = async (params: UpdateChemicalParams) => {
-  const { chemicalID, ...updateFields } = params;
+  console.log("Updating Chemical in Database with:", params);
+  try {
+    const updatedChemical = await db.chemical.update({
+      where: { chemicalID: params.chemicalID },
+      data: {
+        chemicalName: params.chemicalName,
+        casNumber: params.casNumber ?? undefined,
+        chemicalType: params.chemicalType,
+        restrictionStatus: params.restrictionStatus,
+        supplier: params.supplier ?? null,
+        description: params.description ?? null,
+        quantity: params.quantity,
+        subLocation1: params.subLocation1 ?? null,
+        subLocation2: params.subLocation2 ?? null,
+        subLocation3: params.subLocation3 ?? null,
+        subLocation4: params.subLocation4 ?? null,
+        locationID: params.locationID ?? null,
+      },
+    });
 
-  const data: Record<string, any> = {};
-  Object.entries(updateFields).forEach(([key, value]) => {
-    if (value !== undefined) {
-      data[key] = value;
-    }
-  });
-
-  return await db.chemical.update({
-    where: { chemicalID },
-    data,
-  });
+    return updatedChemical;
+  } catch (error) {
+    console.error('Error updating chemical:', error);
+    return null;
+  }
 };
 
 export const deleteChemical = async (chemicalID: number) => {
