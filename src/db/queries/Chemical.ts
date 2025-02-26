@@ -148,7 +148,6 @@ interface UpdateChemicalParams extends Partial<AddChemicalParams> {
 }
 
 export const updateChemical = async (params: UpdateChemicalParams) => {
-  console.log("Updating Chemical in Database with:", params);
   try {
     const updatedChemical = await db.chemical.update({
       where: { chemicalID: params.chemicalID },

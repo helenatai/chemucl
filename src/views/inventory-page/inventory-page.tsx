@@ -37,6 +37,7 @@ import VisibilityTwoToneIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/AddTwoTone';
 import InfoIcon from '@mui/icons-material/InfoOutlined';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 
 const InventoryPage = () => {
   const [chemicals, setChemicals] = useState<ChemicalWithRelations[]>([]); // Full list of chemicals
@@ -48,6 +49,8 @@ const InventoryPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [selectedQrID, setSelectedQrID] = useState<string | null>(null);
+  const [selectedChemicals, setSelectedChemicals] = useState<number[]>([]);
+
 
   // Fetch chemicals from the database
   useEffect(() => {
@@ -157,6 +160,27 @@ const InventoryPage = () => {
     setSelectedQrID(null);
   };
 
+  const handleDeleteSelected = async () => {
+    if (!confirm("Are you sure you want to delete the selected chemicals?")) return;
+  
+    try {
+      const result = await validateAndProcessChemical('delete', { chemicalIDs: selectedChemicals });
+  
+      if (!result.error) {
+        alert('Selected chemicals deleted successfully!');
+        setChemicals((prevChemicals) => prevChemicals.filter((chemical) => !selectedChemicals.includes(chemical.chemicalID)));
+        setFilteredChemicals((prevFiltered) => prevFiltered.filter((chemical) => !selectedChemicals.includes(chemical.chemicalID)));
+
+        setSelectedChemicals([]);
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting chemicals:', error);
+      alert('An error occurred while deleting chemicals.');
+    }
+  };
+  
   return (
     <MainCard>
       <CardContent>
@@ -177,6 +201,13 @@ const InventoryPage = () => {
             />
           </Grid>
           <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
+              {selectedChemicals.length > 0 && (
+                <Tooltip title="Delete Selected">
+                  <IconButton onClick={handleDeleteSelected}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
              <Tooltip title ="Import Inventory">
                  <IconButton>
                      <GetAppTwoToneIcon /> {/* Import Icon */}
@@ -213,9 +244,20 @@ const InventoryPage = () => {
       <TableContainer>
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox color="primary" />
+          <TableRow>
+            <TableCell padding="checkbox">
+              <Checkbox
+                color="primary"
+                indeterminate={selectedChemicals.length > 0 && selectedChemicals.length < filteredChemicals.length}
+                checked={selectedChemicals.length === filteredChemicals.length && filteredChemicals.length > 0}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedChemicals(filteredChemicals.map((chemical) => chemical.chemicalID));
+                  } else {
+                    setSelectedChemicals([]);
+                  }
+                }}
+              />
               </TableCell>
               <TableCell>QR ID</TableCell>
               <TableCell>Item Name</TableCell>
@@ -233,7 +275,17 @@ const InventoryPage = () => {
             {filteredChemicals.map((chemical) => (
               <TableRow key={chemical.chemicalID}>
                 <TableCell padding="checkbox">
-                  <Checkbox color="primary" />
+                  <Checkbox
+                    color="primary"
+                    checked={selectedChemicals.includes(chemical.chemicalID)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedChemicals([...selectedChemicals, chemical.chemicalID]);
+                      } else {
+                        setSelectedChemicals(selectedChemicals.filter(id => id !== chemical.chemicalID));
+                      }
+                    }}
+                  />
                 </TableCell>
                 <TableCell>
                   {chemical.qrID}

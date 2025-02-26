@@ -144,7 +144,7 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                     <TextField fullWidth 
                     label="Cas No." 
                     name="casNumber" 
-                    value={editedChemical.casNumber || 'N/A'} 
+                    value={editedChemical.casNumber} 
                     onChange={handleInputChange} 
                     InputProps={{ readOnly: !isEditing }} 
                     />
@@ -204,7 +204,7 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                     <TextField fullWidth label="Owner" value={chemical.researchGroup?.groupName || 'N/A'} InputProps={{ readOnly: !isEditing }} />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="Supplier" name="supplier" value={editedChemical.supplier || 'N/A'} onChange={handleInputChange} InputProps={{ readOnly: !isEditing }} />
+                    <TextField fullWidth label="Supplier" name="supplier" value={editedChemical.supplier} onChange={handleInputChange} InputProps={{ readOnly: !isEditing }} />
                   </Grid>
                 </Grid>
               </SubCard>
@@ -271,7 +271,7 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                       <TextField fullWidth 
                       label="Sublocation 1" 
                       name="subLocation1"
-                      value={editedChemical.subLocation1 || 'N/A'} 
+                      value={editedChemical.subLocation1} 
                       onChange={handleInputChange} 
                       InputProps={{ readOnly: !isEditing }} 
                       />
@@ -280,7 +280,7 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                       <TextField fullWidth 
                       label="Sublocation 2" 
                       name="subLocation2"
-                      value={editedChemical.subLocation2 || 'N/A'} 
+                      value={editedChemical.subLocation2} 
                       onChange={handleInputChange} 
                       InputProps={{ readOnly: !isEditing }}  
                       />
@@ -289,7 +289,7 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                       <TextField fullWidth 
                       label="Sublocation 3" 
                       name="subLocation3"
-                      value={editedChemical.subLocation3 || 'N/A'} 
+                      value={editedChemical.subLocation3} 
                       onChange={handleInputChange} 
                       InputProps={{ readOnly: !isEditing }}  
                       />
@@ -298,7 +298,7 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                       <TextField fullWidth 
                       label="Sublocation 4" 
                       name="subLocation4"
-                      value={editedChemical.subLocation4 || 'N/A'} 
+                      value={editedChemical.subLocation4} 
                       onChange={handleInputChange} 
                       InputProps={{ readOnly: !isEditing }} 
                       />

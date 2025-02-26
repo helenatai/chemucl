@@ -216,7 +216,6 @@ export async function validateAndProcessChemical(action: string, params: any): P
   } 
 
   else if (action === 'update') {
-    console.log("Validated Params Before Update:", params);
     
     const validation = updateChemicalSchema.safeParse(params);
     if (!validation.success) {
@@ -224,7 +223,6 @@ export async function validateAndProcessChemical(action: string, params: any): P
       return { error: validation.error.flatten(), chemicals: [] };
     }
 
-    console.log("Updating chemical in DB with data", params);
     try {
       const updatedChemical = await updateChemical(params);
 
@@ -236,6 +234,35 @@ export async function validateAndProcessChemical(action: string, params: any): P
     } catch (error) {
       console.error('Error updating chemical:', error);
       return { error: 'An error occurred while updating the chemical.', chemicals: [] };
+    }
+  }
+
+  else if (action === 'delete') {
+    if (!Array.isArray(params.chemicalIDs) || params.chemicalIDs.length === 0) {
+      return { error: 'Invalid request: No chemicals selected for deletion.', chemicals: [] };
+    }
+  
+    try {
+      // find and delete QR codes associated with selected chemicals
+      const qrIDs = await db.qrCode.findMany({
+        where: { chemicalID: { in: params.chemicalIDs } },
+        select: { qrID: true },
+      });
+
+      if (qrIDs.length > 0) {
+        await db.qrCode.deleteMany({
+          where: { qrID: { in: qrIDs.map(qr => qr.qrID) } },
+        });
+      }
+  
+      await db.chemical.deleteMany({
+        where: { chemicalID: { in: params.chemicalIDs } },
+      });
+  
+      return { message: 'Selected chemicals and their QR codes deleted successfully.', chemicals: [] };
+    } catch (error) {
+      console.error('Error deleting chemicals and QR codes:', error);
+      return { error: 'An error occurred while deleting chemicals and QR codes.', chemicals: [] };
     }
   }
 
