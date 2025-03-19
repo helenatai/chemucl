@@ -1,16 +1,12 @@
-import { db } from 'db'; 
-import ChemicalInformation from 'views/inventory-page/chemical-information';
 import { notFound } from 'next/navigation';
+import ChemicalInformation from 'views/inventory/chemical-information';
+import { findChemicalByQrID } from 'db/queries/Chemical';
 
 export default async function ChemicalInformationPage({ params }: { params: { qrID: string } }) {
-  const chemical = await db.chemical.findFirst({
-    where: { qrID: params.qrID },
-    include: {
-      location: true,
-      researchGroup: true,
-    },
-  });
+  const { qrID } = params;
 
+  const chemical = await findChemicalByQrID(qrID);
+  
   if (!chemical) {
     return notFound();
   }

@@ -1,74 +1,94 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
-const db = new PrismaClient();
+import { prisma } from 'db';
+import { ChemicalWithRelations } from 'types/chemical';
 
-interface FindChemicalParams {
-  chemicalID?: number;
-  casNumber?: string;
-  chemicalName?: string;
-  supplier?: string;
-  restrictionStatus?: boolean;
-  researchGroupID?: number;
-  activeStatus?: boolean;
-  locationID?: number;
-  chemicalType?: string;
-  restrictionDescription?: string;
-  lastAudit?: string;
-  quartzyNumber?: string;
-  page?: number;
-  rowsPerPage?: number;
-}
-
-export const findChemical = async (params: FindChemicalParams) => {
-  const {
-    chemicalID,
-    casNumber,
-    chemicalName,
-    supplier,
-    restrictionStatus,
-    researchGroupID,
-    activeStatus,
-    locationID,
-    chemicalType,
-    restrictionDescription,
-    lastAudit,
-    quartzyNumber,
-    page,
-    rowsPerPage,
-  } = params;
-
-  const whereClause: Record<string, any> = {};
-  if (chemicalID) whereClause.chemicalID = chemicalID;
-  if (casNumber) whereClause.casNumber = casNumber;
-  if (chemicalName) whereClause.chemicalName = { contains: chemicalName, mode: 'insensitive' };
-  if (supplier) whereClause.supplier = supplier;
-  if (restrictionStatus !== undefined) whereClause.restrictionStatus = restrictionStatus;
-  if (researchGroupID) whereClause.researchGroupID = researchGroupID;
-  if (activeStatus !== undefined) whereClause.activeStatus = activeStatus;
-  if (locationID) whereClause.locationID = locationID;
-  if (chemicalType) whereClause.chemicalType = chemicalType;
-  if (restrictionDescription) whereClause.restrictionDescription = restrictionDescription;
-  if (lastAudit) whereClause.lastAudit = lastAudit;
-  if (quartzyNumber) whereClause.quartzyNumber = quartzyNumber;
-
-  const skip = page !== undefined && rowsPerPage !== undefined ? page * rowsPerPage : undefined;
-  const take = rowsPerPage;
-
-  return await db.chemical.findMany({
-    where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-    skip,
-    take,
-    include: {
-      researchGroup: true,
-      location: true,
-      qrCode: true,
+export const findChemical = async () => {
+  const chemicals = await prisma.chemical.findMany({
+    select: {
+      chemicalID: true,
+      qrID: true,
+      chemicalName: true,
+      supplier: true,
+      quantity: true,
+      chemicalType: true,
+      restrictionStatus: true,
+      activeStatus: true,
+      location: {
+        select: {
+          locationID: true,
+          building: true,
+          room: true,
+        },
+      },
+      researchGroup: {
+        select: {
+          groupName: true,
+          researchGroupID: true,
+        },
+      },
+      dateAdded: true,
+      dateUpdated: true,
     },
   });
+
+  return chemicals.map((chem) => ({
+    ...chem,
+    qrID: chem.qrID || 'N/A', // Ensure QR ID is never null
+    location: chem.location || null,
+    researchGroup: chem.researchGroup || null,
+  }));
+};
+
+export const findChemicalByQrID = async (qrID: string): Promise<ChemicalWithRelations | null> => {
+  const chemical = await prisma.chemical.findFirst({
+    where: { qrID },
+    select: {
+      chemicalID: true,
+      qrID: true,
+      chemicalName: true,
+      casNumber: true,
+      supplier: true,
+      quantity: true,
+      chemicalType: true,
+      restrictionStatus: true,
+      activeStatus: true,
+      description: true,
+      location: {
+        select: {
+          locationID: true,
+          building: true,
+          room: true,
+          buildingName: true,
+        },
+      },
+      researchGroup: {
+        select: {
+          researchGroupID: true,
+          groupName: true,
+        },
+      },
+      dateAdded: true,
+      dateUpdated: true,
+      subLocation1: true,
+      subLocation2: true,
+      subLocation3: true,
+      subLocation4: true,
+    },
+  });
+
+  if (!chemical) return null;
+
+  return {
+    ...chemical,
+    qrID: chemical.qrID || 'N/A',
+    researchGroup: chemical.researchGroup || null,
+    location: chemical.location || null,
+  };
 };
 
 interface AddChemicalParams {
-  qrID?: string;
+  qrID: string;
   casNumber?: string;
   chemicalName: string;
   chemicalType: string;
@@ -81,10 +101,75 @@ interface AddChemicalParams {
   quartzyNumber?: string;
   quantity: number;
   activeStatus?: boolean;
-  restrictionDescription?: string;
+  subLocation1?: string;
+  subLocation2?: string;
+  subLocation3?: string;
+  subLocation4?: string;
 }
 
-export const addChemical = async (params: AddChemicalParams) => {
+// export const addChemical = async (params: AddChemicalParams) => {
+//   const {
+//     qrID,
+//     casNumber,
+//     chemicalName,
+//     chemicalType,
+//     restrictionStatus,
+//     locationID,
+//     researchGroupID,
+//     supplier,
+//     description,
+//     auditStatus,
+//     quartzyNumber,
+//     quantity,
+//     activeStatus,
+//     restrictionDescription,
+//     subLocation1,
+//     subLocation2,
+//     subLocation3,
+//     subLocation4
+//   } = params;
+
+//   const researchGroup = await db.researchGroup.findFirst({
+//     where: { researchGroupID },
+//   });
+
+//   if (!researchGroup) throw new Error(`Research group with ID '${researchGroupID}' does not exist.`);
+
+//   const data = {
+//     qrID: qrID, 
+//     casNumber: casNumber || '',
+//     chemicalName,
+//     chemicalType,
+//     restrictionStatus,
+//     supplier: supplier || null, 
+//     description: description || '', 
+//     auditStatus: auditStatus ?? null, 
+//     quartzyNumber: quartzyNumber || null, 
+//     quantity,
+//     activeStatus: activeStatus ?? true, 
+//     restrictionDescription: restrictionDescription || null, 
+//     researchGroup: { connect: { researchGroupID } },
+//     location: locationID ? { connect: { locationID } } : undefined,
+//     subLocation1: subLocation1 ?? null,
+//     subLocation2: subLocation2 ?? null,
+//     subLocation3: subLocation3 ?? null,
+//     subLocation4: subLocation4 ?? null,
+//   };
+
+//   // Pass the cleaned and typed data object to Prisma
+//   return await db.chemical.create({ 
+//     data: { ...data, auditStatus: auditStatus || undefined },
+//     include: {
+//       researchGroup: true,
+//       location: true,
+//       qrCode: true,
+//     },
+//   });
+// };
+
+export const addChemical = async (
+  params: AddChemicalParams
+): Promise<ChemicalWithRelations> => {
   const {
     qrID,
     casNumber,
@@ -99,42 +184,67 @@ export const addChemical = async (params: AddChemicalParams) => {
     quartzyNumber,
     quantity,
     activeStatus,
-    restrictionDescription,
+    subLocation1,
+    subLocation2,
+    subLocation3,
+    subLocation4,
   } = params;
 
-  const researchGroup = await db.researchGroup.findFirst({
+  const researchGroup = await prisma.researchGroup.findFirst({
     where: { researchGroupID },
   });
-
-  if (!researchGroup) throw new Error(`Research group with ID '${researchGroupID}' does not exist.`);
+  if (!researchGroup) {
+    throw new Error(`Research group with ID '${researchGroupID}' does not exist.`);
+  }
 
   const data = {
-    qrID: qrID || null, 
+    qrID: qrID, 
     casNumber: casNumber || '',
     chemicalName,
     chemicalType,
     restrictionStatus,
-    supplier: supplier || null, 
-    description: description || '', 
-    auditStatus: auditStatus ?? null, 
-    quartzyNumber: quartzyNumber || null, 
+    supplier: supplier || null,
+    description: description || '',
+    auditStatus: auditStatus ?? null,
+    quartzyNumber: quartzyNumber || null,
     quantity,
-    activeStatus: activeStatus ?? true, 
-    restrictionDescription: restrictionDescription || null, 
-    researchGroup: {
-      connect: { researchGroupID },
-    },
+    activeStatus: activeStatus ?? true,
+    researchGroup: { connect: { researchGroupID } },
     location: locationID ? { connect: { locationID } } : undefined,
+    subLocation1: subLocation1 ?? null,
+    subLocation2: subLocation2 ?? null,
+    subLocation3: subLocation3 ?? null,
+    subLocation4: subLocation4 ?? null,
   };
 
-  // Pass the cleaned and typed data object to Prisma
-  return await db.chemical.create({ data: { ...data, auditStatus: auditStatus || undefined } });
+  const newChemical = await prisma.chemical.create({
+    data: { ...data, auditStatus: auditStatus || undefined },
+    include: {
+      researchGroup: true,
+      location: true,
+      qrCode: true,
+    },
+  });
+
+  if (!newChemical.qrID) {
+    throw new Error("New chemical's qrID is null, which is not allowed.");
+  }
+  if (!newChemical.researchGroup) {
+    throw new Error("New chemical's researchGroup is null, which is not allowed.");
+  }
+
+  return {
+    ...newChemical,
+    qrID: newChemical.qrID,  
+    researchGroup: newChemical.researchGroup,
+  } as ChemicalWithRelations;
 };
 
 interface UpdateChemicalParams extends Partial<AddChemicalParams> {
   chemicalID: number;
   chemicalName: string;
   casNumber?: string;
+  qrID: string;
   chemicalType: string;
   restrictionStatus: boolean;
   supplier?: string;
@@ -145,11 +255,12 @@ interface UpdateChemicalParams extends Partial<AddChemicalParams> {
   subLocation3?: string;
   subLocation4?: string;
   locationID?: number;
+  researchGroupID: number;
 }
 
 export const updateChemical = async (params: UpdateChemicalParams) => {
   try {
-    const updatedChemical = await db.chemical.update({
+    const updatedChemical = await prisma.chemical.update({
       where: { chemicalID: params.chemicalID },
       data: {
         chemicalName: params.chemicalName,
@@ -164,10 +275,24 @@ export const updateChemical = async (params: UpdateChemicalParams) => {
         subLocation3: params.subLocation3 ?? null,
         subLocation4: params.subLocation4 ?? null,
         locationID: params.locationID ?? null,
+        researchGroupID: params.researchGroupID,
+      },
+      include: {
+        researchGroup: true, 
+        location: true,
+        qrCode: true,
       },
     });
+    // Ensure that required fields are non-null at runtime.
+    if (updatedChemical.qrID === null) {
+      throw new Error("Updated chemical's qrID is null, which is not allowed.");
+    }
+    if (updatedChemical.researchGroup === null) {
+      throw new Error("Updated chemical's researchGroup is null, which is not allowed.");
+    }
 
-    return updatedChemical;
+    // Now, cast the result to ChemicalWithRelations.
+    return updatedChemical as ChemicalWithRelations;
   } catch (error) {
     console.error('Error updating chemical:', error);
     return null;
@@ -175,8 +300,31 @@ export const updateChemical = async (params: UpdateChemicalParams) => {
 };
 
 export const deleteChemical = async (chemicalID: number) => {
-  await db.auditRecord.deleteMany({ where: { chemicalID } });
-  return await db.chemical.delete({ where: { chemicalID } });
+  try {
+    // Find the QR ID associated with this chemical
+    const chemical = await prisma.chemical.findUnique({
+      where: { chemicalID },
+      select: { qrID: true },
+    });
+
+    if (!chemical) {
+      throw new Error(`Chemical with ID ${chemicalID} not found.`);
+    }
+
+    // Delete the associated QR code if it exists
+    if (chemical.qrID) {
+      await prisma.qrCode.deleteMany({ where: { qrID: chemical.qrID } });
+    }
+
+    // Delete any associated audit records
+    await prisma.auditRecord.deleteMany({ where: { chemicalID } });
+
+    // Finally, delete the chemical itself
+    return await prisma.chemical.delete({ where: { chemicalID } });
+  } catch (error) {
+    console.error('Error deleting chemical and QR code:', error);
+    throw error;
+  }
 };
 
-export const countData = async () => await db.chemical.count();
+export const countData = async () => await prisma.chemical.count();

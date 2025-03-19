@@ -1,13 +1,12 @@
-// types/researchGroup.ts
+export interface ResearchGroupWithRelations {
+  researchGroupID: number;
+  groupName: string;
+  // Add any additional fields 
+}
+
 export type ResearchGroupActionResponse = {
-    researchGroups?: Array<{
-      researchGroupID: number;
-      groupName: string;
-    }>;
-    researchGroup?: {
-      researchGroupID: number;
-      groupName: string;
-    };
-    error?: string | object;
-  };
+  researchGroups?: ResearchGroupWithRelations[];
+  researchGroup?: ResearchGroupWithRelations;
+  error?: string | object;
+};
   

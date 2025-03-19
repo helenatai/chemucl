@@ -3,7 +3,7 @@ import { Box, Modal, IconButton, Typography, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import MainCard from 'ui-component/cards/MainCard';
 import QRCode from 'qrcode';
-import { getChemicalByQrCode } from 'services/qr-code/qrCodeActionHandler';
+import { getChemicalByQrCode } from 'actions/qr-code/qrCodeActionHandler';
 
 interface QrCodeModalProps {
   open: boolean;

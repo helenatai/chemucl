@@ -73,14 +73,14 @@ model Chemical {
   chemicalName      String
   locationID        Int?
   activeStatus      Boolean        @default(true)
-  researchGroupID   Int?
+  researchGroupID   Int
   supplier          String?
   description       String?
   chemicalType      String         @default("Chemical")
   auditStatus       Boolean        @default(false)
   lastAudit         DateTime?
   quartzyNumber     String?
-  qrID              String?        @unique
+  qrID              String        @unique
   quantity          Int            @default(1)
   dateAdded         DateTime       @default(now())
   dateUpdated       DateTime       @updatedAt
@@ -91,7 +91,7 @@ model Chemical {
   qrCode            QrCode?
   auditRecords      AuditRecord[]
   location          Location?      @relation(fields: [locationID], references: [locationID])
-  researchGroup     ResearchGroup? @relation(fields: [researchGroupID], references: [researchGroupID])
+  researchGroup     ResearchGroup @relation(fields: [researchGroupID], references: [researchGroupID])
   logs              Log[]
 
   @@map("chemicals")
@@ -116,8 +116,9 @@ model QrCode {
 model Location {
   locationID   Int           @id @default(autoincrement())
   building     String
+  buildingName String?
   room         String
-  qrID         String?       @unique
+  qrID         String       @unique
   qrCode       QrCode?
   auditRecords AuditRecord[]
   audits       Audit[]

@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { db } from 'db';
+import { prisma } from 'db';
 import { ResearchGroupActionResponse } from 'types/researchGroup';
 
 // Schema definitions
@@ -45,7 +45,7 @@ export async function validateAndProcessResearchGroup(
   try {
     switch (action) {
       case 'find': {
-        const researchGroups = await db.researchGroup.findMany({
+        const researchGroups = await prisma.researchGroup.findMany({
           where: validatedParams.groupName
             ? {
                 groupName: {
@@ -59,7 +59,7 @@ export async function validateAndProcessResearchGroup(
       }
 
       case 'add': {
-        const newResearchGroup = await db.researchGroup.create({
+        const newResearchGroup = await prisma.researchGroup.create({
             data: {
                 groupName: validatedParams.groupName || '', // Ensure groupName is always a string
             },
@@ -72,7 +72,7 @@ export async function validateAndProcessResearchGroup(
           return { error: 'researchGroupID is required for update.' };
         }
 
-        const updatedResearchGroup = await db.researchGroup.update({
+        const updatedResearchGroup = await prisma.researchGroup.update({
           where: { researchGroupID: validatedParams.researchGroupID },
           data: {
             groupName: validatedParams.groupName,
@@ -86,7 +86,7 @@ export async function validateAndProcessResearchGroup(
           return { error: 'researchGroupID is required for delete.' };
         }
 
-        const deletedResearchGroup = await db.researchGroup.delete({
+        const deletedResearchGroup = await prisma.researchGroup.delete({
           where: { researchGroupID: validatedParams.researchGroupID },
         });
         return { researchGroup: deletedResearchGroup };

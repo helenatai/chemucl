@@ -2,7 +2,7 @@ export interface ChemicalWithRelations {
   chemicalID: number;
   chemicalName: string;
   casNumber?: string | null;
-  qrID?: string | null;
+  qrID: string;
   restrictionStatus: boolean;
   location?: {
     locationID: number;
@@ -10,10 +10,10 @@ export interface ChemicalWithRelations {
     room: string;
   } | null;
   chemicalType: string;
-  researchGroup?: {
+  researchGroup: {
     researchGroupID: number;
     groupName: string;
-  } | null;
+  };
   activeStatus: boolean;
   supplier?: string | null;
   description?: string | null;
@@ -27,10 +27,11 @@ export interface ChemicalWithRelations {
   subLocation4?: string | null;
 }
 
-export interface ChemicalActionResponse {
+export type ChemicalActionResponse = {
   chemicals: ChemicalWithRelations[];
   totalCount?: number;
   error?: any;
   message?: string;
-    
+  success?: boolean;
+  qrCode?: any;
 }

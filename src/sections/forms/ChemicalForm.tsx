@@ -1,23 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
   TextField,
   Grid,
-  SelectChangeEvent,
   DialogContent,
 } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
-
-import { validateAndProcessResearchGroup } from 'services/research-group/researchGroupActionHandler';
-import { validateAndProcessLocation } from 'services/location/locationActionHandler';
 
 interface ChemFormProps {
   open: boolean;
   onSubmit: (formData: FormData) => void;
   onCancel: () => void;
+  initialLocations: { locationID: number; building: string; room: string; buildingName: string }[];
+  initialResearchGroups: { researchGroupID: number; groupName: string }[];
 }
 
 interface Owner {
@@ -29,9 +27,10 @@ interface Location {
   locationID: number;
   building: string;
   room: string;
+  buildingName: string;
 }
 
-const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
+const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocations, initialResearchGroups }) => {
   const [formValues, setFormValues] = useState({
     qrID: '',
     quantity: '',
@@ -51,58 +50,35 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
     description: '',
   });
 
-  const [owners, setOwners] = useState<Owner[]>([]);
-  const [locations, setLocations] = useState<Array<{ locationID: number; building: string; room: string }>>([]);
+  const [owners] = useState<Owner[]>(initialResearchGroups);
+  const [locations] = useState<Location[]>(initialLocations);
 
-
-  // Fetch research groups (owners)
-  useEffect(() => {
-    const fetchOwners = async () => {
-      try {
-        const response = await validateAndProcessResearchGroup('find', {});
-        if (!response.error && response.researchGroups) {
-          setOwners(response.researchGroups);
-        } else {
-          console.error('Error fetching research groups:', response.error);
-        }
-      } catch (error) {
-        console.error('Error fetching owners:', error);
-      }
-    };
-
-    fetchOwners();
-  }, []);
-
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const response = await validateAndProcessLocation('find', {});
-        if (!response.error && response.locations) {
-          setLocations(response.locations);
-        } else {
-          console.error('Error fetching locations:', response.error);
-        }
-      } catch (error) {
-        console.error('Error fetching locations:', error);
-      }
-    };
-  
-    fetchLocations();
-  }, []);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
 
-    // Trigger the CAS lookup if necessary
-    if (name === 'casNumber' || name === 'chemicalName') {
-      handleCASOrNameLookup(name, value);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formValues.owner) {
+      alert("Please select an owner.");
+      return;
     }
+    if (!formValues.location) {
+      alert("Please select a location.");
+      return;
+    }
+    const formData = new FormData();
+    Object.entries(formValues).forEach(([key, value]) => {
+      formData.append(key, value ? value.toString() : '');
+    });
+    formData.append('researchGroupID', formValues.owner.researchGroupID.toString());
+    formData.append('locationID', formValues.location.locationID.toString());
+    formData.append('subLocation1', formValues.subLocation1 || '');
+    formData.append('subLocation2', formValues.subLocation2 || '');
+    formData.append('subLocation3', formValues.subLocation3 || '');
+    formData.append('subLocation4', formValues.subLocation4 || '');
+    onSubmit(formData);
   };
 
 
@@ -158,40 +134,12 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel }) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formValues.owner) {
-      alert("Please select an owner.");
-      return;
-    }
-
-    if (!formValues.location) {
-      alert('Please select a location.');
-      return;
-    }
-  
-    const formData = new FormData();
-    Object.entries(formValues).forEach(([key, value]) => {
-      formData.append(key, value ? value.toString() : '');
-    });
-
-    formData.append('researchGroupID', formValues.owner.researchGroupID.toString());
-    formData.append('locationID', formValues.location.locationID.toString()); 
-    formData.append('subLocation1', formValues.subLocation1 || '');
-    formData.append('subLocation2', formValues.subLocation2 || '');
-    formData.append('subLocation3', formValues.subLocation3 || '');
-    formData.append('subLocation4', formValues.subLocation4 || '');
-  
-    onSubmit(formData);
-  };
-
 return (
   <form onSubmit={handleSubmit}>
       <DialogContent
         sx={{
-          maxHeight: '500px', // Set fixed height for the modal content
-          overflowY: 'auto', // Enable vertical scrolling
+          maxHeight: '500px', 
+          overflowY: 'auto', 
         }}
       >
         <Grid container spacing={1}>

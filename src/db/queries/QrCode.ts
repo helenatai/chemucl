@@ -1,5 +1,5 @@
-import { Prisma, PrismaClient, QrCodeType } from '@prisma/client';
-const db = new PrismaClient();
+import { Prisma, QrCodeType } from '@prisma/client';
+import { prisma } from 'db';
 
 interface QrCodeParams {
   qrID?: string;
@@ -17,7 +17,7 @@ export const findQrCode = async (params: QrCodeParams) => {
   if (locationID) whereClause.locationID = locationID;
   if (chemicalID) whereClause.chemicalID = chemicalID;
 
-  return db.qrCode.findMany({ where: Object.keys(whereClause).length > 0 ? whereClause : undefined });
+  return prisma.qrCode.findMany({ where: Object.keys(whereClause).length > 0 ? whereClause : undefined });
 };
 
 export const addQrCode = async (params: QrCodeParams) => {
@@ -34,7 +34,7 @@ export const addQrCode = async (params: QrCodeParams) => {
     chemical: chemicalID ? { connect: { chemicalID } } : undefined,
   };
 
-  return db.qrCode.create({ data });
+  return prisma.qrCode.create({ data });
 };
 
 export const updateQrCode = async (params: QrCodeParams) => {
@@ -45,15 +45,15 @@ export const updateQrCode = async (params: QrCodeParams) => {
   if (locationID !== undefined) data.locationID = locationID;
   if (chemicalID !== undefined) data.chemicalID = chemicalID;
 
-  return db.qrCode.update({ where: { qrID }, data });
+  return prisma.qrCode.update({ where: { qrID }, data });
 };
 
 export const deleteQrCode = async (qrID: string) => {
-  return db.qrCode.delete({ where: { qrID } });
+  return prisma.qrCode.delete({ where: { qrID } });
 };
 
 export const lastQrCode = async () => {
-  return db.qrCode.findFirst({
+  return prisma.qrCode.findFirst({
     orderBy: {
       qrID: 'desc',
     },
