@@ -7,6 +7,7 @@ export interface ChemicalWithRelations {
   location?: {
     locationID: number;
     building: string;
+    buildingName: string;
     room: string;
   } | null;
   chemicalType: string;

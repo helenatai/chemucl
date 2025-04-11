@@ -4,12 +4,13 @@ import React, { useState } from 'react';
 import { ChemicalWithRelations } from 'types/chemical';
 import { LocationWithRelations } from 'types/location';
 import { ResearchGroupWithRelations } from 'types/researchGroup';
-import AddFormModal from 'sections/AddFormModal';
-import ChemForm from 'sections/forms/ChemicalForm';
 import { addChemicalAction } from 'actions/chemical/server-actions/addChemical';
 import { deleteChemicalAction } from 'actions/chemical/server-actions/deleteChemical';
-import QrCodeModal from 'components/modals/QrCodeModal';
 import { useRouter } from 'next/navigation';
+import AddFormModal from 'sections/AddFormModal';
+import ChemForm from 'sections/forms/ChemicalForm';
+import QrCodeModal from 'components/modals/QrCodeModal';
+import CSVExport from 'ui-component/extended/utils/CSVExport';
 
 // Material UI Imports
 import Table from '@mui/material/Table';
@@ -36,7 +37,6 @@ import Alert from '@mui/material/Alert';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ViewColumnTwoToneIcon from '@mui/icons-material/ViewColumnOutlined';
 import GetAppTwoToneIcon from '@mui/icons-material/GetAppOutlined';
-import IosShareIcon from '@mui/icons-material/IosShare';
 import VisibilityTwoToneIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/AddTwoTone';
@@ -67,54 +67,6 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-
-  // // Update URL query parameters to trigger a server re-render (and thus re-fetch data)
-  // const updateUrl = ({ search, page, rowsPerPage }: { search: string, page: number, rowsPerPage: number }) => {
-  //   router.push(`?search=${encodeURIComponent(search)}&page=${page}&rowsPerPage=${rowsPerPage}`);
-  // };
-
-  // // Debounce the search input
-  // const debouncedSearch = useCallback(
-  //   debounce((query: string) => {
-  //     updateUrl({ search: query, page: 0, rowsPerPage });
-  //   }, 500),
-  //   [rowsPerPage]
-  // );
-
-  // const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const searchValue = event.target.value.toLowerCase();
-  //   setSearch(searchValue);
-  //   setPage(0);
-
-  //   const filtered = chemicals.filter((chemical) => {
-  //     const location = chemical.location
-  //       ? `${chemical.location.building} ${chemical.location.room}`.toLowerCase()
-  //       : '';
-
-  //     return (
-  //       chemical.chemicalName.toLowerCase().includes(searchValue) ||
-  //       (chemical.qrID && chemical.qrID.toLowerCase().includes(searchValue)) ||
-  //       location.includes(searchValue)
-  //     );
-  //   });
-
-  // const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const inputValue = event.target.value;
-  //   setSearch(inputValue);
-  //   debouncedSearch(inputValue);
-  // };
-
-  // const handleChangePage = (event: unknown, newPage: number) => {
-  //   setPage(newPage);
-  //   updateUrl({ search, page: newPage, rowsPerPage });
-  // };
-
-  // const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const newRowsPerPage = parseInt(event.target.value, 10);
-  //   setRowsPerPage(newRowsPerPage);
-  //   setPage(0);
-  //   updateUrl({ search, page: 0, rowsPerPage: newRowsPerPage });
-  // };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value.toLowerCase();
@@ -210,6 +162,62 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
       setSnackbarOpen(true);
     }
   };
+
+  const csvHeaders = [
+    { label: "QR ID", key: "qrID" },
+    { label: "Item Name", key: "chemicalName" },
+    { label: "Supplier", key: "supplier" },
+    { label: "Quantity", key: "quantity" },
+    { label: "Building", key: "building" },
+    { label: "Room", key: "room" },
+    { label: "Chemical Type", key: "chemicalType" },
+    { label: "Owner", key: "owner" },
+    { label: "Restriction Status", key: "restrictionStatus" },
+    { label: "Sublocation 1", key: "subLocation1" },
+    { label: "Sublocation 2", key: "subLocation2" },
+    { label: "Sublocation 3", key: "subLocation3" },
+    { label: "Sublocation 4", key: "subLocation4" },
+    { label: "Description", key: "description" },
+  ];
+
+  const csvData = filteredChemicals.map((chemical) => ({
+    qrID: chemical.qrID,
+    chemicalName: chemical.chemicalName,
+    supplier: chemical.supplier,
+    quantity: chemical.quantity,
+    building: chemical.location ? chemical.location.building : "",
+    room: chemical.location ? chemical.location.room : "",
+    chemicalType: chemical.chemicalType,
+    owner: chemical.researchGroup ? chemical.researchGroup.groupName : "",
+    restrictionStatus: chemical.restrictionStatus ? "Restricted" : "Unrestricted",
+    subLocation1: chemical.subLocation1,
+    subLocation2: chemical.subLocation2,
+    subLocation3: chemical.subLocation3,
+    subLocation4: chemical.subLocation4,
+    description: chemical.description
+  }));
+
+  const exportDataFinal =
+    selectedChemicals.length > 0
+      ? filteredChemicals.filter((chem) => selectedChemicals.includes(chem.chemicalID))
+          .map((chemical) => ({
+            qrID: chemical.qrID,
+            chemicalName: chemical.chemicalName,
+            supplier: chemical.supplier,
+            quantity: chemical.quantity,
+            building: chemical.location?.building || "",
+            room: chemical.location?.room || "",
+            chemicalType: chemical.chemicalType,
+            owner: chemical.researchGroup?.groupName || "",
+            restrictionStatus: chemical.restrictionStatus ? "Restricted" : "Unrestricted",
+            subLocation1: chemical.subLocation1 || "",
+            subLocation2: chemical.subLocation2 || "",
+            subLocation3: chemical.subLocation3 || "",
+            subLocation4: chemical.subLocation4 || "",
+            description: chemical.description || "",
+          }))
+      : csvData;
+
   
   return (
     <>
@@ -244,10 +252,14 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
                       <GetAppTwoToneIcon /> {/* Import Icon */}
                   </IconButton>
               </Tooltip>
-              <Tooltip title ="Export CSV">
-                  <IconButton>
-                      <IosShareIcon /> {/* Export Icon */}
-                  </IconButton>
+              <Tooltip title="Export CSV">
+                <div style={{ display: 'inline-block' }}>
+                  <CSVExport 
+                    data={exportDataFinal} 
+                    headers={csvHeaders} 
+                    filename="Inventory.csv" 
+                  />
+                </div>
               </Tooltip>
               <Tooltip title ="Customise Column">
                   <IconButton>
@@ -342,11 +354,13 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
                   <TableCell>{chemical.dateAdded?.toLocaleDateString()}</TableCell>
                   <TableCell>{chemical.dateUpdated?.toLocaleDateString()}</TableCell>
                   <TableCell>
-                    <Link href={`/inventory-page/${chemical.qrID}`} passHref>
-                      <IconButton title="View Details">
-                        <VisibilityTwoToneIcon /> {/* View details icon*/}
-                      </IconButton>
-                    </Link>
+                    <Tooltip title="Chemical Information">
+                      <Link href={`/inventory-page/${chemical.qrID}`} passHref>
+                        <IconButton title="View Details">
+                          <VisibilityTwoToneIcon /> {/* View details icon*/}
+                        </IconButton>
+                      </Link>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}

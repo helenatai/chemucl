@@ -1,5 +1,11 @@
-import Logs from 'views/logs-page';
+import LogsPage from 'views/logs/logs-page';
+import { findLogs } from 'db/queries/Log';
 
-export default function LogsPage() {
-  return <Logs />;
+export default async function Page() {
+  const logs = await findLogs();
+
+  return (
+    <LogsPage initialLogs={logs} />
+  );
 }
+

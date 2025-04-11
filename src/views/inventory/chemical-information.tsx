@@ -5,7 +5,6 @@ import QRCode from 'qrcode';
 import Autocomplete from '@mui/material/Autocomplete';
 import { updateChemicalAction } from 'actions/chemical/server-actions/updateChemical';
 import { ChemicalWithRelations } from 'types/chemical';
-import { validateAndProcessLocation } from 'actions/location/locationActionHandler';
 import { useRouter } from 'next/navigation';
 
 // Material UI Imports
@@ -23,11 +22,26 @@ import Alert from '@mui/material/Alert';
 import SubCard from 'components/ui-component/cards/SubCard';
 import { gridSpacing } from 'store/constant';
 
-const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) => {
+interface ChemicalInformationProps {
+  chemical: ChemicalWithRelations;
+  locations: {
+    locationID: number;
+    qrID: string;
+    building: string;
+    buildingName: string;
+    room: string;
+  }[];
+  researchGroups: {
+    researchGroupID: number;
+    groupName: string;
+  }[];
+}
+
+const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, locations, researchGroups }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isEditing, setIsEditing] = useState(false); 
-  const [editedChemical, setEditedChemical] = useState({ ...chemical }); 
-  const [buildings, setBuildings] = useState<string[]>([]); 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedChemical, setEditedChemical] = useState({ ...chemical });
+  const [buildings, setBuildings] = useState<string[]>([]);
   const [rooms, setRooms] = useState<string[]>([]);
   const router = useRouter();
 
@@ -52,37 +66,30 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
     }
   }, [chemical.qrID]);
 
+  // Collect unique building names (trimmed) for the building dropdown
   useEffect(() => {
-    const fetchBuildings = async () => {
-      const result = await validateAndProcessLocation('find', {});
-      if (!result.error) {
-        setBuildings(result.locations?.map((loc: any) => loc.building) ?? []);
-      }
-    };
-    fetchBuildings();
-  }, []);
+    const uniqueBuildingNames = Array.from(
+      new Set(locations.map(loc => loc.buildingName.trim()))
+    );
+    setBuildings(uniqueBuildingNames);
+  }, [locations]);
 
+  // Update rooms based on the selected building in the edited chemical.
   useEffect(() => {
-    if (editedChemical.location?.building) {
-      const fetchRooms = async () => {
-        const result = await validateAndProcessLocation('find', {
-          building: editedChemical.location?.building ?? "",
-        });
-        if (!result.error) {
-          setRooms(result.locations?.map((loc: any) => loc.room) ?? []);
-        }
-      };
-      fetchRooms();
+    const currentBldgName = editedChemical.location?.buildingName || '';
+    if (currentBldgName) {
+      const filteredRooms = locations
+        .filter(loc => loc.buildingName.trim() === currentBldgName.trim())
+        .map(loc => loc.room);
+      setRooms(filteredRooms);
+    } else {
+      setRooms([]);
     }
-  }, [editedChemical.location?.building]);
+  }, [editedChemical.location?.buildingName, locations]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-
-    setEditedChemical({
-      ...editedChemical,
-      [name]: name === "quantity" ? Number(value) : value, 
-    });
+    setEditedChemical(prev => ({ ...prev, [name]: name === 'quantity' ? Number(value) : value }));
   };
 
   const handleSnackbarClose = (_?: React.SyntheticEvent | Event, reason?: string) => {
@@ -91,7 +98,6 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
   };
 
   const handleSave = async () => {
-    console.log("Submitting Update Request with Data:", editedChemical);
     try {
       const result = await updateChemicalAction({
         chemicalID: editedChemical.chemicalID, 
@@ -107,16 +113,15 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
         subLocation3: editedChemical.subLocation3 || null,
         subLocation4: editedChemical.subLocation4 || null,
         locationID: editedChemical.location?.locationID || null, 
-        researchGroupID: chemical.researchGroup?.researchGroupID ?? 0, 
+        researchGroupID: editedChemical.researchGroup?.researchGroupID ?? 0, 
       });
-
-      console.log("API Response:", result);
   
       if (!result.error) {
         setSnackbarMessage('Chemical information updated successfully!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
         setTimeout(() => {
+          router.refresh();
           router.push('/inventory-page');
         }, 1500);
       } else {
@@ -130,6 +135,11 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
+  };
+
+  const handleCancel = () => {
+    setEditedChemical({ ...chemical });
+    setIsEditing(false);
   };
   
   return (
@@ -194,8 +204,8 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                         onChange={(event, newValue) =>
                           setEditedChemical({ ...editedChemical, chemicalType: newValue || "" })
                         }
-                        disableClearable={!isEditing} // Prevents clearing when not editing
-                        readOnly={!isEditing} // Disables typing when not in edit mode
+                        disableClearable={!isEditing} 
+                        readOnly={!isEditing} 
                         renderInput={(params) => (
                           <TextField
                             {...params}
@@ -203,8 +213,8 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                             variant="outlined"
                             InputProps={{
                               ...params.InputProps,
-                              readOnly: !isEditing, // Disables manual text entry when not in edit mode
-                              endAdornment: isEditing ? params.InputProps.endAdornment : null, // Hides dropdown arrow when not editing
+                              readOnly: !isEditing, 
+                              endAdornment: isEditing ? params.InputProps.endAdornment : null, 
                             }}
                           />
                         )}
@@ -212,6 +222,7 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <Autocomplete
+                          readOnly={!isEditing}
                           options={["Unrestricted", "Restricted"]}
                           value={editedChemical.restrictionStatus ? "Restricted" : "Unrestricted"}
                           onChange={(_, newValue) => setEditedChemical({ ...editedChemical, restrictionStatus: newValue === "Restricted" })}
@@ -222,7 +233,32 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                         />
                     </Grid>
                     <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="Owner" value={chemical.researchGroup?.groupName || 'N/A'} InputProps={{ readOnly: !isEditing }} />
+                      <Autocomplete
+                        readOnly={!isEditing}
+                        options={researchGroups} 
+                        getOptionLabel={(option) => option.groupName}
+                        value={editedChemical.researchGroup}
+                        onChange={(event, newValue) => {
+                          if (!newValue) return; 
+                          setEditedChemical((prev) => ({
+                            ...prev,
+                            researchGroup: newValue,
+                          }));
+                        }}
+                        disableClearable={!isEditing}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Owner"
+                            variant="outlined"
+                            InputProps={{
+                              ...params.InputProps,
+                              readOnly: !isEditing,
+                              endAdornment: isEditing ? params.InputProps.endAdornment : null,
+                            }}
+                          />
+                        )}
+                      />
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField fullWidth label="Supplier" name="supplier" value={editedChemical.supplier} onChange={handleInputChange} InputProps={{ readOnly: !isEditing }} />
@@ -249,17 +285,33 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                     <Grid container spacing={gridSpacing}>
                       <Grid item xs={12}>
                         <Autocomplete
+                          readOnly={!isEditing}                            
                           options={buildings}
-                          value={editedChemical.location?.building ?? ""}
-                          onChange={(_, newValue) => setEditedChemical({
-                            ...editedChemical,
-                            location: {
-                              ...(editedChemical.location ?? {}), 
-                              locationID: editedChemical.location?.locationID ?? 0, 
-                              building: newValue ?? "",
-                              room: editedChemical.location?.room ?? ""
+                          value={editedChemical.location?.buildingName || ""}
+                          onChange={(_, newBuildingName) => {
+                            const matchingLoc = locations.find(
+                              (loc) => loc.buildingName.trim().toLowerCase() === (newBuildingName || "").trim().toLowerCase()
+                            );
+                            if (!matchingLoc) {
+                              console.error("No matching location found for building name:", newBuildingName);
+                              return;
                             }
-                          })}
+                            setEditedChemical(prev => ({
+                              ...prev,
+                              location: {
+                                ...(prev.location || {
+                                  locationID: 0,
+                                  building: '',
+                                  room: '',
+                                  buildingName: ''
+                                }),
+                                buildingName: newBuildingName || '',
+                                building: matchingLoc.building,
+                                locationID: matchingLoc.locationID,
+                                room: ''
+                              }
+                            }));
+                          }}
                           disableClearable={!isEditing}
                           renderInput={(params) => (
                             <TextField {...params} label="Building Name" InputProps={{ ...params.InputProps, readOnly: !isEditing, endAdornment: isEditing ? params.InputProps.endAdornment : null }} />
@@ -267,21 +319,42 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
                         />
                       </Grid>
                       <Grid item xs={12} md={6}>
-                        <TextField fullWidth label="Building Code" value={chemical.location?.building || 'N/A'} InputProps={{ readOnly: true }} />
+                        <TextField
+                          fullWidth
+                          label="Building Code"
+                          value={
+                            editedChemical.location?.building
+                              ? editedChemical.location.building
+                              : 'N/A'
+                          }
+                          InputProps={{ readOnly: true }}
+                        />
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <Autocomplete
+                            readOnly={!isEditing}
                             options={rooms}
                             value={editedChemical.location?.room || ""}
-                            onChange={(_, newValue) => setEditedChemical({
-                              ...editedChemical,
-                              location: {
-                                ...(editedChemical.location ?? {}), 
-                                locationID: editedChemical.location?.locationID ?? 0, 
-                                building: editedChemical.location?.building ?? "",
-                                room: newValue ?? ""
+                            onChange={(_, newRoom) => {
+                              const currentBldgName = editedChemical.location?.buildingName || "";
+                              const matchingLoc = locations.find(
+                                (loc) =>
+                                  loc.buildingName.trim().toLowerCase() === currentBldgName.trim().toLowerCase() &&
+                                  loc.room.trim().toLowerCase() === (newRoom || "").trim().toLowerCase()
+                              );
+                              if (!matchingLoc) {
+                                console.error("No matching location found for building:", currentBldgName, "and room:", newRoom);
+                                return; 
                               }
-                            })}
+                              setEditedChemical(prev => ({
+                                ...prev,
+                                location: {
+                                  ...(prev.location || { locationID: 0, building: "", room: "", buildingName: "" }),
+                                  room: newRoom || "",
+                                  locationID: matchingLoc.locationID,
+                                }
+                              }));
+                            }}
                             disableClearable={!isEditing}
                             renderInput={(params) => (
                               <TextField {...params} label="Room" InputProps={{ ...params.InputProps, readOnly: !isEditing, endAdornment: isEditing ? params.InputProps.endAdornment : null }} />
@@ -332,13 +405,22 @@ const ChemicalInformation = ({ chemical }: { chemical: ChemicalWithRelations }) 
           </SubCard>
         </Grid>
 
-        {/* Edit Button */}
+        {/* Button Row */}
         <Grid item xs={12} sx={{ textAlign: 'right' }}>
-          <Stack direction="row" justifyContent="flex-end">
+          <Stack direction="row" spacing={2} justifyContent="flex-end">
             {isEditing ? (
-              <Button variant="contained" onClick={handleSave}>Save</Button>
+              <>
+                <Button variant="outlined" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button variant="contained" onClick={handleSave}>
+                  Save
+                </Button>
+              </>
             ) : (
-              <Button variant="contained" onClick={() => setIsEditing(true)}>Edit</Button>
+              <Button variant="contained" onClick={() => setIsEditing(true)}>
+                Edit
+              </Button>
             )}
           </Stack>
         </Grid>

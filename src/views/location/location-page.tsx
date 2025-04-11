@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { LocationWithRelations } from 'types/location';
 import { useRouter } from 'next/navigation';
 import { addLocationAction } from 'actions/location/server-actions/addLocation';
+import { deleteLocationAction } from 'actions/location/server-actions/deleteLocation';
 import AddFormModal from 'sections/AddFormModal';
 import LocationForm from 'sections/forms/LocationForm';
 
@@ -30,7 +31,7 @@ import Link from 'next/link';
 
 // assets
 import VisibilityTwoToneIcon from '@mui/icons-material/Visibility';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -106,6 +107,24 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
     }
   };
 
+  const handleDelete = async (locationID: number) => {
+    if (!confirm("Are you sure you want to delete this location?")) return;
+
+    const response = await deleteLocationAction(locationID);
+
+      if (response.error) {
+        setSnackbarMessage(`Error deleting location: ${response.error}`);
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      } else {
+        setSnackbarMessage('Location deleted successfully!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+
+        router.refresh();
+      }
+  };
+
   return (
     <>
       <MainCard>
@@ -173,18 +192,22 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
                   <TableCell>{location.totalChemicals}</TableCell>
                   <TableCell sx={{ width: '10%', paddingRight: 4 }}>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Link href={`/location-page/${location.qrID}`} passHref>
-                        <IconButton title="View Details">
-                          <VisibilityTwoToneIcon />
-                        </IconButton>
-                      </Link>
-                      <Tooltip title="More Options">
-                        <IconButton size="small">
-                          <MoreVertIcon />
-                        </IconButton>
+                      <Tooltip title="Location Information">
+                        <Link href={`/location-page/${location.qrID}`} passHref>
+                          <IconButton title="View Details">
+                            <VisibilityTwoToneIcon />
+                          </IconButton>
+                        </Link>
+                      </Tooltip>
+                      <Tooltip title="View Chemicals">
+                        <Link href={`/location-page/${location.qrID}/chemicals`} passHref>
+                          <IconButton>
+                            <FormatListBulletedIcon />
+                          </IconButton>
+                        </Link>
                       </Tooltip>
                       <Tooltip title="Delete">
-                        <IconButton size="small" color="error">
+                        <IconButton onClick={() => handleDelete(location.locationID)}>
                           <DeleteIcon />
                         </IconButton>
                       </Tooltip>

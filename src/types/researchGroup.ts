@@ -1,7 +1,7 @@
 export interface ResearchGroupWithRelations {
   researchGroupID: number;
   groupName: string;
-  // Add any additional fields 
+  totalMembers?: number | null;
 }
 
 export type ResearchGroupActionResponse = {

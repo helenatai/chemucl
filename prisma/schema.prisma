@@ -21,6 +21,8 @@ model User {
   researchGroupID  Int?
   permission       String         @default("Research Student")
   registrationDate DateTime       @default(now())
+
+  // Standard Auth.js Fields
   password         String?
   emailVerified    DateTime?
   image            String?
@@ -128,65 +130,22 @@ model Location {
 }
 
 model Log {
-  logID       Int       @id @default(autoincrement())
-  userID      Int?
-  actionType  String
-  chemicalID  Int?
-  description String
-  timestamp   DateTime  @default(now())
-  chemical    Chemical? @relation(fields: [chemicalID], references: [chemicalID])
-  user        User?     @relation(fields: [userID], references: [userID])
+  logID             Int       @id @default(autoincrement())
+  userID            Int?
+  actionType        String
+  chemicalID        Int?
+  description       String
+  timestamp         DateTime  @default(now())
+  chemicalName      String?
+  locationBuilding  String?
+  locationRoom      String?
+
+  chemical          Chemical? @relation(fields: [chemicalID], references: [chemicalID])
+  user              User?     @relation(fields: [userID], references: [userID])
 
   @@map("logs")
 }
 
-model AuditGeneral {
-  auditGeneralID Int       @id @default(autoincrement())
-  round          Int
-  auditorID      Int
-  pendingCount   Int       @default(0)
-  finishedCount  Int       @default(0)
-  startDate      DateTime?
-  lastAuditDate  DateTime?
-  status         String
-  auditor        User      @relation("UserAuditGenerals", fields: [auditorID], references: [userID])
-
-  @@map("audit_general")
-}
-
-model Audit {
-  auditID       Int           @id @default(autoincrement())
-  locationID    Int
-  auditorID     Int
-  startDate     DateTime      @default(now())
-  lastAuditDate DateTime?
-  round         Int           @default(1)
-  notes         String?
-  pendingCount  Int           @default(0)
-  finishedCount Int           @default(0)
-  auditRecords  AuditRecord[]
-  auditor       User          @relation("UserAudits", fields: [auditorID], references: [userID])
-  location      Location      @relation(fields: [locationID], references: [locationID])
-
-  @@map("audits")
-}
-
-model AuditRecord {
-  auditRecordID Int       @id @default(autoincrement())
-  auditID       Int
-  chemicalID    Int
-  status        String
-  notes         String?
-  auditDate     DateTime  @default(now())
-  lastAuditDate DateTime?
-  locationID    Int
-  audit         Audit     @relation(fields: [auditID], references: [auditID])
-  chemical      Chemical  @relation(fields: [chemicalID], references: [chemicalID])
-  location      Location  @relation(fields: [locationID], references: [locationID])
-  people        String
-
-  @@map("audit_records")
-}
 
 enum QrCodeType {
   CHEMICAL

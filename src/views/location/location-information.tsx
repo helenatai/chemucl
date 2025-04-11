@@ -69,29 +69,6 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
   // For saving changes (similar to how you did with chemicals)
   const handleSave = async () => {
     try {
-      // If you have an updateLocationAction server function, you’d call it here:
-      // const result = await updateLocationAction({ 
-      //   locationID: editedLocation.locationID,
-      //   building: editedLocation.building,
-      //   buildingName: editedLocation.buildingName,
-      //   room: editedLocation.room,
-      //   qrID: editedLocation.qrID,
-      //   ...
-      // });
-
-      // if (!result.error) {
-      //   setSnackbarMessage('Location updated successfully!');
-      //   setSnackbarSeverity('success');
-      //   setSnackbarOpen(true);
-      //   setTimeout(() => {
-      //     router.push('/location-page'); 
-      //   }, 1500);
-      // } else {
-      //   setSnackbarMessage(result.error || 'Failed to update location.');
-      //   setSnackbarSeverity('error');
-      //   setSnackbarOpen(true);
-      // }
-      // For now, just simulate success:
       setSnackbarMessage('Location updated successfully (simulation)!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
@@ -105,6 +82,11 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
+  };
+
+  const handleCancel = () => {
+    setEditedLocation({...location}); 
+    setIsEditing(false);
   };
 
   return (
@@ -164,13 +146,22 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
           </SubCard>
         </Grid>
 
-        {/* Edit/Save Button */}
+        {/* Button Row */}
         <Grid item xs={12} sx={{ textAlign: 'right' }}>
-          <Stack direction="row" justifyContent="flex-end">
+          <Stack direction="row" spacing={2} justifyContent="flex-end">
             {isEditing ? (
-              <Button variant="contained" onClick={handleSave}>Save</Button>
+              <>
+                <Button variant="outlined" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button variant="contained" onClick={handleSave}>
+                  Save
+                </Button>
+              </>
             ) : (
-              <Button variant="contained" onClick={() => setIsEditing(true)}>Edit</Button>
+              <Button variant="contained" onClick={() => setIsEditing(true)}>
+                Edit
+              </Button>
             )}
           </Stack>
         </Grid>

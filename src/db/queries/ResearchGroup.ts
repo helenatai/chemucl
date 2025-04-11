@@ -3,7 +3,6 @@
 import { prisma } from 'db';
 
 export const findResearchGroup = async () => {
-  // Fetch research groups with their basic fields
   const researchGroups = await prisma.researchGroup.findMany({
     select: {
       researchGroupID: true,
@@ -11,20 +10,19 @@ export const findResearchGroup = async () => {
     },
   });
 
-  // Optionally, add a chemical count for each group
-  const groupsWithChemicalCount = await Promise.all(
+  const groupsWithMemberCount = await Promise.all(
     researchGroups.map(async (group) => {
-      const chemicalCount = await prisma.chemical.count({
+      const memberCount = await prisma.user.count({
         where: { researchGroupID: group.researchGroupID },
       });
       return {
         ...group,
-        totalChemicals: chemicalCount,
+        totalMembers: memberCount,
       };
     })
   );
 
-  return groupsWithChemicalCount;
+  return groupsWithMemberCount;
 };
 
 export interface AddResearchGroupParams {

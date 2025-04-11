@@ -18,6 +18,7 @@ export const findChemical = async () => {
         select: {
           locationID: true,
           building: true,
+          buildingName: true,
           room: true,
         },
       },
@@ -29,13 +30,23 @@ export const findChemical = async () => {
       },
       dateAdded: true,
       dateUpdated: true,
+      subLocation1: true,
+      subLocation2: true,
+      subLocation3: true,
+      subLocation4: true,
+      description: true,
     },
   });
 
   return chemicals.map((chem) => ({
     ...chem,
-    qrID: chem.qrID || 'N/A', // Ensure QR ID is never null
-    location: chem.location || null,
+    qrID: chem.qrID || 'N/A', 
+    location: chem.location
+    ? {
+        ...chem.location,
+        buildingName: chem.location.buildingName ?? "", 
+      }
+    : null,
     researchGroup: chem.researchGroup || null,
   }));
 };
@@ -83,8 +94,48 @@ export const findChemicalByQrID = async (qrID: string): Promise<ChemicalWithRela
     ...chemical,
     qrID: chemical.qrID || 'N/A',
     researchGroup: chemical.researchGroup || null,
-    location: chemical.location || null,
+    location: chemical.location
+    ? { ...chemical.location, buildingName: chemical.location.buildingName ?? "" }
+    : null,
   };
+};
+
+export const findChemicalsByLocation = async (locationID: number) => {
+  const chemicals = await prisma.chemical.findMany({
+    where: {
+      location: {
+        locationID, 
+      },
+    },
+    select: {
+      chemicalID: true,
+      qrID: true,
+      chemicalName: true,
+      supplier: true,
+      quantity: true,
+      chemicalType: true,
+      restrictionStatus: true,
+      dateAdded: true,
+      dateUpdated: true,
+      subLocation1: true,
+      subLocation2: true,
+      subLocation3: true,
+      subLocation4: true,
+      location: {
+        select: {
+          building: true,
+          room: true,
+        },
+      },
+      researchGroup: {
+        select: {
+          groupName: true,
+        },
+      },
+    },
+  });
+
+  return chemicals;
 };
 
 interface AddChemicalParams {
@@ -106,66 +157,6 @@ interface AddChemicalParams {
   subLocation3?: string;
   subLocation4?: string;
 }
-
-// export const addChemical = async (params: AddChemicalParams) => {
-//   const {
-//     qrID,
-//     casNumber,
-//     chemicalName,
-//     chemicalType,
-//     restrictionStatus,
-//     locationID,
-//     researchGroupID,
-//     supplier,
-//     description,
-//     auditStatus,
-//     quartzyNumber,
-//     quantity,
-//     activeStatus,
-//     restrictionDescription,
-//     subLocation1,
-//     subLocation2,
-//     subLocation3,
-//     subLocation4
-//   } = params;
-
-//   const researchGroup = await db.researchGroup.findFirst({
-//     where: { researchGroupID },
-//   });
-
-//   if (!researchGroup) throw new Error(`Research group with ID '${researchGroupID}' does not exist.`);
-
-//   const data = {
-//     qrID: qrID, 
-//     casNumber: casNumber || '',
-//     chemicalName,
-//     chemicalType,
-//     restrictionStatus,
-//     supplier: supplier || null, 
-//     description: description || '', 
-//     auditStatus: auditStatus ?? null, 
-//     quartzyNumber: quartzyNumber || null, 
-//     quantity,
-//     activeStatus: activeStatus ?? true, 
-//     restrictionDescription: restrictionDescription || null, 
-//     researchGroup: { connect: { researchGroupID } },
-//     location: locationID ? { connect: { locationID } } : undefined,
-//     subLocation1: subLocation1 ?? null,
-//     subLocation2: subLocation2 ?? null,
-//     subLocation3: subLocation3 ?? null,
-//     subLocation4: subLocation4 ?? null,
-//   };
-
-//   // Pass the cleaned and typed data object to Prisma
-//   return await db.chemical.create({ 
-//     data: { ...data, auditStatus: auditStatus || undefined },
-//     include: {
-//       researchGroup: true,
-//       location: true,
-//       qrCode: true,
-//     },
-//   });
-// };
 
 export const addChemical = async (
   params: AddChemicalParams
@@ -260,44 +251,52 @@ interface UpdateChemicalParams extends Partial<AddChemicalParams> {
 
 export const updateChemical = async (params: UpdateChemicalParams) => {
   try {
+    // Build the data object without locationID and researchGroupID first.
+    const data: any = {
+      chemicalName: params.chemicalName,
+      casNumber: params.casNumber ?? undefined,
+      chemicalType: params.chemicalType,
+      restrictionStatus: params.restrictionStatus,
+      supplier: params.supplier ?? null,
+      description: params.description ?? null,
+      quantity: params.quantity,
+      subLocation1: params.subLocation1 ?? null,
+      subLocation2: params.subLocation2 ?? null,
+      subLocation3: params.subLocation3 ?? null,
+      subLocation4: params.subLocation4 ?? null,
+    };
+
+    if (params.locationID !== undefined && params.locationID !== null) {
+      data.location = { connect: { locationID: params.locationID } };
+    }
+
+    data.researchGroup = { connect: { researchGroupID: params.researchGroupID } };
+
     const updatedChemical = await prisma.chemical.update({
       where: { chemicalID: params.chemicalID },
-      data: {
-        chemicalName: params.chemicalName,
-        casNumber: params.casNumber ?? undefined,
-        chemicalType: params.chemicalType,
-        restrictionStatus: params.restrictionStatus,
-        supplier: params.supplier ?? null,
-        description: params.description ?? null,
-        quantity: params.quantity,
-        subLocation1: params.subLocation1 ?? null,
-        subLocation2: params.subLocation2 ?? null,
-        subLocation3: params.subLocation3 ?? null,
-        subLocation4: params.subLocation4 ?? null,
-        locationID: params.locationID ?? null,
-        researchGroupID: params.researchGroupID,
-      },
+      data,
       include: {
         researchGroup: true, 
         location: true,
         qrCode: true,
       },
     });
-    // Ensure that required fields are non-null at runtime.
-    if (updatedChemical.qrID === null) {
+
+    if (!updatedChemical.qrID) {
       throw new Error("Updated chemical's qrID is null, which is not allowed.");
     }
-    if (updatedChemical.researchGroup === null) {
+    if (!updatedChemical.researchGroup) {
       throw new Error("Updated chemical's researchGroup is null, which is not allowed.");
     }
 
-    // Now, cast the result to ChemicalWithRelations.
     return updatedChemical as ChemicalWithRelations;
   } catch (error) {
     console.error('Error updating chemical:', error);
     return null;
   }
 };
+
+
 
 export const deleteChemical = async (chemicalID: number) => {
   try {
@@ -307,8 +306,14 @@ export const deleteChemical = async (chemicalID: number) => {
       select: { qrID: true },
     });
 
+    // if (!chemical) {
+    //   throw new Error(`Chemical with ID ${chemicalID} not found.`);
+    // }
+
     if (!chemical) {
-      throw new Error(`Chemical with ID ${chemicalID} not found.`);
+      // Instead of throwing an error, we log a warning and return null
+      console.warn(`Chemical with ID ${chemicalID} not found, skipping deletion.`);
+      return null;
     }
 
     // Delete the associated QR code if it exists

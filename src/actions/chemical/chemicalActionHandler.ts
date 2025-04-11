@@ -3,7 +3,10 @@
 import { z } from 'zod';
 import { ChemicalActionResponse } from 'types/chemical';
 import { addChemical, deleteChemical, updateChemical } from 'db/queries/Chemical';
+import { addLog } from 'db/queries/Log';
+import { prisma } from 'db';
 
+const DUMMY_USER_ID = 1;
 
 const addChemicalSchema = z.object({
   chemicalName: z.string(),
@@ -71,6 +74,17 @@ export async function validateAndProcessChemical(action: string, params: any): P
         subLocation3: validatedData.subLocation3 ?? undefined,
         subLocation4: validatedData.subLocation4 ?? undefined,
       });
+
+      await addLog({
+        userID: DUMMY_USER_ID, // Replace with the real userID from session later
+        chemicalID: newChemical.chemicalID,
+        actionType: 'Added',
+        description: `Chemical '${newChemical.chemicalName}' added.`,
+        chemicalName: newChemical.chemicalName,
+        locationBuilding: newChemical.location?.building ?? 'N/A',
+        locationRoom: newChemical.location?.room ?? 'N/A',
+      });
+
       return { message: 'Chemical added successfully.', chemicals: [newChemical] };
     } catch (error) {
       console.error('Full error object:', error);
@@ -94,6 +108,16 @@ export async function validateAndProcessChemical(action: string, params: any): P
         return { error: 'Failed to update chemical.', chemicals: [] };
       }
 
+      await addLog({
+        userID: DUMMY_USER_ID, // Replace with real userID from session later
+        chemicalID: updatedChemical.chemicalID,
+        actionType: 'Updated',
+        description: `Chemical '${updatedChemical.chemicalName}' updated.`,
+        chemicalName: updatedChemical.chemicalName,
+        locationBuilding: updatedChemical.location?.building ?? 'N/A',
+        locationRoom: updatedChemical.location?.room ?? 'N/A',
+      });
+
       return { message: 'Chemical updated successfully.', chemicals: [updatedChemical] };
     } catch (error) {
       console.error('Error updating chemical:', error);
@@ -106,8 +130,34 @@ export async function validateAndProcessChemical(action: string, params: any): P
       return { error: 'Invalid request: No chemicals selected for deletion.', chemicals: [] };
     }
     try {
-      // For deletion, loop over each chemicalID and call deleteChemical
       for (const id of params.chemicalIDs) {
+        // Take a snapshot of the chemical before deletion
+        const chemicalSnapshot = await prisma.chemical.findUnique({
+          where: { chemicalID: id },
+          select: {
+            chemicalName: true,
+            location: {
+              select: {
+                building: true,
+                room: true,
+              },
+            },
+          },
+        });
+
+        const chemicalName = chemicalSnapshot?.chemicalName ?? "N/A";
+        const locationBuilding = chemicalSnapshot?.location?.building ?? "N/A";
+        const locationRoom = chemicalSnapshot?.location?.room ?? "N/A";
+
+        await addLog({
+          userID: DUMMY_USER_ID,
+          chemicalID: id,
+          actionType: 'Deleted',
+          description: `Chemical '${chemicalName}' deleted.`,
+          chemicalName,
+          locationBuilding,
+          locationRoom,
+        });
         await deleteChemical(id);
       }
       return { message: 'Selected chemicals and their QR codes deleted successfully.', chemicals: [] };
