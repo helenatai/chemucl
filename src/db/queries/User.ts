@@ -6,7 +6,7 @@ import { UserWithRelations } from 'types/user';
 export const findUser = async (): Promise<UserWithRelations[]> => {
   const users = await prisma.user.findMany({
     select: {
-      userID: true,
+      id: true,
       email: true,
       name: true,
       activeStatus: true,
@@ -49,7 +49,7 @@ export const addUser = async (params: AddUserParams): Promise<UserWithRelations>
 };
 
 export interface UpdateUserParams {
-  userID: number;
+  id: string;
   email?: string;
   name?: string;
   activeStatus?: boolean;
@@ -58,12 +58,12 @@ export interface UpdateUserParams {
 }
 
 export const updateUser = async (params: UpdateUserParams): Promise<UserWithRelations> => {
-  const { userID, ...updateFields } = params;
+  const { id, ...updateFields } = params;
   
   const data = Object.fromEntries(Object.entries(updateFields).filter(([_, value]) => value !== undefined));
   
   return await prisma.user.update({
-    where: { userID },
+    where: { id },
     data,
     include: {
       researchGroup: true,
@@ -71,9 +71,9 @@ export const updateUser = async (params: UpdateUserParams): Promise<UserWithRela
   });
 };
 
-export const deleteUser = async (userID: number): Promise<UserWithRelations> => {
+export const deleteUser = async (id: string): Promise<UserWithRelations> => {
   return await prisma.user.delete({
-    where: { userID },
+    where: { id },
     include: {
       researchGroup: true,
     },

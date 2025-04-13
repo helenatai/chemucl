@@ -1,5 +1,5 @@
 export interface UserWithRelations {
-  userID: number;
+  id: string;
   email: string;
   name: string;
   activeStatus: boolean;

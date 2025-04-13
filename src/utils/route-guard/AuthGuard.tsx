@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 // project imports
-import useAuth from 'hooks/useAuth';
 import { useEffect } from 'react';
 import Loader from 'components/ui-component/Loader';
 
@@ -17,16 +17,19 @@ import { GuardProps } from 'types';
  * @param {PropTypes.node} children children element/node
  */
 const AuthGuard = ({ children }: GuardProps) => {
-  const { isLoggedIn } = useAuth();
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const isAuthenticated = status === 'authenticated';
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (status === 'unauthenticated') {
       router.push('/login');
     }
-  }, [isLoggedIn, router]);
+  }, [status, router]);
 
-  if (!isLoggedIn) return <Loader />;
+  if (status === 'loading') return <Loader />;
+
+  if (!isAuthenticated) return null;
 
   return children;
 };

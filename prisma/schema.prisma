@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  userID           Int            @id @default(autoincrement())
+  id               String         @id @default(cuid())
   email            String         @unique
   name             String
   activeStatus     Boolean        @default(true)
@@ -28,6 +28,7 @@ model User {
   image            String?
   accounts         Account[]
   sessions         Session[]
+  
   researchGroup    ResearchGroup? @relation(fields: [researchGroupID], references: [researchGroupID])
   auditGenerals    AuditGeneral[] @relation("UserAuditGenerals")
   audits           Audit[]        @relation("UserAudits")
@@ -36,7 +37,7 @@ model User {
 
 model Account {
   id                String  @id @default(cuid())
-  userId            Int
+  userId            String
   type              String
   provider          String
   providerAccountId String
@@ -47,7 +48,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  user              User    @relation(fields: [userId], references: [userID], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -55,9 +56,9 @@ model Account {
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
-  userId       Int
+  userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [userID], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -131,7 +132,7 @@ model Location {
 
 model Log {
   logID             Int       @id @default(autoincrement())
-  userID            Int?
+  userID            String?
   actionType        String
   chemicalID        Int?
   description       String
@@ -141,11 +142,62 @@ model Log {
   locationRoom      String?
 
   chemical          Chemical? @relation(fields: [chemicalID], references: [chemicalID])
-  user              User?     @relation(fields: [userID], references: [userID])
+  user              User?     @relation(fields: [userID], references: [id])
 
   @@map("logs")
 }
 
+model AuditGeneral {
+  auditGeneralID Int       @id @default(autoincrement())
+  round          Int
+  auditorID      String
+  pendingCount   Int       @default(0)
+  finishedCount  Int       @default(0)
+  startDate      DateTime?
+  lastAuditDate  DateTime?
+  status         String
+  auditor        User      @relation("UserAuditGenerals", fields: [auditorID], references: [id])
+  audits         Audit[]   
+  
+  @@map("audit_general")
+}
+
+model Audit {
+  auditID         Int              @id @default(autoincrement())
+  auditGeneralID  Int              // foreign key referencing AuditGeneral
+  locationID      Int
+  auditorID       String
+  startDate       DateTime         @default(now())
+  lastAuditDate   DateTime?        // remain null until updated
+  round           Int              @default(1)
+  notes           String?
+  pendingCount    Int              @default(0)
+  finishedCount   Int              @default(0)
+  status          String           @default("Ongoing")
+  auditRecords    AuditRecord[]
+  auditor         User             @relation("UserAudits", fields: [auditorID], references: [id])
+  location        Location         @relation(fields: [locationID], references: [locationID])
+  auditGeneral    AuditGeneral     @relation(fields: [auditGeneralID], references: [auditGeneralID])
+  
+  @@map("audits")
+}
+
+model AuditRecord {
+  auditRecordID Int       @id @default(autoincrement())
+  auditID       Int
+  chemicalID    Int
+  status        String
+  notes         String?
+  auditDate     DateTime  @default(now())
+  lastAuditDate DateTime?
+  locationID    Int
+  audit         Audit     @relation(fields: [auditID], references: [auditID])
+  chemical      Chemical  @relation(fields: [chemicalID], references: [chemicalID])
+  location      Location  @relation(fields: [locationID], references: [locationID])
+  people        String
+
+  @@map("audit_records")
+}
 
 enum QrCodeType {
   CHEMICAL

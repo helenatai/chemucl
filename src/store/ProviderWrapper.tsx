@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 
 // third-party
 import { Provider } from 'react-redux';
+import { SessionProvider } from 'next-auth/react';
 
 // project-import
 import Locales from 'ui-component/Locales';
@@ -27,12 +28,14 @@ export default function ProviderWrapper({ children }: { children: ReactNode }) {
         <ThemeCustomization>
           <Locales>
             <NavigationScroll>
-              <AuthProvider>
-                <>
-                  <Snackbar />
-                  {children}
-                </>
-              </AuthProvider>
+              <SessionProvider>
+                <AuthProvider>
+                  <>
+                    <Snackbar />
+                    {children}
+                  </>
+                </AuthProvider>
+              </SessionProvider>
             </NavigationScroll>
           </Locales>
         </ThemeCustomization>

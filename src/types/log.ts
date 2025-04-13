@@ -7,7 +7,7 @@ export interface LogWithRelations {
     chemicalName: string;
   } | null;
   user?: {
-    userID: number;
+    id: string;
     name: string;
     permission: string; 
   } | null;

@@ -6,7 +6,7 @@ import { addChemical, deleteChemical, updateChemical } from 'db/queries/Chemical
 import { addLog } from 'db/queries/Log';
 import { prisma } from 'db';
 
-const DUMMY_USER_ID = 1;
+const DUMMY_USER_ID = 'cm9dhwo4t00011lk3vs4sfly8';
 
 const addChemicalSchema = z.object({
   chemicalName: z.string(),
@@ -76,7 +76,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
       });
 
       await addLog({
-        userID: DUMMY_USER_ID, // Replace with the real userID from session later
+        userID: DUMMY_USER_ID.toString(), // Replace with the real userID from session later
         chemicalID: newChemical.chemicalID,
         actionType: 'Added',
         description: `Chemical '${newChemical.chemicalName}' added.`,
@@ -109,7 +109,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
       }
 
       await addLog({
-        userID: DUMMY_USER_ID, // Replace with real userID from session later
+        userID: DUMMY_USER_ID.toString(), // Replace with real userID from session later
         chemicalID: updatedChemical.chemicalID,
         actionType: 'Updated',
         description: `Chemical '${updatedChemical.chemicalName}' updated.`,
@@ -150,7 +150,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
         const locationRoom = chemicalSnapshot?.location?.room ?? "N/A";
 
         await addLog({
-          userID: DUMMY_USER_ID,
+          userID: DUMMY_USER_ID.toString(),
           chemicalID: id,
           actionType: 'Deleted',
           description: `Chemical '${chemicalName}' deleted.`,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
@@ -42,8 +42,9 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
   const scriptedRef = useScriptRef();
 
   const [checked, setChecked] = React.useState(true);
-
   const [showPassword, setShowPassword] = React.useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -67,7 +68,7 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
                   callbackUrl: '/inventory-page'
                 });
                 if (res?.error) {
-                  alert(res.error);
+                  setError(res.error);
                 }
               }}
             >
@@ -82,8 +83,8 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
           <Grid item xs={12}>
             <Formik
               initialValues={{
-                email: 'info@codedthemes.com',
-                password: '123456',
+                email: '',
+                password: '',
                 submit: null
               }}
               validationSchema={Yup.object().shape({
@@ -92,12 +93,22 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
               })}
               onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                 try {
-                  await login(values.email, values.password);
-                  if (scriptedRef.current) {
+                  setError(null);
+                  const result = await signIn('credentials', {
+                    redirect: false,
+                    email: values.email,
+                    password: values.password,
+                  });
+
+                  if (result?.error) {
+                    setError(result.error);
+                    setStatus({ success: false });
+                    setErrors({ submit: result.error });
+                  } else {
                     setStatus({ success: true });
                     router.push(DASHBOARD_PATH);
-                    setSubmitting(false);
                   }
+                  setSubmitting(false);
                 } catch (err: any) {
                   console.error(err);
                   if (scriptedRef.current) {
@@ -175,6 +186,12 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
                       </Typography>
                     </Grid>
                   </Grid>
+
+                  {error && (
+                    <Box sx={{ mt: 3 }}>
+                      <FormHelperText error>{error}</FormHelperText>
+                    </Box>
+                  )}
 
                   {errors.submit && (
                     <Box sx={{ mt: 3 }}>

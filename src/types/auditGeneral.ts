@@ -1,14 +1,14 @@
 export interface AuditGeneralWithRelations {
   auditGeneralID: number;
   round: number;
-  auditorID: number;
+  auditorID: string;
   pendingCount: number;
   finishedCount: number;
   startDate: Date | null;
   lastAuditDate: Date | null;
   status: string;
   auditor: {
-    userID: number;
+    id: string;
     name: string;
   } | null;
 }

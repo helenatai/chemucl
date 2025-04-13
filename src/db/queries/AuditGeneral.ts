@@ -9,7 +9,7 @@ export const findAuditGeneral = async (): Promise<AuditGeneralWithRelations[]> =
     include: {
       auditor: {
         select: {
-          userID: true,
+          id: true,
           name: true,
         }
       }
@@ -23,7 +23,7 @@ export const findAuditGeneralByID = async (auditGeneralID: number): Promise<Audi
     where: { auditGeneralID },
     include: {
       auditor: {
-        select: { userID: true, name: true }
+        select: { id: true, name: true }
       },
       // Optionally can include related audits 
       audits: true
@@ -32,7 +32,7 @@ export const findAuditGeneralByID = async (auditGeneralID: number): Promise<Audi
 };
 
 export interface AddAuditGeneralParams {
-  auditorID: number;
+  auditorID: string;
   locations: { buildingName: string; room: string }[];
 }
 
@@ -123,4 +123,20 @@ export async function updateAuditGeneral(data: UpdateAuditGeneralParams): Promis
     include: { auditor: true },
   });
   return { audit: auditGeneral };
+}
+
+export async function checkAndUpdateAuditGeneralStatus(auditGeneralID: number): Promise<void> {
+  const auditGeneral = await prisma.auditGeneral.findUnique({
+    where: { auditGeneralID },
+    select: { pendingCount: true, status: true },
+  });
+  if (auditGeneral && auditGeneral.pendingCount === 0 && auditGeneral.status !== "Completed") {
+    await prisma.auditGeneral.update({
+      where: { auditGeneralID },
+      data: { 
+        status: "Completed",
+        lastAuditDate: new Date()
+      },
+    });
+  }
 }

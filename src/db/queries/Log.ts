@@ -17,7 +17,7 @@ export const findLogs = async (): Promise<LogWithRelations[]> => {
       locationRoom: true,
       user: {
         select: {
-          userID: true,
+          id: true,
           name: true,
           permission: true
         }
@@ -29,7 +29,7 @@ export const findLogs = async (): Promise<LogWithRelations[]> => {
 };
 
 export const addLog = async (params: {
-  userID: number;
+  userID: string;
   chemicalID: number;
   actionType: 'Added' | 'Updated' | 'Deleted';
   description?: string;
@@ -50,7 +50,7 @@ export const addLog = async (params: {
     },
     include: {
       user: {
-        select: { userID: true, name: true, permission: true }
+        select: { id: true, name: true, permission: true }
       },
     }
   });
