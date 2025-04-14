@@ -103,17 +103,16 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
                   if (result?.error) {
                     setError(result.error);
                     setStatus({ success: false });
-                    setErrors({ submit: result.error });
+                    setSubmitting(false);
                   } else {
                     setStatus({ success: true });
                     router.push(DASHBOARD_PATH);
                   }
-                  setSubmitting(false);
                 } catch (err: any) {
                   console.error(err);
                   if (scriptedRef.current) {
                     setStatus({ success: false });
-                    setErrors({ submit: err.message });
+                    setError(err.message || 'An unexpected error occurred');
                     setSubmitting(false);
                   }
                 }

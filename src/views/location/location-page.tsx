@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { LocationWithRelations } from 'types/location';
 import { useRouter } from 'next/navigation';
+import { usePermissions } from 'hooks/usePermissions';
 import { addLocationAction } from 'actions/location/server-actions/addLocation';
 import { deleteLocationAction } from 'actions/location/server-actions/deleteLocation';
 import AddFormModal from 'sections/AddFormModal';
@@ -43,6 +44,7 @@ interface LocationPageProps {
 
 const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
   const router = useRouter();
+  const { canModifyLocation } = usePermissions();
   const [search, setSearch] = useState('');
   const [filteredLocations, setFilteredLocations] = useState(initialLocations);
   const [page, setPage] = useState(0);
@@ -155,16 +157,18 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
                   <FilterListIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Add Location">
-                <Fab
-                  color="primary"
-                  size="small"
-                  onClick={handleOpenAddModal}
-                  sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
-                >
-                  <AddIcon />
-                </Fab>
-              </Tooltip>
+              {canModifyLocation && (
+                <Tooltip title="Add Location">
+                  <Fab
+                    color="primary"
+                    size="small"
+                    onClick={handleOpenAddModal}
+                    sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
+                  >
+                    <AddIcon />
+                  </Fab>
+                </Tooltip>
+              )}
             </Grid>
           </Grid>
         </CardContent>
@@ -206,11 +210,13 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
                           </IconButton>
                         </Link>
                       </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton onClick={() => handleDelete(location.locationID)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
+                      {canModifyLocation && (
+                        <Tooltip title="Delete">
+                          <IconButton onClick={() => handleDelete(location.locationID)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>

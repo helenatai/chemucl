@@ -12,8 +12,8 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import NavItem from './NavItem';
 import NavGroup from './NavGroup';
 import useConfig from 'hooks/useConfig';
+import { useMenuItems } from 'hooks/useMenuItems';
 
-import menuItem from 'menu-items';
 import { HORIZONTAL_MAX_ITEM } from 'config';
 import { useGetMenuMaster } from 'api/menu';
 
@@ -30,6 +30,7 @@ const MenuList = () => {
   const { menuOrientation } = useConfig();
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
+  const menuItem = useMenuItems();
 
   const isHorizontal = menuOrientation === MenuOrientation.HORIZONTAL && !downMD;
   const [selectedID, setSelectedID] = useState<string | undefined>('');
@@ -59,9 +60,9 @@ const MenuList = () => {
       case 'group':
         if (item.url && item.id !== lastItemId) {
           return (
-            <List key={item.id}>
+            <List key={item.id} disablePadding>
               <NavItem item={item} level={1} isParents setSelectedID={() => setSelectedID('')} />
-              {!isHorizontal && index !== 0 && <Divider sx={{ py: 0.5 }} />}
+              {!isHorizontal && <Divider sx={{ my: 1.5 }} />}
             </List>
           );
         }

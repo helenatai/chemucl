@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, SyntheticEvent } from 'react';
-import { useTheme } from '@mui/material/styles';
 import { Box, Grid, Tab, Tabs } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
+import RoleGuard from 'utils/route-guard/RoleGuard';
+import { ROLES } from 'constants/roles';
 
 // We'll create two separate child components
 import UserTable from './user-table';
@@ -44,7 +45,6 @@ function a11yProps(index: number) {
 }
 
 const UserPage: React.FC<UserPageProps> = ({ initialUsers, initialResearchGroups }) => {
-  const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
 
   const handleChange = (event: SyntheticEvent, newValue: number) => {
@@ -52,36 +52,38 @@ const UserPage: React.FC<UserPageProps> = ({ initialUsers, initialResearchGroups
   };
 
   return (
-    <MainCard>
-      <Grid container spacing={gridSpacing}>
-        <Grid item xs={12}>
-          {/* TABS */}
-          <Tabs
-            value={tabValue}
-            onChange={handleChange}
-            variant="scrollable"
-            textColor="primary"
-            indicatorColor="primary"
-            aria-label="User / Research Group Tabs"
-            sx={{ mb: 3 }}
-          >
-            <Tab label="User" {...a11yProps(0)} />
-            <Tab label="Research Group" {...a11yProps(1)} />
-          </Tabs>
+    <RoleGuard allowedPermissions={[ROLES.ADMIN]} fallbackPath="/inventory-page">
+      <MainCard>
+        <Grid container spacing={gridSpacing}>
+          <Grid item xs={12}>
+            {/* TABS */}
+            <Tabs
+              value={tabValue}
+              onChange={handleChange}
+              variant="scrollable"
+              textColor="primary"
+              indicatorColor="primary"
+              aria-label="User / Research Group Tabs"
+              sx={{ mb: 3 }}
+            >
+              <Tab label="User" {...a11yProps(0)} />
+              <Tab label="Research Group" {...a11yProps(1)} />
+            </Tabs>
 
-          {/* TAB PANELS */}
-          <TabPanel value={tabValue} index={0}>
-            {/* ============ USER TABLE ============ */}
-            <UserTable initialUsers={initialUsers} />
-          </TabPanel>
+            {/* TAB PANELS */}
+            <TabPanel value={tabValue} index={0}>
+              {/* ============ USER TABLE ============ */}
+              <UserTable initialUsers={initialUsers} />
+            </TabPanel>
 
-          <TabPanel value={tabValue} index={1}>
-            {/* ============ RESEARCH GROUP TABLE ============ */}
-            <ResearchGroupTable initialResearchGroups={initialResearchGroups} />
-          </TabPanel>
+            <TabPanel value={tabValue} index={1}>
+              {/* ============ RESEARCH GROUP TABLE ============ */}
+              <ResearchGroupTable initialResearchGroups={initialResearchGroups} />
+            </TabPanel>
+          </Grid>
         </Grid>
-      </Grid>
-    </MainCard>
+      </MainCard>
+    </RoleGuard>
   );
 };
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, Checkbox, TextField, InputAdornment, CardContent,
+  TablePagination, Checkbox, TextField, InputAdornment, 
   Grid, IconButton, Tooltip, Fab, Snackbar, Alert
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -19,7 +19,7 @@ interface UserTableProps {
 
 const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
   const [users, setUsers] = useState<UserWithRelations[]>(initialUsers);
-  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -50,29 +50,28 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
   // 3. Checkbox logic
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const allIDs = filteredUsers.map((u) => u.userID);
+      const allIDs = filteredUsers.map((u) => u.id);
       setSelectedUsers(allIDs);
       return;
     }
     setSelectedUsers([]);
   };
-  const handleClickCheckbox = (event: React.ChangeEvent<HTMLInputElement>, userID: number) => {
-    const selectedIndex = selectedUsers.indexOf(userID);
-    let newSelected: number[] = [];
+  const handleClickCheckbox = (event: React.ChangeEvent<HTMLInputElement>, id: string) => {
+    const selectedIndex = selectedUsers.indexOf(id);
+    let newSelected: string[] = [];
     if (selectedIndex === -1) {
-      newSelected = [...selectedUsers, userID];
+      newSelected = [...selectedUsers, id];
     } else {
-      newSelected = selectedUsers.filter((id) => id !== userID);
+      newSelected = selectedUsers.filter((selectedId) => selectedId !== id);
     }
     setSelectedUsers(newSelected);
   };
-  const isSelected = (userID: number) => selectedUsers.indexOf(userID) !== -1;
+  const isSelected = (id: string) => selectedUsers.indexOf(id) !== -1;
 
-  // 4. “Delete selected” example
+  // 4. "Delete selected" example
   const handleDeleteSelected = () => {
     if (!confirm('Are you sure you want to delete the selected user(s)?')) return;
-    // In a real app, you'd call a server action. For now, just remove them locally:
-    const remaining = users.filter((u) => !selectedUsers.includes(u.userID));
+    const remaining = users.filter((u) => !selectedUsers.includes(u.id));
     setUsers(remaining);
     setSelectedUsers([]);
     setSnackbarMessage('Selected users deleted!');
@@ -80,7 +79,7 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
     setSnackbarOpen(true);
   };
 
-  // 5. “Add user” example
+  // 5. "Add user" example
   const handleAddUser = () => {
 
   };
@@ -114,7 +113,12 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
             </Tooltip>
           )}
           <Tooltip title="Add User">
-            <Fab color="primary" size="small" onClick={handleAddUser} sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}>
+            <Fab
+              color="primary"
+              size="small"
+              onClick={handleAddUser}
+              sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
+            >
               <AddIcon />
             </Fab>
           </Tooltip>
@@ -124,17 +128,11 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
         <Table>
           <TableHead>
             <TableRow>
-              {/* Checkbox column */}
               <TableCell padding="checkbox">
                 <Checkbox
                   color="primary"
-                  indeterminate={
-                    selectedUsers.length > 0 && selectedUsers.length < filteredUsers.length
-                  }
-                  checked={
-                    filteredUsers.length > 0 &&
-                    selectedUsers.length === filteredUsers.length
-                  }
+                  indeterminate={selectedUsers.length > 0 && selectedUsers.length < filteredUsers.length}
+                  checked={filteredUsers.length > 0 && selectedUsers.length === filteredUsers.length}
                   onChange={handleSelectAllClick}
                 />
               </TableCell>
@@ -147,18 +145,20 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {currentPageData.map((user) => {
-              const selected = isSelected(user.userID);
+            {currentPageData.map((user, index) => {
+              const selected = isSelected(user.id);
+              // Calculate the sequential number based on current page and rows per page
+              const sequentialNumber = page * rowsPerPage + index + 1;
               return (
-                <TableRow key={user.userID}>
+                <TableRow key={user.id}>
                   <TableCell padding="checkbox">
                     <Checkbox
                       color="primary"
                       checked={selected}
-                      onChange={(e) => handleClickCheckbox(e, user.userID)}
+                      onChange={(e) => handleClickCheckbox(e, user.id)}
                     />
                   </TableCell>
-                  <TableCell>{user.userID}</TableCell>
+                  <TableCell>{sequentialNumber}</TableCell>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.permission}</TableCell>
                   <TableCell>{user.email}</TableCell>

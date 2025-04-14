@@ -8,6 +8,8 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import type { AuditRecordWithRelations } from 'types/auditRecord';
+import RoleGuard from 'utils/route-guard/RoleGuard';
+import { ROLES } from 'constants/roles';
 
 interface AuditLocationChemicalsProps {
   auditID: number;
@@ -47,66 +49,68 @@ const AuditLocationChemicals: React.FC<AuditLocationChemicalsProps> = ({ auditID
   const paginatedRecords = filteredRecords.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <MainCard>
-      <TextField
-        placeholder="Search Chemical"
-        value={search}
-        onChange={handleSearch}
-        size="small"
-        sx={{ mb: 2 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" />
-            </InputAdornment>
-          ),
-        }}
-      />
+    <RoleGuard allowedPermissions={[ROLES.ADMIN, ROLES.AUDITOR]} fallbackPath="/inventory-page">
+      <MainCard>
+        <TextField
+          placeholder="Search Chemical"
+          value={search}
+          onChange={handleSearch}
+          size="small"
+          sx={{ mb: 2 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+        />
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Index</TableCell>
-              <TableCell>Chemical</TableCell>
-              <TableCell>CAS Number</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Start Date</TableCell>
-              <TableCell>End date</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedRecords.map((rec, idx) => {
-              const seqIndex = page * rowsPerPage + idx + 1;
-              return (
-                <TableRow key={rec.auditRecordID}>
-                  <TableCell>{seqIndex}</TableCell>
-                  <TableCell>{rec.chemical.chemicalName}</TableCell>
-                  <TableCell>{rec.chemical.casNumber}</TableCell>
-                  <TableCell>{rec.status}</TableCell>
-                  <TableCell>
-                    {rec.auditDate ? new Date(rec.auditDate).toLocaleString() : 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    {rec.lastAuditDate ? new Date(rec.lastAuditDate).toLocaleString() : 'N/A'}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Index</TableCell>
+                <TableCell>Chemical</TableCell>
+                <TableCell>CAS Number</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Start Date</TableCell>
+                <TableCell>End date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedRecords.map((rec, idx) => {
+                const seqIndex = page * rowsPerPage + idx + 1;
+                return (
+                  <TableRow key={rec.auditRecordID}>
+                    <TableCell>{seqIndex}</TableCell>
+                    <TableCell>{rec.chemical.chemicalName}</TableCell>
+                    <TableCell>{rec.chemical.casNumber}</TableCell>
+                    <TableCell>{rec.status}</TableCell>
+                    <TableCell>
+                      {rec.auditDate ? new Date(rec.auditDate).toLocaleString() : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {rec.lastAuditDate ? new Date(rec.lastAuditDate).toLocaleString() : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={filteredRecords.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </MainCard>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredRecords.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </MainCard>
+    </RoleGuard>
   );
 };
 

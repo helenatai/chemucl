@@ -4,7 +4,6 @@ import { memo, useMemo } from 'react';
 import { Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import Stack from '@mui/material/Stack';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 // third-party
@@ -14,15 +13,12 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import MenuList from '../MenuList';
 import LogoSection from '../LogoSection';
 import MiniDrawerStyled from './MiniDrawerStyled';
-import Chip from 'ui-component/extended/Chip';
 
 import useConfig from 'hooks/useConfig';
 import { drawerWidth } from 'store/constant';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
-// types
-import { MenuOrientation } from 'types/config';
 
 // ==============================|| SIDEBAR DRAWER ||============================== //
 
@@ -44,13 +40,6 @@ const Sidebar = () => {
   );
 
   const drawer = useMemo(() => {
-    const isVerticalOpen = menuOrientation === MenuOrientation.VERTICAL && drawerOpen;
-    const drawerContent = (
-      <Stack direction="row" justifyContent="center" sx={{ mb: 2 }}>
-        <Chip label={process.env.REACT_APP_VERSION} disabled chipcolor="secondary" size="small" sx={{ cursor: 'pointer' }} />
-      </Stack>
-    );
-
     let drawerSX = { paddingLeft: '0px', paddingRight: '0px', marginTop: '20px' };
     if (drawerOpen) drawerSX = { paddingLeft: '16px', paddingRight: '16px', marginTop: '0px' };
 
@@ -59,12 +48,10 @@ const Sidebar = () => {
         {downMD ? (
           <Box sx={drawerSX}>
             <MenuList />
-            {isVerticalOpen && drawerContent}
           </Box>
         ) : (
           <PerfectScrollbar style={{ height: 'calc(100vh - 88px)', ...drawerSX }}>
             <MenuList />
-            {isVerticalOpen && drawerContent}
           </PerfectScrollbar>
         )}
       </>

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { useRouter } from 'next/navigation';
+import { usePermissions } from 'hooks/usePermissions';
 
 // MUI imports
 import Grid from '@mui/material/Grid';
@@ -31,6 +32,7 @@ interface LocationWithRelations {
 const LocationInformation = ({ location }: { location: LocationWithRelations }) => {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { canModifyLocation } = usePermissions();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedLocation, setEditedLocation] = useState({ ...location });
@@ -115,7 +117,7 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
                         name="buildingName"
                         value={editedLocation.buildingName} 
                         onChange={handleInputChange}
-                        InputProps={{ readOnly: !isEditing }} 
+                        InputProps={{ readOnly: !isEditing || !canModifyLocation }} 
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
@@ -125,7 +127,7 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
                         name="building"
                         value={editedLocation.building} 
                         onChange={handleInputChange}
-                        InputProps={{ readOnly: !isEditing }} 
+                        InputProps={{ readOnly: !isEditing || !canModifyLocation }} 
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
@@ -135,7 +137,7 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
                         name="room"
                         value={editedLocation.room} 
                         onChange={handleInputChange}
-                        InputProps={{ readOnly: !isEditing }} 
+                        InputProps={{ readOnly: !isEditing || !canModifyLocation }} 
                       />
                     </Grid>
                     {/* ...any additional fields, e.g. subLocation1, subLocation2, etc. */}
@@ -149,7 +151,7 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
         {/* Button Row */}
         <Grid item xs={12} sx={{ textAlign: 'right' }}>
           <Stack direction="row" spacing={2} justifyContent="flex-end">
-            {isEditing ? (
+            {isEditing && canModifyLocation ? (
               <>
                 <Button variant="outlined" onClick={handleCancel}>
                   Cancel
@@ -158,11 +160,11 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
                   Save
                 </Button>
               </>
-            ) : (
+            ) : canModifyLocation ? (
               <Button variant="contained" onClick={() => setIsEditing(true)}>
                 Edit
               </Button>
-            )}
+            ) : null}
           </Stack>
         </Grid>
       </Grid>

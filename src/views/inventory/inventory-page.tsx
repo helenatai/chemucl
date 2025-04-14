@@ -11,6 +11,7 @@ import AddFormModal from 'sections/AddFormModal';
 import ChemForm from 'sections/forms/ChemicalForm';
 import QrCodeModal from 'components/modals/QrCodeModal';
 import CSVExport from 'ui-component/extended/utils/CSVExport';
+import { usePermissions } from '../../hooks/usePermissions';
 
 // Material UI Imports
 import Table from '@mui/material/Table';
@@ -67,6 +68,8 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+  const { canModifyInventory } = usePermissions();
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value.toLowerCase();
@@ -220,7 +223,7 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
 
   
   return (
-    <>
+    <div>
       <MainCard>
         <CardContent>
           <Grid container justifyContent="space-between" alignItems="center" spacing={2}>
@@ -240,7 +243,7 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
               />
             </Grid>
             <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
-                {selectedChemicals.length > 0 && (
+                {selectedChemicals.length > 0 && canModifyInventory && (
                   <Tooltip title="Delete Selected">
                     <IconButton onClick={handleDeleteSelected}>
                       <DeleteIcon />
@@ -249,7 +252,7 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
                 )}
               <Tooltip title ="Import Inventory">
                   <IconButton>
-                      <GetAppTwoToneIcon /> {/* Import Icon */}
+                      <GetAppTwoToneIcon />
                   </IconButton>
               </Tooltip>
               <Tooltip title="Export CSV">
@@ -263,24 +266,26 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
               </Tooltip>
               <Tooltip title ="Customise Column">
                   <IconButton>
-                      <ViewColumnTwoToneIcon /> {/* Customize Columns Icon */}
+                      <ViewColumnTwoToneIcon />
                   </IconButton>
               </Tooltip>
               <Tooltip title ="Filter">
                   <IconButton>
-                      <FilterListIcon /> {/* Export Icon */}
+                      <FilterListIcon />
                   </IconButton>
               </Tooltip>
-              <Tooltip title ="Add Item">
-              <Fab
-                  color="primary"
-                  size="small"
-                  onClick={handleOpenAddModal}
-                  sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
-                >
-                  <AddIcon /> {/* Add Item Icon */}
-                </Fab>
-              </Tooltip>
+              {canModifyInventory && (
+                <Tooltip title ="Add Item">
+                  <Fab
+                      color="primary"
+                      size="small"
+                      onClick={handleOpenAddModal}
+                      sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
+                    >
+                      <AddIcon />
+                    </Fab>
+                </Tooltip>
+              )}
             </Grid>
           </Grid>
         </CardContent>
@@ -288,20 +293,22 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
           <Table>
             <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  color="primary"
-                  indeterminate={selectedChemicals.length > 0 && selectedChemicals.length < initialChemicals.length}
-                  checked={selectedChemicals.length === initialChemicals.length && initialChemicals.length > 0}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedChemicals(initialChemicals.map((chemical) => chemical.chemicalID));
-                    } else {
-                      setSelectedChemicals([]);
-                    }
-                  }}
-                />
+              {canModifyInventory && (
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    color="primary"
+                    indeterminate={selectedChemicals.length > 0 && selectedChemicals.length < initialChemicals.length}
+                    checked={selectedChemicals.length === initialChemicals.length && initialChemicals.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedChemicals(initialChemicals.map((chemical) => chemical.chemicalID));
+                      } else {
+                        setSelectedChemicals([]);
+                      }
+                    }}
+                  />
                 </TableCell>
+              )}
                 <TableCell>QR ID</TableCell>
                 <TableCell>Item Name</TableCell>
                 <TableCell>Supplier</TableCell>
@@ -317,19 +324,21 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
             <TableBody>
               {filteredChemicals.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((chemical) => (
                 <TableRow key={chemical.chemicalID}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={selectedChemicals.includes(chemical.chemicalID)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedChemicals([...selectedChemicals, chemical.chemicalID]);
-                        } else {
-                          setSelectedChemicals(selectedChemicals.filter(id => id !== chemical.chemicalID));
-                        }
-                      }}
-                    />
-                  </TableCell>
+                  {canModifyInventory && (
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        color="primary"
+                        checked={selectedChemicals.includes(chemical.chemicalID)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedChemicals([...selectedChemicals, chemical.chemicalID]);
+                          } else {
+                            setSelectedChemicals(selectedChemicals.filter(id => id !== chemical.chemicalID));
+                          }
+                        }}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell>
                     {chemical.qrID}
                     <IconButton
@@ -405,7 +414,7 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </>
+    </div>
   );
 };
 

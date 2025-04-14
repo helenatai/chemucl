@@ -1,0 +1,26 @@
+export const ROLES = {
+  RESEARCH_STUDENT: 'Research Student',
+  STAFF: 'Staff',
+  ADMIN: 'Admin',
+  AUDITOR: 'Auditor'
+} as const;
+
+export const PERMISSIONS = {
+  // Inventory permissions
+  INVENTORY_VIEW: [ROLES.RESEARCH_STUDENT, ROLES.STAFF, ROLES.ADMIN, ROLES.AUDITOR],
+  INVENTORY_MODIFY: [ROLES.STAFF, ROLES.ADMIN],
+
+  // Location permissions
+  LOCATION_VIEW: [ROLES.RESEARCH_STUDENT, ROLES.STAFF, ROLES.ADMIN, ROLES.AUDITOR],
+  LOCATION_MODIFY: [ROLES.STAFF, ROLES.ADMIN, ROLES.AUDITOR],
+
+  // Log permissions
+  LOG_ACCESS: [ROLES.ADMIN],
+
+  // User management permissions
+  USER_ACCESS: [ROLES.ADMIN],
+
+  // Audit permissions
+  AUDIT_ACCESS: [ROLES.ADMIN, ROLES.AUDITOR],
+  AUDIT_MODIFY: [ROLES.ADMIN, ROLES.AUDITOR]
+} as const; 

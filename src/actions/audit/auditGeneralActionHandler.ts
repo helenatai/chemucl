@@ -5,9 +5,7 @@ import { addAuditGeneral, updateAuditGeneral } from 'db/queries/AuditGeneral';
 import { AuditGeneralActionResponse } from 'types/auditGeneral';
 
 const AuditGeneralSchema = z.object({
-  auditorID: z.string().refine(val => !isNaN(parseInt(val)), {
-    message: "Invalid auditorID",
-  }).transform(val => parseInt(val, 10)),
+  auditorID: z.string(),
 
   locations: z.string().refine((val) => {
     try {

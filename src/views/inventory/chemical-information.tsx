@@ -6,12 +6,11 @@ import Autocomplete from '@mui/material/Autocomplete';
 import { updateChemicalAction } from 'actions/chemical/server-actions/updateChemical';
 import { ChemicalWithRelations } from 'types/chemical';
 import { useRouter } from 'next/navigation';
+import { usePermissions } from '../../hooks/usePermissions';
 
 // Material UI Imports
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-//import Card from '@mui/material/Card';
-//import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
@@ -44,6 +43,7 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
   const [buildings, setBuildings] = useState<string[]>([]);
   const [rooms, setRooms] = useState<string[]>([]);
   const router = useRouter();
+  const { canModifyInventory } = usePermissions();
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -66,7 +66,6 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
     }
   }, [chemical.qrID]);
 
-  // Collect unique building names (trimmed) for the building dropdown
   useEffect(() => {
     const uniqueBuildingNames = Array.from(
       new Set(locations.map(loc => loc.buildingName.trim()))
@@ -74,7 +73,6 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
     setBuildings(uniqueBuildingNames);
   }, [locations]);
 
-  // Update rooms based on the selected building in the edited chemical.
   useEffect(() => {
     const currentBldgName = editedChemical.location?.buildingName || '';
     if (currentBldgName) {
@@ -163,12 +161,24 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
                 <SubCard title="Chemical Information">
                   <Grid container spacing={gridSpacing}>
                     <Grid item xs={12} md={6}>
+                      <Autocomplete
+                          readOnly={!isEditing || !canModifyInventory}
+                          options={["Unrestricted", "Restricted"]}
+                          value={editedChemical.restrictionStatus ? "Restricted" : "Unrestricted"}
+                          onChange={(_, newValue) => setEditedChemical({ ...editedChemical, restrictionStatus: newValue === "Restricted" })}
+                          disableClearable={!isEditing || !canModifyInventory}
+                          renderInput={(params) => (
+                            <TextField {...params} label="Restricted Status" InputProps={{ ...params.InputProps, readOnly: !isEditing || !canModifyInventory, endAdornment: (isEditing && canModifyInventory) ? params.InputProps.endAdornment : null }} />
+                          )}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
                       <TextField fullWidth 
                       label="Item Name" 
                       name="chemicalName" 
                       value={editedChemical.chemicalName} 
                       onChange={handleInputChange} 
-                      InputProps={{ readOnly: !isEditing }} 
+                      InputProps={{ readOnly: !isEditing || !canModifyInventory }} 
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
@@ -177,7 +187,7 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
                       name="casNumber" 
                       value={editedChemical.casNumber} 
                       onChange={handleInputChange} 
-                      InputProps={{ readOnly: !isEditing }} 
+                      InputProps={{ readOnly: !isEditing || !canModifyInventory }} 
                       />
                     </Grid>
                     <Grid item xs={12} md={3}>
@@ -186,11 +196,12 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
                       name="quantity" 
                       value={editedChemical.quantity} 
                       onChange={handleInputChange} 
-                      InputProps={{ readOnly: !isEditing }} 
+                      InputProps={{ readOnly: !isEditing || !canModifyInventory }} 
                       />
                     </Grid>
                     <Grid item xs={12} md={3}>
                       <Autocomplete
+                        readOnly={!isEditing || !canModifyInventory}
                         options={[
                           "Chemical",
                           "Poison",
@@ -201,36 +212,12 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
                           "Other",
                         ]}
                         value={editedChemical.chemicalType}
-                        onChange={(event, newValue) =>
-                          setEditedChemical({ ...editedChemical, chemicalType: newValue || "" })
-                        }
-                        disableClearable={!isEditing} 
-                        readOnly={!isEditing} 
+                        onChange={(_, newValue) => setEditedChemical({ ...editedChemical, chemicalType: newValue || "Chemical" })}
+                        disableClearable={!isEditing || !canModifyInventory}
                         renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Type"
-                            variant="outlined"
-                            InputProps={{
-                              ...params.InputProps,
-                              readOnly: !isEditing, 
-                              endAdornment: isEditing ? params.InputProps.endAdornment : null, 
-                            }}
-                          />
+                          <TextField {...params} label="Chemical Type" InputProps={{ ...params.InputProps, readOnly: !isEditing || !canModifyInventory, endAdornment: (isEditing && canModifyInventory) ? params.InputProps.endAdornment : null }} />
                         )}
                       />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Autocomplete
-                          readOnly={!isEditing}
-                          options={["Unrestricted", "Restricted"]}
-                          value={editedChemical.restrictionStatus ? "Restricted" : "Unrestricted"}
-                          onChange={(_, newValue) => setEditedChemical({ ...editedChemical, restrictionStatus: newValue === "Restricted" })}
-                          disableClearable={!isEditing}
-                          renderInput={(params) => (
-                            <TextField {...params} label="Restricted Status" InputProps={{ ...params.InputProps, readOnly: !isEditing, endAdornment: isEditing ? params.InputProps.endAdornment : null }} />
-                          )}
-                        />
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <Autocomplete
@@ -408,7 +395,7 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
         {/* Button Row */}
         <Grid item xs={12} sx={{ textAlign: 'right' }}>
           <Stack direction="row" spacing={2} justifyContent="flex-end">
-            {isEditing ? (
+            {isEditing && canModifyInventory ? (
               <>
                 <Button variant="outlined" onClick={handleCancel}>
                   Cancel
@@ -417,11 +404,11 @@ const ChemicalInformation: React.FC<ChemicalInformationProps> = ({ chemical, loc
                   Save
                 </Button>
               </>
-            ) : (
+            ) : canModifyInventory ? (
               <Button variant="contained" onClick={() => setIsEditing(true)}>
                 Edit
               </Button>
-            )}
+            ) : null}
           </Stack>
         </Grid>
       </Grid>

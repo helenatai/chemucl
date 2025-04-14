@@ -10,7 +10,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/AddTwoTone';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import MainCard from 'ui-component/cards/MainCard';
-
 import { ResearchGroupWithRelations } from 'types/researchGroup';
 
 interface ResearchGroupTableProps {
@@ -128,13 +127,8 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
               <TableCell padding="checkbox">
                 <Checkbox
                   color="primary"
-                  indeterminate={
-                    selectedGroups.length > 0 && selectedGroups.length < filteredGroups.length
-                  }
-                  checked={
-                    filteredGroups.length > 0 &&
-                    selectedGroups.length === filteredGroups.length
-                  }
+                  indeterminate={selectedGroups.length > 0 && selectedGroups.length < filteredGroups.length}
+                  checked={filteredGroups.length > 0 && selectedGroups.length === filteredGroups.length}
                   onChange={handleSelectAllClick}
                 />
               </TableCell>
@@ -144,8 +138,10 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
             </TableRow>
           </TableHead>
           <TableBody>
-            {currentPageData.map((grp) => {
+            {currentPageData.map((grp, index) => {
               const selected = isSelected(grp.researchGroupID);
+              // Calculate the sequential number based on current page and rows per page
+              const sequentialNumber = page * rowsPerPage + index + 1;
               return (
                 <TableRow key={grp.researchGroupID}>
                   <TableCell padding="checkbox">
@@ -155,7 +151,7 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
                       onChange={(e) => handleClickCheckbox(e, grp.researchGroupID)}
                     />
                   </TableCell>
-                  <TableCell>{grp.researchGroupID}</TableCell>
+                  <TableCell>{sequentialNumber}</TableCell>
                   <TableCell>{grp.groupName}</TableCell>
                   <TableCell>{grp.totalMembers}</TableCell>
                 </TableRow>

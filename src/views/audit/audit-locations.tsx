@@ -10,6 +10,8 @@ import { gridSpacing } from 'store/constant';
 import { useRouter } from 'next/navigation';
 import AuditQrScannerModal from 'components/modals/AuditQrScannerModal';
 import CSVExport from 'components/ui-component/extended/utils/CSVExport';
+import RoleGuard from 'utils/route-guard/RoleGuard';
+import { ROLES } from 'constants/roles';
 
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -157,185 +159,187 @@ const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, m
   const fileName = auditGeneral ? `Audit Report Round ${auditGeneral.round}.csv` : "Audit Report.csv";
 
   return (
-    <MainCard title ={auditGeneral?.round ? `Round ${auditGeneral.round}` : 'Audit Locations'}>
-      <Grid container spacing={gridSpacing}>
-        <Grid item xs={12}>
-        <Tabs value={tabIndex} onChange={handleTabChange}>
-          <Tab label="Audits" />
-          <Tab label="View all missing chemicals" />
-        </Tabs>
-        <MainCard>
-        {/* Tab 0: Audit Information */}
-        {tabIndex === 0 && (
-          <>
-            {/* Search & Add Button Container */}
-            <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              {/* Search Bar */}
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  placeholder="Search Location"
-                  value={search}
-                  onChange={handleSearch}
-                  size="small"
-                />
-              </Grid>
-            </Grid>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Index</TableCell>
-                    <TableCell>Location</TableCell>
-                    <TableCell>Progress</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Start Time</TableCell>
-                    <TableCell>End Time</TableCell>
-                    <TableCell>Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredAudits.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((audit, index) => (
-                    <TableRow key={audit.auditID}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>
-                        {audit.location?.buildingName} {audit.location?.room}
-                      </TableCell>
-                      <TableCell>
-                        {audit.finishedCount} / {audit.finishedCount + audit.pendingCount}
-                      </TableCell>
-                      <TableCell>{audit.status}</TableCell>
-                      <TableCell>
-                        {audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        {audit.lastAuditDate ? new Date(audit.lastAuditDate).toLocaleString() : 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        <Grid container spacing={2}>
-                          <Grid item>
-                            <button onClick={() => handleView(auditGeneral?.auditGeneralID!, audit.auditID)}>
-                              View Chemicals
-                            </button>
-                          </Grid>
-                          <Grid item>
-                            <button onClick={() => handleOpenQrModal(audit)}>
-                              Audit
-                            </button>
-                          </Grid>
-                        </Grid>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component="div"
-              count={filteredAudits.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-          </>
-        )}
-        
-        {/* Tab 1: Missing Chemicals */}
-        {tabIndex === 1 && (
-          <>
-            <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  placeholder="Search Missing Chemicals"
-                  value={missingSearch}
-                  onChange={handleMissingSearch}
-                  size="small"
-                  sx={{ width: 250}}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
-                  <CSVExport data={csvData} headers={csvHeaders} filename={fileName} label="Export Report" />
+    <RoleGuard allowedPermissions={[ROLES.ADMIN, ROLES.AUDITOR]} fallbackPath="/inventory-page">
+      <MainCard title ={auditGeneral?.round ? `Round ${auditGeneral.round}` : 'Audit Locations'}>
+        <Grid container spacing={gridSpacing}>
+          <Grid item xs={12}>
+          <Tabs value={tabIndex} onChange={handleTabChange}>
+            <Tab label="Audits" />
+            <Tab label="View all missing chemicals" />
+          </Tabs>
+          <MainCard>
+          {/* Tab 0: Audit Information */}
+          {tabIndex === 0 && (
+            <>
+              {/* Search & Add Button Container */}
+              <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                {/* Search Bar */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    placeholder="Search Location"
+                    value={search}
+                    onChange={handleSearch}
+                    size="small"
+                  />
                 </Grid>
-            </Grid>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Index</TableCell>
-                    <TableCell>Chemical</TableCell>
-                    <TableCell>CAS Number</TableCell>
-                    <TableCell>Location</TableCell>
-                    <TableCell>Start Time</TableCell>
-                    <TableCell>End Time</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {currentMissing.map((record, index) => {
-                    const seqIndex = missingPage * missingRowsPerPage + index + 1;
-                    return (
-                      <TableRow key={record.auditRecordID}>
-                        <TableCell>{seqIndex}</TableCell>
-                        <TableCell>{record.chemical.chemicalName}</TableCell>
-                        <TableCell>{record.chemical.casNumber}</TableCell>
+              </Grid>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Index</TableCell>
+                      <TableCell>Location</TableCell>
+                      <TableCell>Progress</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Start Time</TableCell>
+                      <TableCell>End Time</TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredAudits.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((audit, index) => (
+                      <TableRow key={audit.auditID}>
+                        <TableCell>{index + 1}</TableCell>
                         <TableCell>
-                          {record.audit?.location?.building} {record.audit?.location?.room}
+                          {audit.location?.buildingName} {audit.location?.room}
                         </TableCell>
                         <TableCell>
-                          {record.auditDate ? new Date(record.auditDate).toLocaleString() : 'N/A'}
+                          {audit.finishedCount} / {audit.finishedCount + audit.pendingCount}
+                        </TableCell>
+                        <TableCell>{audit.status}</TableCell>
+                        <TableCell>
+                          {audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}
                         </TableCell>
                         <TableCell>
-                          {record.lastAuditDate ? new Date(record.lastAuditDate).toLocaleString() : 'N/A'}
+                          {audit.lastAuditDate ? new Date(audit.lastAuditDate).toLocaleString() : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Grid container spacing={2}>
+                            <Grid item>
+                              <button onClick={() => handleView(auditGeneral?.auditGeneralID!, audit.auditID)}>
+                                View Chemicals
+                              </button>
+                            </Grid>
+                            <Grid item>
+                              <button onClick={() => handleOpenQrModal(audit)}>
+                                Audit
+                              </button>
+                            </Grid>
+                          </Grid>
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component="div"
-              count={filteredMissing.length}
-              rowsPerPage={missingRowsPerPage}
-              page={missingPage}
-              onPageChange={handleMissingChangePage}
-              onRowsPerPageChange={handleMissingChangeRowsPerPage}
-            />
-          </>
-          )}
-        </MainCard>
-        </Grid>
-      </Grid>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-      {/* QR Scanner Modal */}
-      {isQrModalOpen && (
-        <AuditQrScannerModal
-          open={isQrModalOpen}
-          auditId={currentAuditRecord!.auditID}
-          onClose={handleCloseQrModal}
-          onLocationVerified={handleLocationVerified}
-          onChemicalScanned={handleChemicalScanned}
-          onComplete={handleCompleteAudit}
-          onPause={handlePauseAudit}
-        />
-      )}
-    </MainCard>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={filteredAudits.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </>
+          )}
+          
+          {/* Tab 1: Missing Chemicals */}
+          {tabIndex === 1 && (
+            <>
+              <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    placeholder="Search Missing Chemicals"
+                    value={missingSearch}
+                    onChange={handleMissingSearch}
+                    size="small"
+                    sx={{ width: 250}}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
+                    <CSVExport data={csvData} headers={csvHeaders} filename={fileName} label="Export Report" />
+                  </Grid>
+              </Grid>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Index</TableCell>
+                      <TableCell>Chemical</TableCell>
+                      <TableCell>CAS Number</TableCell>
+                      <TableCell>Location</TableCell>
+                      <TableCell>Start Time</TableCell>
+                      <TableCell>End Time</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {currentMissing.map((record, index) => {
+                      const seqIndex = missingPage * missingRowsPerPage + index + 1;
+                      return (
+                        <TableRow key={record.auditRecordID}>
+                          <TableCell>{seqIndex}</TableCell>
+                          <TableCell>{record.chemical.chemicalName}</TableCell>
+                          <TableCell>{record.chemical.casNumber}</TableCell>
+                          <TableCell>
+                            {record.audit?.location?.building} {record.audit?.location?.room}
+                          </TableCell>
+                          <TableCell>
+                            {record.auditDate ? new Date(record.auditDate).toLocaleString() : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {record.lastAuditDate ? new Date(record.lastAuditDate).toLocaleString() : 'N/A'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={filteredMissing.length}
+                rowsPerPage={missingRowsPerPage}
+                page={missingPage}
+                onPageChange={handleMissingChangePage}
+                onRowsPerPageChange={handleMissingChangeRowsPerPage}
+              />
+            </>
+            )}
+          </MainCard>
+          </Grid>
+        </Grid>
+
+        {/* QR Scanner Modal */}
+        {isQrModalOpen && (
+          <AuditQrScannerModal
+            open={isQrModalOpen}
+            auditId={currentAuditRecord!.auditID}
+            onClose={handleCloseQrModal}
+            onLocationVerified={handleLocationVerified}
+            onChemicalScanned={handleChemicalScanned}
+            onComplete={handleCompleteAudit}
+            onPause={handlePauseAudit}
+          />
+        )}
+      </MainCard>
+    </RoleGuard>
   );
 };
 

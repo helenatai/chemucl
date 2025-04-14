@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) {
-            throw new Error('Email and password are required');
+            throw new Error('Please enter both email and password');
           }
 
           const user = await prisma.user.findUnique({
@@ -27,30 +27,28 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!user || !user.password) {
-            throw new Error('No user found with this email');
+            throw new Error('Invalid email or password');
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
           if (!isPasswordValid) {
-            throw new Error('Invalid password');
+            throw new Error('Invalid email or password');
           }
 
-          // Check if user is an admin
-          if (user.permission !== 'Admin') {
-            throw new Error('Access denied. Admin privileges required.');
+          if (!user.activeStatus) {
+            throw new Error('Your account is currently inactive. Please contact an administrator.');
           }
 
-          // Return user object with id as string
           return {
-            id: String(user.userID),
+            id: String(user.id),
             email: user.email,
             name: user.name,
             permission: user.permission
           };
         } catch (error) {
           console.error('Auth error:', error);
-          return null;
+          throw new Error(error instanceof Error ? error.message : 'An unexpected error occurred');
         }
       }
     })

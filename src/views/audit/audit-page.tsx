@@ -8,6 +8,9 @@ import AddFormModal from 'sections/AddFormModal';
 import AuditForm from 'sections/forms/AuditForm';
 import { addAuditAction } from 'actions/audit/server-actions/addAudit';
 import { useRouter } from 'next/navigation';
+import RoleGuard from 'utils/route-guard/RoleGuard';
+import { ROLES } from 'constants/roles';
+import { useSession } from 'next-auth/react';
 
 // Material UI Imports
 import {
@@ -26,6 +29,7 @@ interface AuditGeneralPageProps {
 
 const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, initialLocations }) => {
   const router = useRouter();
+  const { data: session } = useSession();
   const [audits] = useState<AuditGeneralWithRelations[]>(initialAudits);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
@@ -66,8 +70,15 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
   };
 
   const handleSubmitAuditForm = async (locationsArr: { buildingName: string; room: string }[]) => {
+    if (!session?.user?.id) {
+      setSnackbarMessage('Error: User not authenticated');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('auditorID', '1');   // replace with actual auditor ID later
+    formData.append('auditorID', session.user.id);
     formData.append('locations', JSON.stringify(locationsArr));
 
     const response = await addAuditAction(formData);
@@ -92,106 +103,108 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
   };
 
   return (
-    <MainCard>
-      <CardContent>
-        <Grid container justifyContent="space-between" alignItems="center" spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              placeholder="Search Audit"
-              value={search}
-              onChange={handleSearch}
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                )
-              }}
-            />
+    <RoleGuard allowedPermissions={[ROLES.ADMIN, ROLES.AUDITOR]} fallbackPath="/inventory-page">
+      <MainCard>
+        <CardContent>
+          <Grid container justifyContent="space-between" alignItems="center" spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                placeholder="Search Audit"
+                value={search}
+                onChange={handleSearch}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
+              <Tooltip title ="Add Audit">
+                <Fab
+                    color="primary"
+                    size="small"
+                    onClick={handleOpenAddModal}
+                    sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
+                  >
+                    <AddIcon /> {/* Add Item Icon */}
+                  </Fab>
+                </Tooltip>
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
-            <Tooltip title ="Add Audit">
-              <Fab
-                  color="primary"
-                  size="small"
-                  onClick={handleOpenAddModal}
-                  sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
-                >
-                  <AddIcon /> {/* Add Item Icon */}
-                </Fab>
-              </Tooltip>
-          </Grid>
-        </Grid>
-      </CardContent>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Round</TableCell>
-              <TableCell>Progress</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Auditor</TableCell>
-              <TableCell>Start Time</TableCell>
-              <TableCell>End Time</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {currentPageData.map((audit) => (
-              <TableRow key={audit.auditGeneralID}>
-                <TableCell>{audit.round}</TableCell>
-                <TableCell>
-                  {audit.finishedCount} / {audit.finishedCount + audit.pendingCount}
-                </TableCell>
-                <TableCell>{audit.status}</TableCell>
-                <TableCell>{audit.auditor ? audit.auditor.name : 'N/A'}</TableCell>
-                <TableCell>{audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}</TableCell>
-                <TableCell>{audit.lastAuditDate ? new Date(audit.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
-                <TableCell>
-                    <Grid container spacing={1}>
-                      <Grid item>
-                        <button onClick={() => handleView(audit.auditGeneralID)}>
-                          View
-                        </button>
-                      </Grid>
-                    </Grid>
-                  </TableCell>
+        </CardContent>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Round</TableCell>
+                <TableCell>Progress</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Auditor</TableCell>
+                <TableCell>Start Time</TableCell>
+                <TableCell>End Time</TableCell>
+                <TableCell>Action</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {currentPageData.map((audit) => (
+                <TableRow key={audit.auditGeneralID}>
+                  <TableCell>{audit.round}</TableCell>
+                  <TableCell>
+                    {audit.finishedCount} / {audit.finishedCount + audit.pendingCount}
+                  </TableCell>
+                  <TableCell>{audit.status}</TableCell>
+                  <TableCell>{audit.auditor ? audit.auditor.name : 'N/A'}</TableCell>
+                  <TableCell>{audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}</TableCell>
+                  <TableCell>{audit.lastAuditDate ? new Date(audit.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
+                  <TableCell>
+                      <Grid container spacing={1}>
+                        <Grid item>
+                          <button onClick={() => handleView(audit.auditGeneralID)}>
+                            View
+                          </button>
+                        </Grid>
+                      </Grid>
+                    </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={filteredAudits.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-
-      <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Locations for New Audit">
-        <AuditForm 
-          onSubmit={handleSubmitAuditForm} 
-          onCancel={handleCloseAddModal} 
-          initialLocations={initialLocations}
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredAudits.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
         />
-      </AddFormModal>
 
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </MainCard>
+        <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Locations for New Audit">
+          <AuditForm 
+            onSubmit={handleSubmitAuditForm} 
+            onCancel={handleCloseAddModal} 
+            initialLocations={initialLocations}
+          />
+        </AddFormModal>
+
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </MainCard>
+    </RoleGuard>
   );
 };
 
