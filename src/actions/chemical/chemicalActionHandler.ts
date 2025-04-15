@@ -5,8 +5,8 @@ import { ChemicalActionResponse } from 'types/chemical';
 import { addChemical, deleteChemical, updateChemical } from 'db/queries/Chemical';
 import { addLog } from 'db/queries/Log';
 import { prisma } from 'db';
-
-const DUMMY_USER_ID = 'cm9dhwo4t00011lk3vs4sfly8';
+import { getServerSession } from 'next-auth';
+import { authOptions } from 'app/api/auth/[...nextauth]/route';
 
 const addChemicalSchema = z.object({
   chemicalName: z.string(),
@@ -47,6 +47,12 @@ const updateChemicalSchema = z.object({
 });
 
 export async function validateAndProcessChemical(action: string, params: any): Promise<ChemicalActionResponse> {
+  // Get the user's session
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { error: 'User not authenticated', chemicals: [] };
+  }
+
   if (action === 'add') {
     const validation = addChemicalSchema.safeParse(params);
     if (!validation.success) {
@@ -76,7 +82,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
       });
 
       await addLog({
-        userID: DUMMY_USER_ID.toString(), // Replace with the real userID from session later
+        userID: session.user.id,
         chemicalID: newChemical.chemicalID,
         actionType: 'Added',
         description: `Chemical '${newChemical.chemicalName}' added.`,
@@ -109,7 +115,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
       }
 
       await addLog({
-        userID: DUMMY_USER_ID.toString(), // Replace with real userID from session later
+        userID: session.user.id,
         chemicalID: updatedChemical.chemicalID,
         actionType: 'Updated',
         description: `Chemical '${updatedChemical.chemicalName}' updated.`,
@@ -150,7 +156,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
         const locationRoom = chemicalSnapshot?.location?.room ?? "N/A";
 
         await addLog({
-          userID: DUMMY_USER_ID.toString(),
+          userID: session.user.id,
           chemicalID: id,
           actionType: 'Deleted',
           description: `Chemical '${chemicalName}' deleted.`,
@@ -170,6 +176,5 @@ export async function validateAndProcessChemical(action: string, params: any): P
   else {
     return { error: 'Invalid action type. Supported actions: "add", "update", "delete".', chemicals: [] };
   }
-
 }
 

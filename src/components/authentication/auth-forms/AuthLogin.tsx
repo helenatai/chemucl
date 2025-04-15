@@ -57,7 +57,7 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
     <Box>
       <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Button
+            {/* <Button
               fullWidth
               size="large"
               variant="contained"
@@ -69,6 +69,36 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
                 });
                 if (res?.error) {
                   setError(res.error);
+                }
+              }}
+            >
+              Sign in with UCL SSO
+            </Button> */}
+            <Button
+              fullWidth
+              size="large"
+              variant="contained"
+              color="primary"
+              onClick={async () => {
+                // Log for debugging
+                console.log("Starting UCL SSO login...");
+                
+                try {
+                  const res = await signIn('uclapi', {
+                    redirect: true,  // Change to true to let NextAuth handle redirection
+                    callbackUrl: '/inventory-page'
+                  });
+                  
+                  // This code will only run if redirect is false
+                  console.log("SignIn response:", res);
+                  if (res?.error) {
+                    setError(res.error);
+                  } else if (res?.url) {
+                    router.push(res.url);
+                  }
+                } catch (err) {
+                  console.error("UCL SSO error:", err);
+                  setError("An error occurred during UCL SSO login");
                 }
               }}
             >
@@ -104,7 +134,8 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
                     setError(result.error);
                     setStatus({ success: false });
                     setSubmitting(false);
-                  } else {
+                  } 
+                  else {
                     setStatus({ success: true });
                     router.push(DASHBOARD_PATH);
                   }
