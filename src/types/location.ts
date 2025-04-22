@@ -4,11 +4,20 @@ export interface LocationWithRelations {
   building: string;
   buildingName: string;
   room: string;
-  totalChemicals?: number | null;
+  totalChemicals?: number;
+  qrCode?: {
+    qrID: string;
+    type: 'LOCATION' | 'CHEMICAL';
+    locationID: number | null;
+    chemicalID: number | null;
+  } | null;
 }
 
 export type LocationActionResponse = {
-  locations?: LocationWithRelations[];
-  location?: LocationWithRelations;
-  error?: string | object;
+  locations: LocationWithRelations[];
+  totalCount?: number;
+  error?: any;
+  message?: string;
+  success?: boolean;
+  qrCode?: any;
 };

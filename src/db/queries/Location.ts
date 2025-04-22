@@ -74,20 +74,49 @@ export const addLocation = async (params: AddLocationParams) => {
   };
 };
 
-interface UpdateLocationParams extends Partial<AddLocationParams> {
+interface UpdateLocationParams {
   locationID: number;
+  building: string;
+  buildingName: string;
+  room: string;
+  qrID: string;
 }
 
 export const updateLocation = async (params: UpdateLocationParams) => {
-  const { locationID, ...updateFields } = params;
-  const updatedLocation = await prisma.location.update({
-    where: { locationID },
-    data: updateFields,
+  const { locationID, building, buildingName, room, qrID } = params;
+
+  // Update both location and its associated QR code in a transaction
+  const updatedLocation = await prisma.$transaction(async (tx) => {
+    // First update the QR code
+    await tx.qrCode.update({
+      where: {
+        locationID
+      },
+      data: {
+        qrID
+      }
+    });
+
+    // Then update the location
+    const location = await tx.location.update({
+      where: { locationID },
+      data: {
+        building,
+        buildingName,
+        room,
+        qrID
+      },
+      include: {
+        qrCode: true
+      }
+    });
+
+    return location;
   });
-  // Transform the returned object so that buildingName is always a string.
+
   return {
     ...updatedLocation,
-    buildingName: updatedLocation.buildingName ?? "", 
+    buildingName: updatedLocation.buildingName ?? "",
   };
 };
 

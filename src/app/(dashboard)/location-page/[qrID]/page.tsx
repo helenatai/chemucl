@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
-import LocationInformation from 'views/location/location-information';
+import LocationTabs from 'views/location/location-tabs';
 import { findLocationByQrID } from 'db/queries/Location';
 
-export default async function LocationInformationPage({ params }: { params: { qrID: string } }) {
+export default async function LocationPage({ params }: { params: { qrID: string } }) {
   const { qrID } = params;
 
   const location = await findLocationByQrID(qrID);
@@ -11,5 +11,5 @@ export default async function LocationInformationPage({ params }: { params: { qr
     return notFound();
   }
 
-  return <LocationInformation location={location} />;
+  return <LocationTabs location={location} />;
 }

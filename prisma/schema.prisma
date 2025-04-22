@@ -164,11 +164,11 @@ model AuditGeneral {
 
 model Audit {
   auditID         Int              @id @default(autoincrement())
-  auditGeneralID  Int              // foreign key referencing AuditGeneral
+  auditGeneralID  Int              
   locationID      Int
   auditorID       String
   startDate       DateTime         @default(now())
-  lastAuditDate   DateTime?        // remain null until updated
+  lastAuditDate   DateTime?        
   round           Int              @default(1)
   notes           String?
   pendingCount    Int              @default(0)

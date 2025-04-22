@@ -9,9 +9,30 @@ const icons = {
 const locationPage: NavItemType = {
   id: 'location-page',
   title: <FormattedMessage id="Location" />,
-  icon: icons.RoomOutlinedIcon,  
   type: 'group',
-  url: '/location-page'  
+  url: '/location-page',
+  icon: icons.RoomOutlinedIcon,
+  breadcrumbs: true,
+  children: [
+    {
+      id: 'location-info',
+      title: 'Location Information',
+      type: 'item',
+      url: '/location-page/:qrID',
+      breadcrumbs: true,
+      target: false,
+      children: [
+        {
+          id: 'location-chemicals',
+          title: 'View Chemicals',
+          type: 'item',
+          url: '/location-page/:qrID/chemicals',
+          breadcrumbs: false,
+          target: false
+        }
+      ]
+    }
+  ]
 };
 
 export default locationPage;

@@ -10,3 +10,9 @@ export interface UserWithRelations {
     groupName: string;
   } | null;
 }
+export interface UserActionResponse {
+  error?: string | { [key: string]: any };
+  message?: string;
+  users: UserWithRelations[];
+}
+

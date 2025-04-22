@@ -3,8 +3,9 @@
 import { prisma } from 'db';
 import { ChemicalWithRelations } from 'types/chemical';
 
-export const findChemical = async () => {
+export const findChemical = async ({ chemicalID }: { chemicalID?: number } = {}) => {
   const chemicals = await prisma.chemical.findMany({
+    where: chemicalID ? { chemicalID } : undefined,
     select: {
       chemicalID: true,
       qrID: true,
@@ -115,6 +116,7 @@ export const findChemicalsByLocation = async (locationID: number) => {
       quantity: true,
       chemicalType: true,
       restrictionStatus: true,
+      activeStatus: true,
       dateAdded: true,
       dateUpdated: true,
       subLocation1: true,
@@ -123,19 +125,32 @@ export const findChemicalsByLocation = async (locationID: number) => {
       subLocation4: true,
       location: {
         select: {
+          locationID: true,
           building: true,
+          buildingName: true,
           room: true,
         },
       },
       researchGroup: {
         select: {
           groupName: true,
+          researchGroupID: true,
         },
       },
     },
   });
 
-  return chemicals;
+  return chemicals.map((chem) => ({
+    ...chem,
+    qrID: chem.qrID || 'N/A',
+    location: chem.location
+      ? {
+          ...chem.location,
+          buildingName: chem.location.buildingName ?? "",
+        }
+      : null,
+    researchGroup: chem.researchGroup || { groupName: '', researchGroupID: 0 }
+  }));
 };
 
 interface AddChemicalParams {
@@ -296,8 +311,6 @@ export const updateChemical = async (params: UpdateChemicalParams) => {
   }
 };
 
-
-
 export const deleteChemical = async (chemicalID: number) => {
   try {
     // Find the QR ID associated with this chemical
@@ -333,3 +346,88 @@ export const deleteChemical = async (chemicalID: number) => {
 };
 
 export const countData = async () => await prisma.chemical.count();
+
+export interface ChemicalImportData {
+  qrID: string;
+  chemicalName: string;
+  casNumber: string;  
+  quantity: number;
+  chemicalType: string;
+  restrictionStatus: boolean;  
+  supplier?: string;
+  description?: string;
+  researchGroup: string;
+  building: string;
+  room: string;
+  subLocation1?: string;
+  subLocation2?: string;
+  subLocation3?: string;
+  subLocation4?: string;
+  quartzyNumber?: string;  
+}
+
+export async function importChemicals(chemicals: ChemicalImportData[]) {
+  try {
+    const results = await Promise.all(
+      chemicals.map(async (chemical) => {
+        try {
+          // Find location by building and room
+          const location = await prisma.location.findFirst({
+            where: {
+              building: chemical.building,
+              room: chemical.room,
+            },
+            select: {
+              locationID: true,
+            },
+          });
+
+          if (!location) {
+            throw new Error(`Location with building "${chemical.building}" and room "${chemical.room}" not found`);
+          }
+
+          // Find research group by name
+          const researchGroup = await prisma.researchGroup.findFirst({
+            where: {
+              groupName: chemical.researchGroup,
+            },
+            select: {
+              researchGroupID: true,
+            },
+          });
+
+          if (!researchGroup) {
+            throw new Error(`Research group "${chemical.researchGroup}" not found`);
+          }
+
+          // Add the chemical with the found locationID and researchGroupID
+          const result = await addChemical({
+            ...chemical,
+            locationID: location.locationID,
+            researchGroupID: researchGroup.researchGroupID,
+            casNumber: chemical.casNumber || '',
+            supplier: chemical.supplier || '',
+            description: chemical.description || '',
+            quartzyNumber: chemical.quartzyNumber || '',
+          });
+
+          return { success: true, data: result };
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to import chemical ${chemical.qrID}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          };
+        }
+      })
+    );
+
+    const errors = results.filter(result => !result.success).map(result => result.error);
+    if (errors.length > 0) {
+      return { error: errors.join('\n') };
+    }
+
+    return { error: null };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to import chemicals' };
+  }
+}

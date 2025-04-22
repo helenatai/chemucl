@@ -9,9 +9,20 @@ const icons = {
 const logsPage: NavItemType = {
   id: 'logs-page',
   title: <FormattedMessage id="Log" />,
-  icon: icons.ArticleOutlinedIcon,
   type: 'group',
-  url: '/logs-page'
+  url: '/logs-page',
+  icon: icons.ArticleOutlinedIcon,
+  breadcrumbs: true,
+  children: [
+    {
+      id: 'log-page',
+      title: 'Log Information',
+      type: 'item',
+      url: '/logs-page/:logID',
+      breadcrumbs: true,
+      target: false
+    }
+  ]
 };
 
 export default logsPage;

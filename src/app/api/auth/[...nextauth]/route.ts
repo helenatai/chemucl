@@ -7,16 +7,6 @@ import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-// const makeTokenRequest = async (context: any) =>
-//   fetch(
-//     `${context.provider.token.url}?code=${context.params.code}&client_id=${context.client.client_id}&client_secret=${context.client.client_secret}`
-//   ).then((res) => res.json());
-
-// const makeUserInfoRequest = async (context: any) =>
-//   fetch(`${context.provider.userinfo.url}?client_secret=${context.client.client_secret}&token=${context.tokens.access_token}`).then((res) =>
-//     res.json()
-//   );
-
 const makeTokenRequest = async (context: any) => {
   const response = await fetch(
     `${context.provider.token.url}?code=${context.params.code}&client_id=${context.client.client_id}&client_secret=${context.client.client_secret}`
@@ -109,7 +99,7 @@ export const authOptions: NextAuthOptions = {
           id: profile.cn,
           name: profile.full_name,
           email: profile.email,
-          permission: profile.permission
+          permission: 'USER'
         };
       },
       clientId: process.env.UCL_API_CLIENT_ID,
@@ -117,8 +107,57 @@ export const authOptions: NextAuthOptions = {
     }
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
-      if (user) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'uclapi' && profile?.email) {
+        try {
+          const uclEmail = profile.email;
+          
+          const existingUser = await prisma.user.findUnique({
+            where: { email: uclEmail }
+          });
+
+          if (!existingUser) {
+            return false; 
+          }
+
+          if (!existingUser.activeStatus) {
+            return false;
+          }
+
+          const accountData = {
+            userId: existingUser.id,
+            type: account.type,
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+            access_token: account.access_token,
+            token_type: account.token_type
+          };
+
+          await prisma.account.upsert({
+            where: {
+              provider_providerAccountId: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+              },
+            },
+            update: accountData,
+            create: accountData,
+          });
+
+          user.id = existingUser.id;
+          user.name = existingUser.name;
+          user.email = existingUser.email;
+          user.permission = existingUser.permission;
+          
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account, trigger }) {
+      if (trigger === 'signIn' && user) {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
@@ -156,7 +195,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: Number(process.env.REACT_APP_JWT_TIMEOUT)
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true
+  debug: false
 };
 
 const handler = NextAuth(authOptions);

@@ -6,7 +6,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import { updateChemicalAction } from 'actions/chemical/server-actions/updateChemical';
 import { ChemicalWithRelations } from 'types/chemical';
 import { useRouter } from 'next/navigation';
-import { usePermissions } from '../../hooks/usePermissions';
+import { usePermissions } from 'hooks/usePermissions';
 
 // Material UI Imports
 import Grid from '@mui/material/Grid';

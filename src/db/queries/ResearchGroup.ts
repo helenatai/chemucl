@@ -1,39 +1,65 @@
 'use server';
 
 import { prisma } from 'db';
+import { ResearchGroupWithRelations } from 'types/researchGroup';
 
 export const findResearchGroup = async () => {
   const researchGroups = await prisma.researchGroup.findMany({
     select: {
       researchGroupID: true,
       groupName: true,
+      users: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
-  const groupsWithMemberCount = await Promise.all(
-    researchGroups.map(async (group) => {
-      const memberCount = await prisma.user.count({
-        where: { researchGroupID: group.researchGroupID },
-      });
-      return {
-        ...group,
-        totalMembers: memberCount,
-      };
-    })
-  );
+  return researchGroups.map((group) => ({
+    ...group,
+    totalMembers: group.users.length,
+  }));
+};
 
-  return groupsWithMemberCount;
+export const findResearchGroupById = async (researchGroupID: number): Promise<ResearchGroupWithRelations | null> => {
+  const researchGroup = await prisma.researchGroup.findUnique({
+    where: {
+      researchGroupID: researchGroupID,
+    },
+    select: {
+      researchGroupID: true,
+      groupName: true,
+      users: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (!researchGroup) return null;
+
+  return {
+    ...researchGroup,
+    totalMembers: researchGroup.users.length,
+  };
 };
 
 export interface AddResearchGroupParams {
   groupName: string;
 }
 
-export const addResearchGroup = async (params: AddResearchGroupParams) => {
-  const newGroup = await prisma.researchGroup.create({
-    data: params,
+export const addResearchGroup = async (groupName: string) => {
+  return await prisma.researchGroup.create({
+    data: {
+      groupName,
+    },
+    select: {
+      researchGroupID: true,
+      groupName: true,
+    },
   });
-  return newGroup;
 };
 
 export interface UpdateResearchGroupParams extends AddResearchGroupParams {

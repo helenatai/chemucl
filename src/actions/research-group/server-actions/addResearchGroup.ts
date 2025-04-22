@@ -1,8 +1,9 @@
 'use server';
 
 import { validateAndProcessResearchGroup } from '../researchGroupActionHandler';
+import { ResearchGroupActionResponse } from 'types/researchGroup';
 
-export async function addResearchGroupAction(formData: FormData) {
+export async function addResearchGroupAction(formData: FormData): Promise<ResearchGroupActionResponse> {
   // Ensure formData is correctly formatted as FormData
   if (!(formData instanceof FormData)) {
     console.error('formData is not an instance of FormData');
@@ -10,7 +11,7 @@ export async function addResearchGroupAction(formData: FormData) {
   }
 
   const params = {
-    groupName: formData.get('groupName')
+    groupName: formData.get('groupName') as string,
     // Add any other fields you expect from the form
   };
 
@@ -24,5 +25,5 @@ export async function addResearchGroupAction(formData: FormData) {
   }
 
   // Return a success message or the added research group object
-  return { message: 'Research group added successfully', researchGroup: result.researchGroup };
+  return result;
 }

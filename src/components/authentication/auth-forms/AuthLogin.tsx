@@ -25,7 +25,6 @@ import { Formik } from 'formik';
 
 // project imports
 import AnimateButton from 'ui-component/extended/AnimateButton';
-import useAuth from 'hooks/useAuth';
 import useScriptRef from 'hooks/useScriptRef';
 import { DASHBOARD_PATH } from 'config';
 
@@ -38,7 +37,6 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
   const theme = useTheme();
   const router = useRouter();
-  const { login } = useAuth();
   const scriptedRef = useScriptRef();
 
   const [checked, setChecked] = React.useState(true);
@@ -79,17 +77,13 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
               size="large"
               variant="contained"
               color="primary"
-              onClick={async () => {
-                // Log for debugging
-                console.log("Starting UCL SSO login...");
-                
+              onClick={async () => {             
                 try {
                   const res = await signIn('uclapi', {
-                    redirect: true,  // Change to true to let NextAuth handle redirection
+                    redirect: true,  
                     callbackUrl: '/inventory-page'
                   });
                   
-                  // This code will only run if redirect is false
                   console.log("SignIn response:", res);
                   if (res?.error) {
                     setError(res.error);
@@ -152,7 +146,7 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
               {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
                 <form noValidate onSubmit={handleSubmit} {...others}>
                   <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...theme.typography.customInput }}>
-                    <InputLabel htmlFor="outlined-adornment-email-login">Email Address / Username</InputLabel>
+                    <InputLabel htmlFor="outlined-adornment-email-login">Email Address</InputLabel>
                     <OutlinedInput
                       id="outlined-adornment-email-login"
                       type="email"

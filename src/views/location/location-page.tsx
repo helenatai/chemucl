@@ -8,6 +8,7 @@ import { addLocationAction } from 'actions/location/server-actions/addLocation';
 import { deleteLocationAction } from 'actions/location/server-actions/deleteLocation';
 import AddFormModal from 'sections/AddFormModal';
 import LocationForm from 'sections/forms/LocationForm';
+import QrCodeModal from 'components/modals/QrCodeModal';
 
 // Material UI Imports
 import Table from '@mui/material/Table';
@@ -37,6 +38,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import InfoIcon from '@mui/icons-material/InfoOutlined';
 
 interface LocationPageProps {
   initialLocations: LocationWithRelations[];
@@ -53,6 +55,8 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
+  const [selectedQrID, setSelectedQrID] = useState<string | null>(null);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value.toLowerCase();
@@ -127,6 +131,18 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
       }
   };
 
+  const handleQRCodeModalOpen = (qrID: string | null | undefined) => {
+    if (qrID) {
+      setSelectedQrID(qrID);
+      setIsQrCodeModalOpen(true);
+    }
+  };
+  
+  const handleQRCodeModalClose = () => {
+    setIsQrCodeModalOpen(false);
+    setSelectedQrID(null);
+  };
+
   return (
     <>
       <MainCard>
@@ -189,7 +205,15 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
             <TableBody>
               {filteredLocations.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((location) => (
                 <TableRow key={location.locationID}>
-                  <TableCell>{location.qrID || 'N/A'}</TableCell>
+                  <TableCell>
+                    {location.qrID || 'N/A'}
+                    <IconButton
+                      onClick={() => handleQRCodeModalOpen(location.qrID)}
+                      title="View QR Code"
+                    >   
+                      <InfoIcon sx={{fontSize: '16px'}}/>
+                    </IconButton>
+                  </TableCell>
                   <TableCell>{location.buildingName}</TableCell>
                   <TableCell>{location.building}</TableCell>
                   <TableCell>{location.room}</TableCell>
@@ -241,6 +265,13 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
       <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Add Location">
         <LocationForm open={isAddModalOpen} onSubmit={handleSubmitForm} onCancel={handleCloseAddModal} />
       </AddFormModal>
+
+      <QrCodeModal
+        open={isQrCodeModalOpen}
+        qrID={selectedQrID || ''}
+        onClose={handleQRCodeModalClose}
+        type="location"
+      />
 
       <Snackbar
         open={snackbarOpen}

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import { Metadata } from 'next'
 
 import './globals.css';
 
@@ -6,10 +6,14 @@ import './globals.css';
 import ProviderWrapper from 'store/ProviderWrapper';
 
 export const metadata: Metadata = {
-  title: 'Berry - React Material Admin Dashboard Template by CodedThemes',
-  description:
-    'Start your next React project with Berry admin template. It build with Reactjs, Material-UI, Redux, and Hook for faster web development.'
-};
+  title: 'ChemUCL',
+  description: 'UCL Chemical Inventory Management System',
+  icons: {
+    icon: '/assets/images/ucl-logo.png',
+    shortcut: '/assets/images/ucl-logo.png',
+    apple: '/assets/images/ucl-logo.png',
+  },
+}
 
 // ==============================|| ROOT LAYOUT ||============================== //
 

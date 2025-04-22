@@ -1,9 +1,9 @@
-// menu import
-import auditPage from './audit';
+// project import
 import inventoryPage from './inventory';
 import locationPage from './location';
 import userPage from './user';
 import logsPage from './log';
+import auditPage from './audit';
 
 // types
 import { NavItemType } from 'types';

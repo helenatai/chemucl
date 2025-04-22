@@ -12,6 +12,8 @@ import ChemForm from 'sections/forms/ChemicalForm';
 import QrCodeModal from 'components/modals/QrCodeModal';
 import CSVExport from 'ui-component/extended/utils/CSVExport';
 import { usePermissions } from '../../hooks/usePermissions';
+import ImportInventoryDialog from 'components/dialogs/ImportInventoryDialog';
+import { importChemicalsAction } from 'actions/chemical/server-actions/importChemicals';
 
 // Material UI Imports
 import Table from '@mui/material/Table';
@@ -48,12 +50,14 @@ interface InventoryPageProps {
   initialChemicals: ChemicalWithRelations[];
   initialLocations: LocationWithRelations[];
   initialResearchGroups: ResearchGroupWithRelations[];
+  // selectedLocation?: LocationWithRelations | null;
 }
 
 const InventoryPage: React.FC<InventoryPageProps> = ({
   initialChemicals,
   initialLocations,
   initialResearchGroups,
+  // selectedLocation,
 }) => {
   const router = useRouter();
   const [search, setSearch] = useState('');
@@ -64,12 +68,25 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [selectedQrID, setSelectedQrID] = useState<string | null>(null);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   const { canModifyInventory } = usePermissions();
+
+  // // Update the initial filtered chemicals if a location is selected
+  // useEffect(() => {
+  //   if (selectedLocation) {
+  //     const filtered = initialChemicals.filter((chemical) => 
+  //       chemical.location?.locationID === selectedLocation.locationID
+  //     );
+  //     setFilteredChemicals(filtered);
+  //   } else {
+  //     setFilteredChemicals(initialChemicals);
+  //   }
+  // }, [selectedLocation, initialChemicals]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value.toLowerCase();
@@ -166,6 +183,24 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
     }
   };
 
+  const handleImport = async (data: any[]) => {
+    try {
+      const result = await importChemicalsAction(data);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      // Refresh the table data
+      router.refresh();
+      setSnackbarMessage('Chemicals imported successfully');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      setSnackbarMessage(error instanceof Error ? error.message : 'Failed to import chemicals');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
   const csvHeaders = [
     { label: "QR ID", key: "qrID" },
     { label: "Item Name", key: "chemicalName" },
@@ -251,9 +286,9 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
                   </Tooltip>
                 )}
               <Tooltip title ="Import Inventory">
-                  <IconButton>
-                      <GetAppTwoToneIcon />
-                  </IconButton>
+                <IconButton onClick={() => setIsImportDialogOpen(true)}>
+                  <GetAppTwoToneIcon />
+                </IconButton>
               </Tooltip>
               <Tooltip title="Export CSV">
                 <div style={{ display: 'inline-block' }}>
@@ -401,6 +436,12 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
           open={isQrCodeModalOpen}
           qrID={selectedQrID || ''}
           onClose={handleQRCodeModalClose}
+        />
+
+        <ImportInventoryDialog
+          open={isImportDialogOpen}
+          onClose={() => setIsImportDialogOpen(false)}
+          onImport={handleImport}
         />
       </MainCard>
 

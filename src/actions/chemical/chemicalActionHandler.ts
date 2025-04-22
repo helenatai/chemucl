@@ -20,7 +20,7 @@ const addChemicalSchema = z.object({
   supplier: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   quartzyNumber: z.string().nullable().optional(),
-  quantity: z.number().min(1),
+  quantity: z.number().min(0),
   subLocation1: z.string().nullable().optional(),
   subLocation2: z.string().nullable().optional(),
   subLocation3: z.string().nullable().optional(),
@@ -39,11 +39,30 @@ const updateChemicalSchema = z.object({
   supplier: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   quartzyNumber: z.string().nullable().optional(),
-  quantity: z.number().min(1),
+  quantity: z.number().min(0),
   subLocation1: z.string().nullable().optional(),
   subLocation2: z.string().nullable().optional(),
   subLocation3: z.string().nullable().optional(),
   subLocation4: z.string().nullable().optional(),
+});
+
+const importChemicalSchema = z.object({
+  qrID: z.string(),
+  chemicalName: z.string(),
+  casNumber: z.string().nullable().optional(),
+  quantity: z.number().min(0),
+  chemicalType: z.string(),
+  supplier: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  researchGroup: z.string(),
+  building: z.string(),
+  room: z.string(),
+  subLocation1: z.string().nullable().optional(),
+  subLocation2: z.string().nullable().optional(),
+  subLocation3: z.string().nullable().optional(),
+  subLocation4: z.string().nullable().optional(),
+  restrictionStatus: z.boolean(),
+  quartzyNumber: z.string().nullable().optional(),
 });
 
 export async function validateAndProcessChemical(action: string, params: any): Promise<ChemicalActionResponse> {
@@ -175,6 +194,127 @@ export async function validateAndProcessChemical(action: string, params: any): P
 
   else {
     return { error: 'Invalid action type. Supported actions: "add", "update", "delete".', chemicals: [] };
+  }
+}
+
+export async function validateAndProcessImport(chemicals: any[]): Promise<ChemicalActionResponse> {
+  // Get the user's session
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { error: 'User not authenticated', chemicals: [] };
+  }
+
+  try {
+    const results = await Promise.all(
+      chemicals.map(async (chemical) => {
+        try {
+          // Validate the chemical data
+          const validation = importChemicalSchema.safeParse(chemical);
+          if (!validation.success) {
+            throw new Error(`Validation failed for chemical ${chemical.qrID}: ${JSON.stringify(validation.error.flatten())}`);
+          }
+
+          const validatedData = validation.data;
+
+          // Find location by building and room
+          const location = await prisma.location.findFirst({
+            where: {
+              building: validatedData.building,
+              room: validatedData.room,
+            },
+            select: {
+              locationID: true,
+            },
+          });
+
+          if (!location) {
+            throw new Error(`Location with building "${validatedData.building}" and room "${validatedData.room}" not found`);
+          }
+
+          // Find research group by name
+          const researchGroup = await prisma.researchGroup.findFirst({
+            where: {
+              groupName: validatedData.researchGroup,
+            },
+            select: {
+              researchGroupID: true,
+            },
+          });
+
+          if (!researchGroup) {
+            throw new Error(`Research group "${validatedData.researchGroup}" not found`);
+          }
+
+          // Check if QR ID already exists
+          const existingQrCode = await prisma.qrCode.findFirst({
+            where: { qrID: validatedData.qrID }
+          });
+
+          if (existingQrCode) {
+            throw new Error(`QR ID "${validatedData.qrID}" already exists`);
+          }
+
+          // Add the chemical
+          const newChemical = await addChemical({
+            qrID: validatedData.qrID,
+            chemicalName: validatedData.chemicalName,
+            casNumber: validatedData.casNumber || undefined,
+            quantity: validatedData.quantity,
+            chemicalType: validatedData.chemicalType,
+            restrictionStatus: validatedData.restrictionStatus,
+            supplier: validatedData.supplier || undefined,
+            description: validatedData.description || undefined,
+            quartzyNumber: validatedData.quartzyNumber || undefined,
+            locationID: location.locationID,
+            researchGroupID: researchGroup.researchGroupID,
+            activeStatus: true,
+            subLocation1: validatedData.subLocation1 || undefined,
+            subLocation2: validatedData.subLocation2 || undefined,
+            subLocation3: validatedData.subLocation3 || undefined,
+            subLocation4: validatedData.subLocation4 || undefined,
+          });
+
+          // Add log entry
+          await addLog({
+            userID: session.user.id,
+            chemicalID: newChemical.chemicalID,
+            actionType: 'Added',
+            description: `Chemical '${newChemical.chemicalName}' imported.`,
+            chemicalName: newChemical.chemicalName,
+            locationBuilding: validatedData.building,
+            locationRoom: validatedData.room,
+          });
+
+          return { success: true, data: newChemical };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          };
+        }
+      })
+    );
+
+    const errors = results
+      .filter((result): result is { success: false; error: string } => !result.success && 'error' in result)
+      .map(result => result.error);
+
+    if (errors.length > 0) {
+      return { error: errors.join('\n'), chemicals: [] };
+    }
+
+    const successfulChemicals = results
+      .filter((result): result is { success: true; data: any } => result.success && 'data' in result)
+      .map(result => result.data);
+
+    return { 
+      message: 'Chemicals imported successfully',
+      chemicals: successfulChemicals,
+      success: true 
+    };
+  } catch (error) {
+    console.error('Error importing chemicals:', error);
+    return { error: error instanceof Error ? error.message : 'Failed to import chemicals', chemicals: [] };
   }
 }
 

@@ -7,11 +7,26 @@ type RoleType = typeof ROLES[keyof typeof ROLES];
 
 export const usePermissions = () => {
   const { data: session } = useSession();
-  const userPermission = session?.user?.permission as RoleType | undefined;
+  const userPermissions = session?.user?.permission?.split(',').map(p => p.trim()) as RoleType[] | undefined;
 
   const hasPermission = (permissionGroup: keyof typeof PERMISSIONS): boolean => {
-    if (!userPermission) return false;
-    return (PERMISSIONS[permissionGroup] as readonly RoleType[]).includes(userPermission);
+    if (!userPermissions || userPermissions.length === 0) return false;
+    
+    // Check if any of the user's roles are included in the permission group
+    return userPermissions.some(role => 
+      (PERMISSIONS[permissionGroup] as readonly RoleType[]).includes(role)
+    );
+  };
+
+  // Get the base role (excluding Auditor)
+  const getBaseRole = (): RoleType | undefined => {
+    if (!userPermissions || userPermissions.length === 0) return undefined;
+    return userPermissions.find(role => role !== ROLES.AUDITOR);
+  };
+
+  // Check if user has Auditor role
+  const isAuditor = (): boolean => {
+    return userPermissions?.includes(ROLES.AUDITOR) || false;
   };
 
   return {
@@ -36,7 +51,9 @@ export const usePermissions = () => {
     // Generic permission check for custom cases
     hasPermission,
 
-    // Current user's permission
-    userPermission
+    // Role information
+    baseRole: getBaseRole(),
+    isAuditor: isAuditor(),
+    userPermissions
   };
 }; 

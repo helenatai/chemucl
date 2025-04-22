@@ -7,6 +7,8 @@ import {
   TextField,
   Grid,
   DialogContent,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 
@@ -53,19 +55,32 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
   const [owners] = useState<Owner[]>(initialResearchGroups);
   const [locations] = useState<Location[]>(initialLocations);
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormValues((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formValues.owner) {
-      alert("Please select an owner.");
+      setSnackbarMessage("Please select an owner.");
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       return;
     }
     if (!formValues.location) {
-      alert("Please select a location.");
+      setSnackbarMessage("Please select a location.");
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       return;
     }
     const formData = new FormData();
@@ -78,33 +93,18 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
     formData.append('subLocation2', formValues.subLocation2 || '');
     formData.append('subLocation3', formValues.subLocation3 || '');
     formData.append('subLocation4', formValues.subLocation4 || '');
-    onSubmit(formData);
+    
+    try {
+      await onSubmit(formData);
+      setSnackbarMessage('Chemical saved successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      setSnackbarMessage('Error saving chemical. Please try again.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
   };
-
-
-
-  // const handleCASOrNameLookup = async (key: string) => {
-  //   const query = formValues[key as keyof typeof formValues];
-  //   if (!query) return;
-
-  //   try {
-  //     const response = await fetch(
-  //       `https://commonchemistry.cas.org/api/search?q=${encodeURIComponent(query)}`
-  //     );
-  //     const data = await response.json();
-
-  //     if (data.results?.length > 0) {
-  //       const result = data.results[0];
-  //       if (key === 'casNumber') {
-  //         setFormValues((prev) => ({ ...prev, chemicalName: result.name }));
-  //       } else if (key === 'chemicalName') {
-  //         setFormValues((prev) => ({ ...prev, casNumber: result.casNumber }));
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching CAS data:', error);
-  //   }
-  // };
 
   const handleCASOrNameLookup = async (key: string, value: string) => {
     if (!value) return; // Exit if the value is empty
@@ -134,8 +134,8 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
     }
   };
 
-return (
-  <form onSubmit={handleSubmit}>
+  return (
+    <form onSubmit={handleSubmit}>
       <DialogContent
         sx={{
           maxHeight: '500px', 
@@ -154,6 +154,7 @@ return (
               onChange={handleChange}
               type="string"
               required
+              placeholder="e.g. AAA25"
             />
           </Grid>
           <Grid item xs={6}>
@@ -371,6 +372,16 @@ return (
         </Button>
       </Box>
     </DialogContent>
+    <Snackbar
+      open={snackbarOpen}
+      autoHideDuration={3000}
+      onClose={handleSnackbarClose}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    >
+      <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+        {snackbarMessage}
+      </Alert>
+    </Snackbar>
   </form>
   );
 };

@@ -1,7 +1,7 @@
 const Logo = () => {
   return (
     <img
-      src="/assets/images/ucl-logo.png" 
+      src="/assets/images/auth/ucl-logo-white.png" 
       alt="My App Logo"
       width="120" 
       height="auto" 

@@ -10,9 +10,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TablePagination from '@mui/material/TablePagination';
-import CardContent from '@mui/material/CardContent';
-import MainCard from 'ui-component/cards/MainCard';
 import Checkbox from '@mui/material/Checkbox';
+import { Box } from '@mui/material';
 
 interface ChemicalsTableProps {
   chemicals: ChemicalWithRelations[];
@@ -49,25 +48,24 @@ const ChemicalsTable: React.FC<ChemicalsTableProps> = ({ chemicals }) => {
   };
 
   return (
-    <MainCard>
-      <CardContent>
+    <>
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
                 <Checkbox
-                      color="primary"
-                      indeterminate={
-                        selectedChemicals.length > 0 &&
-                        selectedChemicals.length < chemicals.length
-                      }
-                      checked={
-                        chemicals.length > 0 &&
-                        selectedChemicals.length === chemicals.length
-                      }
-                      onChange={(e) => handleSelectAllChange(e.target.checked)}
-                    />
+                  color="primary"
+                  indeterminate={
+                    selectedChemicals.length > 0 &&
+                    selectedChemicals.length < chemicals.length
+                  }
+                  checked={
+                    chemicals.length > 0 &&
+                    selectedChemicals.length === chemicals.length
+                  }
+                  onChange={(e) => handleSelectAllChange(e.target.checked)}
+                />
               </TableCell>
               <TableCell>QR ID</TableCell>
               <TableCell>Item Name</TableCell>
@@ -81,47 +79,48 @@ const ChemicalsTable: React.FC<ChemicalsTableProps> = ({ chemicals }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-              {chemicals.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((chemical) => (
-                <TableRow key={chemical.chemicalID}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={selectedChemicals.includes(chemical.chemicalID)}
-                      onChange={(e) =>
-                        handleCheckboxChange(chemical.chemicalID, e.target.checked)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell>{chemical.qrID}</TableCell>
-                  <TableCell>{chemical.chemicalName}</TableCell>
-                  <TableCell>{chemical.supplier}</TableCell>
-                  <TableCell>{chemical.quantity}</TableCell>
-                  <TableCell>
-                    {chemical.location
-                      ? `${chemical.location.building} ${chemical.location.room} ${chemical.subLocation1 || ''} ${chemical.subLocation2 || ''} ${chemical.subLocation3 || ''} ${chemical.subLocation4 || ''}`
-                      : 'No Location'}
-                  </TableCell>
-                  <TableCell>{chemical.chemicalType}</TableCell>
-                  <TableCell>
-                    {chemical.researchGroup ? chemical.researchGroup.groupName : 'No Group'}
-                  </TableCell>
-                  <TableCell>{chemical.dateAdded?.toLocaleDateString()}</TableCell>
-                  <TableCell>{chemical.dateUpdated?.toLocaleDateString()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+            {chemicals.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((chemical) => (
+              <TableRow key={chemical.chemicalID}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    color="primary"
+                    checked={selectedChemicals.includes(chemical.chemicalID)}
+                    onChange={(e) =>
+                      handleCheckboxChange(chemical.chemicalID, e.target.checked)
+                    }
+                  />
+                </TableCell>
+                <TableCell>{chemical.qrID}</TableCell>
+                <TableCell>{chemical.chemicalName}</TableCell>
+                <TableCell>{chemical.supplier}</TableCell>
+                <TableCell>{chemical.quantity}</TableCell>
+                <TableCell>
+                  {chemical.location
+                    ? `${chemical.location.building} ${chemical.location.room} ${chemical.subLocation1 || ''} ${chemical.subLocation2 || ''} ${chemical.subLocation3 || ''} ${chemical.subLocation4 || ''}`
+                    : 'No Location'}
+                </TableCell>
+                <TableCell>{chemical.chemicalType}</TableCell>
+                <TableCell>
+                  {chemical.researchGroup ? chemical.researchGroup.groupName : 'No Group'}
+                </TableCell>
+                <TableCell>{chemical.dateAdded?.toLocaleDateString()}</TableCell>
+                <TableCell>{chemical.dateUpdated?.toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        component="div"
-        count={chemicals.length}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </CardContent>
-    </MainCard>
+      <Box sx={{ px: 3, pb: 3 }}>
+        <TablePagination
+          component="div"
+          count={chemicals.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Box>
+    </>
   );
 };
 

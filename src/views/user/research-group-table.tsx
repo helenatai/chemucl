@@ -1,33 +1,53 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   TablePagination, Checkbox, TextField, InputAdornment, IconButton, Tooltip, Fab,
-  Snackbar, Alert, Grid,
+  Snackbar, Alert, Grid, Box,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/AddTwoTone';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import MainCard from 'ui-component/cards/MainCard';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+
 import { ResearchGroupWithRelations } from 'types/researchGroup';
+import { UserWithRelations } from 'types/user';
+import AddFormModal from 'sections/AddFormModal';
+import ResearchGroupForm from 'sections/forms/ResearchGroupForm';
+import { addResearchGroupAction } from 'actions/research-group/server-actions/addResearchGroup';
+import { useRouter, usePathname } from 'next/navigation';
+import ResearchGroupInformation from './research-group-information';
+import { findUsersByResearchGroup } from 'db/queries/User';
+import MainCard from 'ui-component/cards/MainCard';
 
 interface ResearchGroupTableProps {
   initialResearchGroups: ResearchGroupWithRelations[];
 }
 
+interface SnackbarState {
+  open: boolean;
+  message: string;
+  severity: 'success' | 'error';
+}
+
 const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearchGroups }) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [groups, setGroups] = useState<ResearchGroupWithRelations[]>(initialResearchGroups);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<ResearchGroupWithRelations | null>(null);
+  const [groupUsers, setGroupUsers] = useState<UserWithRelations[]>([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-
-  // 1. Searching
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value.toLowerCase());
     setPage(0);
@@ -36,7 +56,6 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
     g.groupName.toLowerCase().includes(search)
   );
 
-  // 2. Pagination
   const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -44,7 +63,6 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
   };
   const currentPageData = filteredGroups.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  // 3. Checkbox logic
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const allIDs = filteredGroups.map((g) => g.researchGroupID);
@@ -65,25 +83,80 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
   };
   const isSelected = (rgID: number) => selectedGroups.indexOf(rgID) !== -1;
 
-  // 4. Delete selected
   const handleDeleteSelected = () => {
     if (!confirm('Are you sure you want to delete the selected group(s)?')) return;
     const remaining = groups.filter((g) => !selectedGroups.includes(g.researchGroupID));
     setGroups(remaining);
     setSelectedGroups([]);
-    setSnackbarMessage('Selected groups deleted!');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
+    setSnackbar({
+      open: true,
+      message: 'Selected groups deleted!',
+      severity: 'success'
+    });
   };
 
-  // 5. Add group
   const handleAddGroup = () => {
+    setIsAddModalOpen(true);
   };
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
+  };
+
+  const handleSubmitForm = async (formData: FormData) => {
+    const result = await addResearchGroupAction(formData);
+    if (!result.error) {
+      setSnackbar({
+        open: true,
+        message: 'Research group added successfully!',
+        severity: 'success'
+      });
+      setIsAddModalOpen(false);
+      router.refresh();
+    } else {
+      setSnackbar({
+        open: true,
+        message: `Error: ${result.error}`,
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleViewGroup = async (group: ResearchGroupWithRelations) => {
+    try {
+      const users = await findUsersByResearchGroup(group.researchGroupID);
+      setGroupUsers(users);
+      setSelectedGroup(group);
+      router.push(`/user-page/research-group/${group.researchGroupID}`);
+    } catch (error) {
+      console.error('Error fetching group users:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to load group members',
+        severity: 'error'
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (pathname === '/user-page/research-group') {
+      setSelectedGroup(null);
+      setGroupUsers([]);
+    }
+  }, [pathname]);
+
+  if (selectedGroup) {
+    return (
+      <ResearchGroupInformation 
+        researchGroup={selectedGroup}
+        users={groupUsers}
+      />
+    );
+  }
 
   return (
-    <>
     <MainCard>
-    <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Grid item>
           <TextField
             placeholder="Search Group"
@@ -135,12 +208,12 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
               <TableCell>Group ID</TableCell>
               <TableCell>Group Name</TableCell>
               <TableCell>Total Members</TableCell>
+              <TableCell align="center">Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {currentPageData.map((grp, index) => {
               const selected = isSelected(grp.researchGroupID);
-              // Calculate the sequential number based on current page and rows per page
               const sequentialNumber = page * rowsPerPage + index + 1;
               return (
                 <TableRow key={grp.researchGroupID}>
@@ -154,6 +227,13 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
                   <TableCell>{sequentialNumber}</TableCell>
                   <TableCell>{grp.groupName}</TableCell>
                   <TableCell>{grp.totalMembers}</TableCell>
+                  <TableCell align="center">
+                    <Tooltip title="View Group Members" placement="top">
+                      <IconButton onClick={() => handleViewGroup(grp)}>
+                        <FormatListBulletedIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
               );
             })}
@@ -161,32 +241,39 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
         </Table>
       </TableContainer>
 
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={filteredGroups.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      <Box sx={{ px: 3, pb: 3 }}>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredGroups.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Box>
+
+      <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Add Research Group">
+        <ResearchGroupForm 
+          onSubmit={handleSubmitForm} 
+          onCancel={handleCloseAddModal} 
+        />
+      </AddFormModal>
 
       <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
         <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
-          {snackbarMessage}
+          {snackbar.message}
         </Alert>
       </Snackbar>
-      </MainCard>
-    </>
+    </MainCard>
   );
 };
 

@@ -17,8 +17,8 @@ import Alert from '@mui/material/Alert';
 // Project imports
 import SubCard from 'components/ui-component/cards/SubCard';
 import { gridSpacing } from 'store/constant';
-// import { updateLocationAction } from 'actions/location/server-actions/updateLocation';
-// etc.
+import { updateLocationAction } from 'actions/location/server-actions/updateLocation';
+
 
 interface LocationWithRelations {
   locationID: number;
@@ -36,16 +36,17 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedLocation, setEditedLocation] = useState({ ...location });
+  const [hasShownWarning, setHasShownWarning] = useState(false);
 
   // For Snackbar
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning'>('success');
 
   useEffect(() => {
-    if (location.qrID) {
-      // Generate the QR code
-      QRCode.toCanvas(canvasRef.current, location.qrID, {
+    const qrID = isEditing ? editedLocation.qrID : location.qrID;
+    if (qrID && canvasRef.current) {
+      QRCode.toCanvas(canvasRef.current, qrID, {
         errorCorrectionLevel: 'H',
         margin: 1,
         width: 150,
@@ -55,40 +56,84 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
         },
       }).catch(err => console.error('QR Code Generation Error:', err));
     }
-  }, [location.qrID]);
+  }, [isEditing, editedLocation.qrID, location.qrID]);
 
   const handleSnackbarClose = (_?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
     setSnackbarOpen(false);
   };
 
-  // For any input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (name: string, value: string) => {
     setEditedLocation((prev) => ({ ...prev, [name]: value }));
   };
 
-  // For saving changes (similar to how you did with chemicals)
-  const handleSave = async () => {
+  const validateQrId = (qrId: string): string | null => {
+    if (!qrId.match(/^\d{3}-\d{3,4}$/)) {
+      return 'QR ID must be in format: XXX-XXXX where X are numbers';
+    }
+    return null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const qrIdError = validateQrId(editedLocation.qrID);
+    if (qrIdError) {
+      setSnackbarMessage(qrIdError);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    const fieldChanges = [];
+    if (editedLocation.building !== location.building) {
+      fieldChanges.push('building code');
+    }
+    if (editedLocation.buildingName !== location.buildingName) {
+      fieldChanges.push('building name');
+    }
+    if (editedLocation.room !== location.room) {
+      fieldChanges.push('room number');
+    }
+
+    if (fieldChanges.length > 0 && editedLocation.qrID === location.qrID && !hasShownWarning) {
+      setSnackbarMessage(`Warning: You've changed ${fieldChanges.join(', ')}. Please verify if the QR ID needs to be updated to match the new values.`);
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      setHasShownWarning(true);
+      return;
+    }
+
     try {
-      setSnackbarMessage('Location updated successfully (simulation)!');
+      const result = await updateLocationAction({
+        ...editedLocation,
+        locationID: location.locationID
+      });
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      setSnackbarMessage('Location updated successfully');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
+      setIsEditing(false);
+      setHasShownWarning(false); 
+      
       setTimeout(() => {
-        router.push('/location-page'); // or wherever
+        router.push('/location-page');
       }, 1500);
-
     } catch (error) {
-      console.error('Error updating location:', error);
-      setSnackbarMessage('An error occurred while updating the location.');
+      setSnackbarMessage(error instanceof Error ? error.message : 'Failed to update location');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
   };
 
   const handleCancel = () => {
-    setEditedLocation({...location}); 
+    setEditedLocation({ ...location });
     setIsEditing(false);
+    setHasShownWarning(false); 
   };
 
   return (
@@ -109,38 +154,61 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
               {/* Location Information */}
               <Grid item sm={6} md={9}>
                 <SubCard title="Location Information">
-                  <Grid container spacing={gridSpacing}>
-                    <Grid item xs={12} md={12}>
-                      <TextField 
-                        fullWidth 
-                        label="Building Name" 
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="QR ID"
+                        name="qrID"
+                        value={editedLocation.qrID}
+                        onChange={(e) => handleInputChange('qrID', e.target.value)}
+                        InputProps={{ readOnly: !isEditing }}
+                        error={!!validateQrId(editedLocation.qrID)}
+                      />
+                      {isEditing && (
+                        <Stack spacing={1} sx={{ mt: 1, pl: 1.5 }}>
+                          <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                            <strong>Note:</strong>
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary" sx={{ pl: 1 }}>
+                            • Please ensure QR ID matches the building name, building code and room number
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary" sx={{ pl: 1 }}>
+                            • If QR ID is modified, previously saved or printed QR codes for this location will no longer work
+                          </Typography>
+                        </Stack>
+                      )}
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Building Name"
                         name="buildingName"
-                        value={editedLocation.buildingName} 
-                        onChange={handleInputChange}
-                        InputProps={{ readOnly: !isEditing || !canModifyLocation }} 
+                        value={editedLocation.buildingName}
+                        onChange={(e) => handleInputChange('buildingName', e.target.value)}
+                        InputProps={{ readOnly: !isEditing }}
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField 
-                        fullWidth 
-                        label="Building Code" 
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Building Code"
                         name="building"
-                        value={editedLocation.building} 
-                        onChange={handleInputChange}
-                        InputProps={{ readOnly: !isEditing || !canModifyLocation }} 
+                        value={editedLocation.building}
+                        onChange={(e) => handleInputChange('building', e.target.value)}
+                        InputProps={{ readOnly: !isEditing }}
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField 
-                        fullWidth 
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
                         label="Room"
                         name="room"
-                        value={editedLocation.room} 
-                        onChange={handleInputChange}
-                        InputProps={{ readOnly: !isEditing || !canModifyLocation }} 
+                        value={editedLocation.room}
+                        onChange={(e) => handleInputChange('room', e.target.value)}
+                        InputProps={{ readOnly: !isEditing }}
                       />
                     </Grid>
-                    {/* ...any additional fields, e.g. subLocation1, subLocation2, etc. */}
                   </Grid>
                 </SubCard>
               </Grid>
@@ -148,7 +216,6 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
           </SubCard>
         </Grid>
 
-        {/* Button Row */}
         <Grid item xs={12} sx={{ textAlign: 'right' }}>
           <Stack direction="row" spacing={2} justifyContent="flex-end">
             {isEditing && canModifyLocation ? (
@@ -156,7 +223,7 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
                 <Button variant="outlined" onClick={handleCancel}>
                   Cancel
                 </Button>
-                <Button variant="contained" onClick={handleSave}>
+                <Button variant="contained" onClick={handleSubmit}>
                   Save
                 </Button>
               </>

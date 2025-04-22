@@ -53,6 +53,7 @@ const LocationForm: React.FC<LocationFormProps> = ({ onSubmit, onCancel }) => {
               name="qrID"
               value={formValues.qrID}
               onChange={handleChange}
+              placeholder="e.g. 001-1011"
               required
             />
           </Grid>
