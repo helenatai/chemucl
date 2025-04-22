@@ -16,3 +16,9 @@ export interface UserActionResponse {
   users: UserWithRelations[];
 }
 
+export interface UserStateProps {
+  isLoggedIn: boolean;
+  isInitialized?: boolean;
+  user?: UserWithRelations | null;
+}
+

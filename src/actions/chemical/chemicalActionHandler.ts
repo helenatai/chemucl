@@ -6,7 +6,7 @@ import { addChemical, deleteChemical, updateChemical } from 'db/queries/Chemical
 import { addLog } from 'db/queries/Log';
 import { prisma } from 'db';
 import { getServerSession } from 'next-auth';
-import { authOptions } from 'app/api/auth/[...nextauth]/route';
+import { authOptions } from 'utils/authOptions';
 
 const addChemicalSchema = z.object({
   chemicalName: z.string(),

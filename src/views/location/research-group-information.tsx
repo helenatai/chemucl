@@ -1,25 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Grid, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Checkbox, Box, TablePagination } from '@mui/material';
 import { InputAdornment } from '@mui/material';
-import { SearchIcon, PersonAddIcon, PersonAddDisabledIcon, DeleteIcon } from '@mui/icons-material';
+import { 
+  Search as SearchIcon, 
+  PersonAdd, 
+  PersonAddDisabled, 
+  Delete as DeleteIcon 
+} from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import MainCard from 'components/ui-component/cards/MainCard';
+import { UserWithRelations } from 'types/user';
 
-const ResearchGroupInformation = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [currentPageData, setCurrentPageData] = useState([]);
+interface ResearchGroupInformationProps {
+  users: UserWithRelations[];
+}
+
+const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ users }) => {
+  const [searchQuery] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserWithRelations[]>(users);
+  const [currentPageData, setCurrentPageData] = useState<UserWithRelations[]>(users);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const handleSearch = (event) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-    // Implement search logic here
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const searchValue = event.target.value.toLowerCase();
+    const filtered = users.filter((user) =>
+      user.name.toLowerCase().includes(searchValue) ||
+      user.email.toLowerCase().includes(searchValue)
+    );
+    setFilteredUsers(filtered);
   };
 
-  const handleSelectAllClick = (event) => {
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       setSelectedUsers(filteredUsers.map((u) => u.id));
     } else {
@@ -27,24 +40,47 @@ const ResearchGroupInformation = () => {
     }
   };
 
-  const handleClickCheckbox = (event, id) => {
-    if (event.target.checked) {
+  const handleClickCheckbox = (event: React.ChangeEvent<HTMLInputElement>, id: string) => {
+    const selectedIndex = selectedUsers.indexOf(id);
+    if (selectedIndex === -1) {
       setSelectedUsers([...selectedUsers, id]);
     } else {
-      setSelectedUsers(selectedUsers.filter((i) => i !== id));
+      setSelectedUsers(selectedUsers.filter((userId) => userId !== id));
     }
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event) => {
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const isSelected = (id) => selectedUsers.indexOf(id) !== -1;
+  const handleActivateSelected = async () => {
+    // TODO: Implement activate functionality
+    console.log('Activate selected users:', selectedUsers);
+  };
+
+  const handleDeactivateSelected = async () => {
+    // TODO: Implement deactivate functionality
+    console.log('Deactivate selected users:', selectedUsers);
+  };
+
+  const handleDeleteSelected = async () => {
+    // TODO: Implement delete functionality
+    console.log('Delete selected users:', selectedUsers);
+  };
+
+  const isSelected = (id: string) => selectedUsers.indexOf(id) !== -1;
+
+  // Update currentPageData when page, rowsPerPage, or filteredUsers change
+  useEffect(() => {
+    const start = page * rowsPerPage;
+    const end = start + rowsPerPage;
+    setCurrentPageData(filteredUsers.slice(start, end));
+  }, [page, rowsPerPage, filteredUsers]);
 
   return (
     <MainCard contentSX={{ p: 0 }}>
@@ -69,12 +105,12 @@ const ResearchGroupInformation = () => {
             <>
               <Tooltip title="Activate Selected">
                 <IconButton onClick={handleActivateSelected}>
-                  <PersonAddIcon />
+                  <PersonAdd />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Deactivate Selected">
                 <IconButton onClick={handleDeactivateSelected}>
-                  <PersonAddDisabledIcon />
+                  <PersonAddDisabled />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete Selected">

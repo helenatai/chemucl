@@ -243,27 +243,6 @@ const ImportInventoryDialog: React.FC<ImportInventoryDialogProps> = ({
 
           {isLoading && <LinearProgress />}
 
-          <Typography variant="body2" color="text.secondary">
-            The CSV file should contain the following columns:
-            <ul>
-              <li>QR ID (required)</li>
-              <li>Chemical Name (required)</li>
-              <li>CAS Number (required)</li>
-              <li>Quantity (required)</li>
-              <li>Chemical Type (required)</li>
-              <li>Restriction Status (required)</li>
-              <li>Research Group (required)</li>
-              <li>Building Code (required)</li>
-              <li>Room (required)</li>
-              <li>Supplier (optional)</li>
-              <li>Description (optional)</li>
-              <li>Quartzy Number (optional)</li>
-              <li>Sub Location 1 (optional)</li>
-              <li>Sub Location 2 (optional)</li>
-              <li>Sub Location 3 (optional)</li>
-              <li>Sub Location 4 (optional)</li>
-            </ul>
-          </Typography>
         </Stack>
       </DialogContent>
       <DialogActions>

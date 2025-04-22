@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { UserActionResponse } from 'types/user';
 import { addUser, updateUser, deleteUser } from 'db/queries/User';
 import { getServerSession } from 'next-auth';
-import { authOptions } from 'app/api/auth/[...nextauth]/route';
+import { authOptions } from 'utils/authOptions';
 import bcrypt from 'bcrypt';
 import { prisma } from 'db';
 

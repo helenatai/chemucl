@@ -200,17 +200,6 @@ const ImportUsersDialog: React.FC<ImportUsersDialogProps> = ({
           )}
 
           {isLoading && <LinearProgress />}
-
-          <Typography variant="body2" color="text.secondary">
-            The CSV file should contain the following columns:
-            <ul>
-              <li>Name (required)</li>
-              <li>Email (required)</li>
-              <li>Permission (required: {ROLES.ADMIN}, {ROLES.STAFF}, or {ROLES.RESEARCH_STUDENT})</li>
-              <li>Research Group (required)</li>
-              <li>Active Status (optional: true or false, defaults to true)</li>
-            </ul>
-          </Typography>
         </Stack>
       </DialogContent>
       <DialogActions>

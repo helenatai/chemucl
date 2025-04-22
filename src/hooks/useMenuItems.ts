@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { usePermissions } from './usePermissions';
 import menuItems from 'menu-items';
-import { NavItemType } from 'types';
 
 export const useMenuItems = () => {
   const { 

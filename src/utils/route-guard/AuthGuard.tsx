@@ -19,13 +19,13 @@ import { GuardProps } from 'types';
 const AuthGuard = ({ children }: GuardProps) => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const isAuthenticated = status === 'authenticated';
+  const isAuthenticated = status === 'authenticated' && session;
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (status === 'unauthenticated' || !session) {
       router.push('/login');
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   if (status === 'loading') return <Loader />;
 
