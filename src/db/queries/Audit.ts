@@ -5,7 +5,7 @@ export const findAuditsByAuditGeneralID = async (auditGeneralID: number): Promis
   return prisma.audit.findMany({
     where: { auditGeneralID },
     include: {
-      location: true, 
+      location: true
     }
   }) as Promise<AuditWithRelations[]>;
 };
@@ -29,7 +29,7 @@ export async function verifyLocationQrHandler(auditId: number, scannedQr: string
 //   if (!chemical) {
 //     return { success: false, message: "No chemical found for the provided QR code." };
 //   }
-  
+
 //   const auditRecord = await prisma.auditRecord.findFirst({
 //     where: {
 //       auditID: auditId,
@@ -51,8 +51,8 @@ export async function verifyLocationQrHandler(auditId: number, scannedQr: string
 
 //   await prisma.audit.update({
 //     where: { auditID: auditId },
-//     data: { 
-//       finishedCount: { increment: 1 }, 
+//     data: {
+//       finishedCount: { increment: 1 },
 //       pendingCount: { decrement: 1 }
 //     }
 //   });
@@ -60,50 +60,53 @@ export async function verifyLocationQrHandler(auditId: number, scannedQr: string
 //   return { success: true };
 // }
 
-export async function updateAuditRecordForChemicalScanHandler(auditId: number, scannedChemicalQr: string): Promise<{ success: boolean; message?: string; status?: string }> {
+export async function updateAuditRecordForChemicalScanHandler(
+  auditId: number,
+  scannedChemicalQr: string
+): Promise<{ success: boolean; message?: string; status?: string }> {
   const chemical = await prisma.chemical.findUnique({
-    where: { qrID: scannedChemicalQr },
+    where: { qrID: scannedChemicalQr }
   });
-  
+
   if (!chemical) {
-    return { 
-      success: false, 
-      message: "No chemical found for the provided QR code.", 
-      status: "invalid_qr" 
+    return {
+      success: false,
+      message: 'No chemical found for the provided QR code.',
+      status: 'invalid_qr'
     };
   }
-  
+
   // First check if this chemical has already been audited
   const alreadyAuditedRecord = await prisma.auditRecord.findFirst({
     where: {
       auditID: auditId,
       chemicalID: chemical.chemicalID,
-      status: "Audited"
+      status: 'Audited'
     }
   });
-  
+
   if (alreadyAuditedRecord) {
-    return { 
-      success: false, 
-      message: "Item already scanned", 
-      status: "already_scanned" 
+    return {
+      success: false,
+      message: 'Item already scanned',
+      status: 'already_scanned'
     };
   }
-  
+
   // Then check if there's an unaudited record for this chemical
   const auditRecord = await prisma.auditRecord.findFirst({
     where: {
       auditID: auditId,
       chemicalID: chemical.chemicalID,
-      status: "Unaudited"
+      status: 'Unaudited'
     }
   });
-  
+
   if (!auditRecord) {
-    return { 
-      success: false, 
-      message: "This chemical is not associated with this audit location.", 
-      status: "not_in_location" 
+    return {
+      success: false,
+      message: 'This chemical is not associated with this audit location.',
+      status: 'not_in_location'
     };
   }
 
@@ -111,15 +114,15 @@ export async function updateAuditRecordForChemicalScanHandler(auditId: number, s
   await prisma.auditRecord.update({
     where: { auditRecordID: auditRecord.auditRecordID },
     data: {
-      status: "Audited",
+      status: 'Audited',
       lastAuditDate: new Date()
     }
   });
 
   await prisma.audit.update({
     where: { auditID: auditId },
-    data: { 
-      finishedCount: { increment: 1 }, 
+    data: {
+      finishedCount: { increment: 1 },
       pendingCount: { decrement: 1 }
     }
   });
@@ -131,10 +134,10 @@ export async function completeAudit(auditId: number): Promise<{ success: boolean
   await prisma.auditRecord.updateMany({
     where: {
       auditID: auditId,
-      status: "Unaudited"
+      status: 'Unaudited'
     },
     data: {
-      status: "Missing",
+      status: 'Missing',
       lastAuditDate: new Date()
     }
   });
@@ -142,7 +145,7 @@ export async function completeAudit(auditId: number): Promise<{ success: boolean
   await prisma.audit.update({
     where: { auditID: auditId },
     data: {
-      status: "Completed",
+      status: 'Completed',
       lastAuditDate: new Date()
     }
   });
@@ -155,7 +158,7 @@ export async function completeAudit(auditId: number): Promise<{ success: boolean
   if (foundAudit && foundAudit.auditGeneralID) {
     const updatedAuditGeneral = await prisma.auditGeneral.update({
       where: { auditGeneralID: foundAudit.auditGeneralID },
-      data: { 
+      data: {
         finishedCount: { increment: 1 },
         pendingCount: { decrement: 1 }
       },
@@ -166,7 +169,7 @@ export async function completeAudit(auditId: number): Promise<{ success: boolean
       await prisma.auditGeneral.update({
         where: { auditGeneralID: foundAudit.auditGeneralID },
         data: {
-          status: "Completed",
+          status: 'Completed',
           lastAuditDate: new Date()
         }
       });
@@ -179,11 +182,11 @@ export async function pauseAudit(auditId: number): Promise<{ success: boolean; m
   try {
     await prisma.audit.update({
       where: { auditID: auditId },
-      data: { status: "Paused" } 
+      data: { status: 'Paused' }
     });
     return { success: true };
   } catch (error: any) {
-    console.error("Error pausing audit:", error);
-    return { success: false, message: error.message || "Error pausing audit." };
+    console.error('Error pausing audit:', error);
+    return { success: false, message: error.message || 'Error pausing audit.' };
   }
 }

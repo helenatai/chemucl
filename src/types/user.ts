@@ -21,4 +21,3 @@ export interface UserStateProps {
   isInitialized?: boolean;
   user?: UserWithRelations | null;
 }
-

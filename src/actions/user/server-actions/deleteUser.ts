@@ -7,7 +7,7 @@ import { UserActionResponse } from 'types/user';
 export async function deleteUserAction(userIds: string[]): Promise<UserActionResponse> {
   try {
     const result = await validateAndProcessUser('delete', { userIds });
-    
+
     if (!result.error) {
       // Revalidate the users page to reflect changes
       revalidatePath('/user');
@@ -21,4 +21,4 @@ export async function deleteUserAction(userIds: string[]): Promise<UserActionRes
       users: []
     };
   }
-} 
+}

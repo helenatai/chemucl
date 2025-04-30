@@ -7,13 +7,15 @@ import { ResearchGroupWithRelations } from 'types/researchGroup';
 import { addChemicalAction } from 'actions/chemical/server-actions/addChemical';
 import { deleteChemicalAction } from 'actions/chemical/server-actions/deleteChemical';
 import { useRouter } from 'next/navigation';
-import AddFormModal from 'sections/AddFormModal';
-import ChemForm from 'sections/forms/ChemicalForm';
+import AddFormModal from 'components/forms/AddFormModal';
+import ChemForm from 'components/forms/ChemicalForm';
 import QrCodeModal from 'components/modals/QrCodeModal';
 import CSVExport from 'ui-component/extended/utils/CSVExport';
 import { usePermissions } from '../../hooks/usePermissions';
-import ImportInventoryDialog from 'components/dialogs/ImportInventoryDialog';
+import ImportInventoryDialog from 'components/modals/ImportInventoryModal';
 import { importChemicalsAction } from 'actions/chemical/server-actions/importChemicals';
+import ColumnCustomizationModal from 'components/modals/CustomiseModal';
+import FilterModal, { FilterState } from 'components/modals/FilterModal';
 
 // Material UI Imports
 import Table from '@mui/material/Table';
@@ -56,7 +58,7 @@ interface InventoryPageProps {
 const InventoryPage: React.FC<InventoryPageProps> = ({
   initialChemicals,
   initialLocations,
-  initialResearchGroups,
+  initialResearchGroups
   // selectedLocation,
 }) => {
   const router = useRouter();
@@ -69,6 +71,16 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [selectedQrID, setSelectedQrID] = useState<string | null>(null);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isColumnCustomizationOpen, setIsColumnCustomizationOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
+    supplier: true,
+    quantity: true,
+    location: true,
+    type: true,
+    owner: true,
+    added: true,
+    updated: true
+  });
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -76,31 +88,53 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
 
   const { canModifyInventory } = usePermissions();
 
-  // // Update the initial filtered chemicals if a location is selected
-  // useEffect(() => {
-  //   if (selectedLocation) {
-  //     const filtered = initialChemicals.filter((chemical) => 
-  //       chemical.location?.locationID === selectedLocation.locationID
-  //     );
-  //     setFilteredChemicals(filtered);
-  //   } else {
-  //     setFilteredChemicals(initialChemicals);
-  //   }
-  // }, [selectedLocation, initialChemicals]);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterState>({
+    locations: [],
+    chemicalTypes: [],
+    owners: [],
+    suppliers: []
+  });
+
+  // Extract unique values for filter options
+  const uniqueChemicalTypes = Array.from(new Set(initialChemicals.map((chem) => chem.chemicalType)));
+  const uniqueOwners = Array.from(new Set(initialChemicals.map((chem) => chem.researchGroup?.groupName).filter(Boolean) as string[]));
+  const uniqueSuppliers = Array.from(new Set(initialChemicals.map((chem) => chem.supplier).filter(Boolean) as string[]));
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value.toLowerCase();
     setSearch(searchValue);
     setPage(0);
 
-    // Filter chemicals based on search query
-    const filtered = initialChemicals.filter((chemical) => {
+    // Filter chemicals based on search query and active filters
+    let filtered = initialChemicals;
+
+    // Apply active filters first
+    if (activeFilters.locations.length > 0) {
+      filtered = filtered.filter((chemical) => {
+        const locationString = chemical.location ? `${chemical.location.building} ${chemical.location.room}` : '';
+        return activeFilters.locations.includes(locationString);
+      });
+    }
+
+    if (activeFilters.chemicalTypes.length > 0) {
+      filtered = filtered.filter((chemical) => activeFilters.chemicalTypes.includes(chemical.chemicalType));
+    }
+
+    if (activeFilters.owners.length > 0) {
+      filtered = filtered.filter((chemical) => chemical.researchGroup && activeFilters.owners.includes(chemical.researchGroup.groupName));
+    }
+
+    if (activeFilters.suppliers.length > 0) {
+      filtered = filtered.filter((chemical) => chemical.supplier && activeFilters.suppliers.includes(chemical.supplier));
+    }
+
+    // Then apply search filter
+    filtered = filtered.filter((chemical) => {
       return (
         chemical.chemicalName.toLowerCase().includes(searchValue) ||
         (chemical.qrID && chemical.qrID.toLowerCase().includes(searchValue)) ||
-        (chemical.location
-          ? `${chemical.location.building} ${chemical.location.room}`.toLowerCase().includes(searchValue)
-          : false)
+        (chemical.location ? `${chemical.location.building} ${chemical.location.room}`.toLowerCase().includes(searchValue) : false)
       );
     });
 
@@ -121,8 +155,8 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
   };
 
   const handleCloseAddModal = () => {
-     setIsAddModalOpen(false);
-   };
+    setIsAddModalOpen(false);
+  };
 
   const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
@@ -144,7 +178,7 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
     }
   };
 
-  const handleQRCodeModalOpen = (qrID: string | null| undefined) => {
+  const handleQRCodeModalOpen = (qrID: string | null | undefined) => {
     if (qrID) {
       setSelectedQrID(qrID);
       setIsQrCodeModalOpen(true);
@@ -152,14 +186,14 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
       console.error('Invalid QR ID: QR ID is null or undefined.');
     }
   };
-  
+
   const handleQRCodeModalClose = () => {
     setIsQrCodeModalOpen(false);
     setSelectedQrID(null);
   };
 
   const handleDeleteSelected = async () => {
-    if (!confirm("Are you sure you want to delete the selected chemical(s)?")) return;
+    if (!confirm('Are you sure you want to delete the selected chemical(s)?')) return;
 
     try {
       const result = await deleteChemicalAction(selectedChemicals);
@@ -202,20 +236,20 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
   };
 
   const csvHeaders = [
-    { label: "QR ID", key: "qrID" },
-    { label: "Item Name", key: "chemicalName" },
-    { label: "Supplier", key: "supplier" },
-    { label: "Quantity", key: "quantity" },
-    { label: "Building", key: "building" },
-    { label: "Room", key: "room" },
-    { label: "Chemical Type", key: "chemicalType" },
-    { label: "Owner", key: "owner" },
-    { label: "Restriction Status", key: "restrictionStatus" },
-    { label: "Sublocation 1", key: "subLocation1" },
-    { label: "Sublocation 2", key: "subLocation2" },
-    { label: "Sublocation 3", key: "subLocation3" },
-    { label: "Sublocation 4", key: "subLocation4" },
-    { label: "Description", key: "description" },
+    { label: 'QR ID', key: 'qrID' },
+    { label: 'Item Name', key: 'chemicalName' },
+    { label: 'Supplier', key: 'supplier' },
+    { label: 'Quantity', key: 'quantity' },
+    { label: 'Building', key: 'building' },
+    { label: 'Room', key: 'room' },
+    { label: 'Chemical Type', key: 'chemicalType' },
+    { label: 'Owner', key: 'owner' },
+    { label: 'Restriction Status', key: 'restrictionStatus' },
+    { label: 'Sublocation 1', key: 'subLocation1' },
+    { label: 'Sublocation 2', key: 'subLocation2' },
+    { label: 'Sublocation 3', key: 'subLocation3' },
+    { label: 'Sublocation 4', key: 'subLocation4' },
+    { label: 'Description', key: 'description' }
   ];
 
   const csvData = filteredChemicals.map((chemical) => ({
@@ -223,11 +257,11 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
     chemicalName: chemical.chemicalName,
     supplier: chemical.supplier,
     quantity: chemical.quantity,
-    building: chemical.location ? chemical.location.building : "",
-    room: chemical.location ? chemical.location.room : "",
+    building: chemical.location ? chemical.location.building : '',
+    room: chemical.location ? chemical.location.room : '',
     chemicalType: chemical.chemicalType,
-    owner: chemical.researchGroup ? chemical.researchGroup.groupName : "",
-    restrictionStatus: chemical.restrictionStatus ? "Restricted" : "Unrestricted",
+    owner: chemical.researchGroup ? chemical.researchGroup.groupName : '',
+    restrictionStatus: chemical.restrictionStatus ? 'Restricted' : 'Unrestricted',
     subLocation1: chemical.subLocation1,
     subLocation2: chemical.subLocation2,
     subLocation3: chemical.subLocation3,
@@ -237,26 +271,72 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
 
   const exportDataFinal =
     selectedChemicals.length > 0
-      ? filteredChemicals.filter((chem) => selectedChemicals.includes(chem.chemicalID))
+      ? filteredChemicals
+          .filter((chem) => selectedChemicals.includes(chem.chemicalID))
           .map((chemical) => ({
             qrID: chemical.qrID,
             chemicalName: chemical.chemicalName,
             supplier: chemical.supplier,
             quantity: chemical.quantity,
-            building: chemical.location?.building || "",
-            room: chemical.location?.room || "",
+            building: chemical.location?.building || '',
+            room: chemical.location?.room || '',
             chemicalType: chemical.chemicalType,
-            owner: chemical.researchGroup?.groupName || "",
-            restrictionStatus: chemical.restrictionStatus ? "Restricted" : "Unrestricted",
-            subLocation1: chemical.subLocation1 || "",
-            subLocation2: chemical.subLocation2 || "",
-            subLocation3: chemical.subLocation3 || "",
-            subLocation4: chemical.subLocation4 || "",
-            description: chemical.description || "",
+            owner: chemical.researchGroup?.groupName || '',
+            restrictionStatus: chemical.restrictionStatus ? 'Restricted' : 'Unrestricted',
+            subLocation1: chemical.subLocation1 || '',
+            subLocation2: chemical.subLocation2 || '',
+            subLocation3: chemical.subLocation3 || '',
+            subLocation4: chemical.subLocation4 || '',
+            description: chemical.description || ''
           }))
       : csvData;
 
-  
+  const handleColumnVisibilityChange = (column: string, visible: boolean) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [column]: visible
+    }));
+  };
+
+  const handleOpenFilterModal = () => {
+    setIsFilterModalOpen(true);
+  };
+
+  const handleCloseFilterModal = () => {
+    setIsFilterModalOpen(false);
+  };
+
+  const applyFilters = (filters: FilterState) => {
+    setActiveFilters(filters);
+    let filtered = [...initialChemicals];
+
+    // Apply location filters
+    if (filters.locations.length > 0) {
+      filtered = filtered.filter((chemical) => {
+        const locationString = chemical.location ? `${chemical.location.building} ${chemical.location.room}` : '';
+        return filters.locations.includes(locationString);
+      });
+    }
+
+    // Apply chemical type filters
+    if (filters.chemicalTypes.length > 0) {
+      filtered = filtered.filter((chemical) => filters.chemicalTypes.includes(chemical.chemicalType));
+    }
+
+    // Apply owner filters
+    if (filters.owners.length > 0) {
+      filtered = filtered.filter((chemical) => chemical.researchGroup && filters.owners.includes(chemical.researchGroup.groupName));
+    }
+
+    // Apply supplier filters
+    if (filters.suppliers.length > 0) {
+      filtered = filtered.filter((chemical) => chemical.supplier && filters.suppliers.includes(chemical.supplier));
+    }
+
+    setFilteredChemicals(filtered);
+    setPage(0);
+  };
+
   return (
     <div>
       <MainCard>
@@ -269,7 +349,7 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
                     <InputAdornment position="start">
                       <SearchIcon fontSize="small" />
                     </InputAdornment>
-                  ),
+                  )
                 }}
                 placeholder="Search Item"
                 value={search}
@@ -278,47 +358,43 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
               />
             </Grid>
             <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
-                {selectedChemicals.length > 0 && canModifyInventory && (
-                  <Tooltip title="Delete Selected">
-                    <IconButton onClick={handleDeleteSelected}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              <Tooltip title ="Import Inventory">
+              {selectedChemicals.length > 0 && canModifyInventory && (
+                <Tooltip title="Delete Selected">
+                  <IconButton onClick={handleDeleteSelected}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <Tooltip title="Import Inventory">
                 <IconButton onClick={() => setIsImportDialogOpen(true)}>
                   <GetAppTwoToneIcon />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Export CSV">
                 <div style={{ display: 'inline-block' }}>
-                  <CSVExport 
-                    data={exportDataFinal} 
-                    headers={csvHeaders} 
-                    filename="Inventory.csv" 
-                  />
+                  <CSVExport data={exportDataFinal} headers={csvHeaders} filename="Inventory.csv" />
                 </div>
               </Tooltip>
-              <Tooltip title ="Customise Column">
-                  <IconButton>
-                      <ViewColumnTwoToneIcon />
-                  </IconButton>
+              <Tooltip title="Customise Column">
+                <IconButton onClick={() => setIsColumnCustomizationOpen(true)}>
+                  <ViewColumnTwoToneIcon />
+                </IconButton>
               </Tooltip>
-              <Tooltip title ="Filter">
-                  <IconButton>
-                      <FilterListIcon />
-                  </IconButton>
+              <Tooltip title="Filter">
+                <IconButton onClick={handleOpenFilterModal}>
+                  <FilterListIcon />
+                </IconButton>
               </Tooltip>
               {canModifyInventory && (
-                <Tooltip title ="Add Item">
+                <Tooltip title="Add Item">
                   <Fab
-                      color="primary"
-                      size="small"
-                      onClick={handleOpenAddModal}
-                      sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
-                    >
-                      <AddIcon />
-                    </Fab>
+                    color="primary"
+                    size="small"
+                    onClick={handleOpenAddModal}
+                    sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
+                  >
+                    <AddIcon />
+                  </Fab>
                 </Tooltip>
               )}
             </Grid>
@@ -327,32 +403,32 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
         <TableContainer>
           <Table>
             <TableHead>
-            <TableRow>
-              {canModifyInventory && (
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    color="primary"
-                    indeterminate={selectedChemicals.length > 0 && selectedChemicals.length < initialChemicals.length}
-                    checked={selectedChemicals.length === initialChemicals.length && initialChemicals.length > 0}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedChemicals(initialChemicals.map((chemical) => chemical.chemicalID));
-                      } else {
-                        setSelectedChemicals([]);
-                      }
-                    }}
-                  />
-                </TableCell>
-              )}
+              <TableRow>
+                {canModifyInventory && (
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      color="primary"
+                      indeterminate={selectedChemicals.length > 0 && selectedChemicals.length < initialChemicals.length}
+                      checked={selectedChemicals.length === initialChemicals.length && initialChemicals.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedChemicals(initialChemicals.map((chemical) => chemical.chemicalID));
+                        } else {
+                          setSelectedChemicals([]);
+                        }
+                      }}
+                    />
+                  </TableCell>
+                )}
                 <TableCell>QR ID</TableCell>
                 <TableCell>Item Name</TableCell>
-                <TableCell>Supplier</TableCell>
-                <TableCell>Quantity</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Owner</TableCell>
-                <TableCell>Added</TableCell>
-                <TableCell>Updated</TableCell>
+                {visibleColumns.supplier && <TableCell>Supplier</TableCell>}
+                {visibleColumns.quantity && <TableCell>Quantity</TableCell>}
+                {visibleColumns.location && <TableCell>Location</TableCell>}
+                {visibleColumns.type && <TableCell>Type</TableCell>}
+                {visibleColumns.owner && <TableCell>Owner</TableCell>}
+                {visibleColumns.added && <TableCell>Added</TableCell>}
+                {visibleColumns.updated && <TableCell>Updated</TableCell>}
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
@@ -368,7 +444,7 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
                           if (e.target.checked) {
                             setSelectedChemicals([...selectedChemicals, chemical.chemicalID]);
                           } else {
-                            setSelectedChemicals(selectedChemicals.filter(id => id !== chemical.chemicalID));
+                            setSelectedChemicals(selectedChemicals.filter((id) => id !== chemical.chemicalID));
                           }
                         }}
                       />
@@ -376,32 +452,25 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
                   )}
                   <TableCell>
                     {chemical.qrID}
-                    <IconButton
-                      onClick={() => handleQRCodeModalOpen(chemical.qrID)}
-                      title="View QR Code"
-                      >   
-                      <InfoIcon sx={{fontSize: '16px'}}/> {/* QR Info Icon */}
+                    <IconButton onClick={() => handleQRCodeModalOpen(chemical.qrID)} title="View QR Code">
+                      <InfoIcon sx={{ fontSize: '16px' }} />
                     </IconButton>
-                    </TableCell>
+                  </TableCell>
                   <TableCell>{chemical.chemicalName}</TableCell>
-                  <TableCell>{chemical.supplier}</TableCell>
-                  <TableCell>{chemical.quantity}</TableCell>
-                  <TableCell>
-                    {chemical.location
-                      ? `${chemical.location.building} ${chemical.location.room}`
-                      : 'No Location'}
-                  </TableCell>
-                  <TableCell>{chemical.chemicalType}</TableCell>
-                  <TableCell>
-                    {chemical.researchGroup ? chemical.researchGroup.groupName : 'No Group'}
-                  </TableCell>
-                  <TableCell>{chemical.dateAdded?.toLocaleDateString()}</TableCell>
-                  <TableCell>{chemical.dateUpdated?.toLocaleDateString()}</TableCell>
+                  {visibleColumns.supplier && <TableCell>{chemical.supplier}</TableCell>}
+                  {visibleColumns.quantity && <TableCell>{chemical.quantity}</TableCell>}
+                  {visibleColumns.location && (
+                    <TableCell>{chemical.location ? `${chemical.location.building} ${chemical.location.room}` : 'No Location'}</TableCell>
+                  )}
+                  {visibleColumns.type && <TableCell>{chemical.chemicalType}</TableCell>}
+                  {visibleColumns.owner && <TableCell>{chemical.researchGroup ? chemical.researchGroup.groupName : 'No Group'}</TableCell>}
+                  {visibleColumns.added && <TableCell>{chemical.dateAdded?.toLocaleDateString()}</TableCell>}
+                  {visibleColumns.updated && <TableCell>{chemical.dateUpdated?.toLocaleDateString()}</TableCell>}
                   <TableCell>
                     <Tooltip title="Chemical Information">
                       <Link href={`/inventory-page/${chemical.qrID}`} passHref>
                         <IconButton title="View Details">
-                          <VisibilityTwoToneIcon /> {/* View details icon*/}
+                          <VisibilityTwoToneIcon />
                         </IconButton>
                       </Link>
                     </Tooltip>
@@ -423,25 +492,41 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
         />
 
         <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Add Item">
-          <ChemForm 
-            open={isAddModalOpen} 
-            onSubmit={handleSubmitForm} 
-            onCancel={handleCloseAddModal} 
+          <ChemForm
+            open={isAddModalOpen}
+            onSubmit={handleSubmitForm}
+            onCancel={handleCloseAddModal}
             initialLocations={initialLocations}
             initialResearchGroups={initialResearchGroups}
           />
         </AddFormModal>
 
-        <QrCodeModal
-          open={isQrCodeModalOpen}
-          qrID={selectedQrID || ''}
-          onClose={handleQRCodeModalClose}
-        />
+        <QrCodeModal open={isQrCodeModalOpen} qrID={selectedQrID || ''} onClose={handleQRCodeModalClose} />
 
         <ImportInventoryDialog
           open={isImportDialogOpen}
           onClose={() => setIsImportDialogOpen(false)}
           onImport={handleImport}
+          initialLocations={initialLocations}
+          initialResearchGroups={initialResearchGroups}
+        />
+
+        <ColumnCustomizationModal
+          open={isColumnCustomizationOpen}
+          onClose={() => setIsColumnCustomizationOpen(false)}
+          visibleColumns={visibleColumns}
+          onColumnVisibilityChange={handleColumnVisibilityChange}
+        />
+
+        <FilterModal
+          open={isFilterModalOpen}
+          onClose={handleCloseFilterModal}
+          onApplyFilters={applyFilters}
+          locations={initialLocations}
+          chemicalTypes={uniqueChemicalTypes}
+          owners={uniqueOwners}
+          suppliers={uniqueSuppliers}
+          currentFilters={activeFilters}
         />
       </MainCard>
 
@@ -460,5 +545,3 @@ const InventoryPage: React.FC<InventoryPageProps> = ({
 };
 
 export default InventoryPage;
-
-

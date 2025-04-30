@@ -13,8 +13,8 @@ const makeTokenRequest = async (context: any) => {
 
   return {
     tokens: {
-      access_token: response.access_token || "",
-      token_type: "Bearer",
+      access_token: response.access_token || '',
+      token_type: 'Bearer',
       id_token: undefined,
       refresh_token: undefined,
       expires_at: undefined,
@@ -84,7 +84,7 @@ export const authOptions: NextAuthOptions = {
         url: 'https://uclapi.com/oauth/token',
         async request(context) {
           const filteredTokens = await makeTokenRequest(context);
-          return filteredTokens; 
+          return filteredTokens;
         }
       },
       userinfo: {
@@ -110,13 +110,13 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'uclapi' && profile?.email) {
         try {
           const uclEmail = profile.email;
-          
+
           const existingUser = await prisma.user.findUnique({
             where: { email: uclEmail }
           });
 
           if (!existingUser) {
-            return false; 
+            return false;
           }
 
           if (!existingUser.activeStatus) {
@@ -136,18 +136,18 @@ export const authOptions: NextAuthOptions = {
             where: {
               provider_providerAccountId: {
                 provider: account.provider,
-                providerAccountId: account.providerAccountId,
-              },
+                providerAccountId: account.providerAccountId
+              }
             },
             update: accountData,
-            create: accountData,
+            create: accountData
           });
 
           user.id = existingUser.id;
           user.name = existingUser.name;
           user.email = existingUser.email;
           user.permission = existingUser.permission;
-          
+
           return true;
         } catch (error) {
           return false;
@@ -178,8 +178,7 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`;
-      }
-      else if (new URL(url).origin === baseUrl) {
+      } else if (new URL(url).origin === baseUrl) {
         return url;
       }
       return baseUrl + '/inventory-page';
@@ -187,7 +186,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/login',
-    error: '/login',
+    error: '/login'
   },
   session: {
     strategy: 'jwt',

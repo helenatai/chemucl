@@ -7,19 +7,19 @@ import { ChemicalActionResponse } from 'types/chemical';
 export async function importChemicalsAction(chemicals: any[]): Promise<ChemicalActionResponse> {
   // First, process all chemical imports
   const result = await validateAndProcessImport(chemicals);
-  
+
   if (result.error || !result.success) {
     return result;
   }
 
   // Process QR codes for successfully imported chemicals
   const qrCodeErrors: string[] = [];
-  
+
   for (const chemical of result.chemicals) {
     const qrCodeResult = await validateAndProcessQrCode('add', {
       qrID: chemical.qrID,
       type: 'CHEMICAL',
-      chemicalID: chemical.chemicalID,
+      chemicalID: chemical.chemicalID
     });
 
     if (qrCodeResult.error) {
@@ -43,4 +43,4 @@ export async function importChemicalsAction(chemicals: any[]): Promise<ChemicalA
     chemicals: result.chemicals,
     success: true
   };
-} 
+}

@@ -24,17 +24,17 @@ export async function updateLocationAction(formData: {
       return { error: locationResult.error, locations: [] };
     }
 
-    return { 
+    return {
       message: 'Location and QR code updated successfully',
       locations: locationResult.locations,
-      success: true 
+      success: true
     };
   } catch (error) {
     console.error('Error updating location:', error);
-    return { 
+    return {
       error: error instanceof Error ? error.message : 'Failed to update location',
       locations: [],
-      success: false 
+      success: false
     };
   }
-} 
+}

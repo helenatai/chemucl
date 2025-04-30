@@ -14,7 +14,7 @@ const LocationForm: React.FC<LocationFormProps> = ({ onSubmit, onCancel }) => {
     qrID: '',
     buildingName: '',
     building: '',
-    room: '',
+    room: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +40,7 @@ const LocationForm: React.FC<LocationFormProps> = ({ onSubmit, onCancel }) => {
       <DialogContent
         sx={{
           maxHeight: '500px', // optional fixed height for scrolling
-          overflowY: 'auto',  // enable vertical scrolling
+          overflowY: 'auto' // enable vertical scrolling
         }}
       >
         <Grid container spacing={1}>
@@ -80,15 +80,7 @@ const LocationForm: React.FC<LocationFormProps> = ({ onSubmit, onCancel }) => {
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              margin="dense"
-              label="Room"
-              name="room"
-              value={formValues.room}
-              onChange={handleChange}
-              required
-            />
+            <TextField fullWidth margin="dense" label="Room" name="room" value={formValues.room} onChange={handleChange} required />
           </Grid>
         </Grid>
         <Box display="flex" justifyContent="flex-end" mt={2}>

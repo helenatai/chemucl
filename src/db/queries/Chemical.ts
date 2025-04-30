@@ -20,14 +20,14 @@ export const findChemical = async ({ chemicalID }: { chemicalID?: number } = {})
           locationID: true,
           building: true,
           buildingName: true,
-          room: true,
-        },
+          room: true
+        }
       },
       researchGroup: {
         select: {
           groupName: true,
-          researchGroupID: true,
-        },
+          researchGroupID: true
+        }
       },
       dateAdded: true,
       dateUpdated: true,
@@ -35,20 +35,20 @@ export const findChemical = async ({ chemicalID }: { chemicalID?: number } = {})
       subLocation2: true,
       subLocation3: true,
       subLocation4: true,
-      description: true,
-    },
+      description: true
+    }
   });
 
   return chemicals.map((chem) => ({
     ...chem,
-    qrID: chem.qrID || 'N/A', 
+    qrID: chem.qrID || 'N/A',
     location: chem.location
-    ? {
-        ...chem.location,
-        buildingName: chem.location.buildingName ?? "", 
-      }
-    : null,
-    researchGroup: chem.researchGroup || null,
+      ? {
+          ...chem.location,
+          buildingName: chem.location.buildingName ?? ''
+        }
+      : null,
+    researchGroup: chem.researchGroup || null
   }));
 };
 
@@ -71,22 +71,22 @@ export const findChemicalByQrID = async (qrID: string): Promise<ChemicalWithRela
           locationID: true,
           building: true,
           room: true,
-          buildingName: true,
-        },
+          buildingName: true
+        }
       },
       researchGroup: {
         select: {
           researchGroupID: true,
-          groupName: true,
-        },
+          groupName: true
+        }
       },
       dateAdded: true,
       dateUpdated: true,
       subLocation1: true,
       subLocation2: true,
       subLocation3: true,
-      subLocation4: true,
-    },
+      subLocation4: true
+    }
   });
 
   if (!chemical) return null;
@@ -95,9 +95,7 @@ export const findChemicalByQrID = async (qrID: string): Promise<ChemicalWithRela
     ...chemical,
     qrID: chemical.qrID || 'N/A',
     researchGroup: chemical.researchGroup || null,
-    location: chemical.location
-    ? { ...chemical.location, buildingName: chemical.location.buildingName ?? "" }
-    : null,
+    location: chemical.location ? { ...chemical.location, buildingName: chemical.location.buildingName ?? '' } : null
   };
 };
 
@@ -105,8 +103,8 @@ export const findChemicalsByLocation = async (locationID: number) => {
   const chemicals = await prisma.chemical.findMany({
     where: {
       location: {
-        locationID, 
-      },
+        locationID
+      }
     },
     select: {
       chemicalID: true,
@@ -128,16 +126,16 @@ export const findChemicalsByLocation = async (locationID: number) => {
           locationID: true,
           building: true,
           buildingName: true,
-          room: true,
-        },
+          room: true
+        }
       },
       researchGroup: {
         select: {
           groupName: true,
-          researchGroupID: true,
-        },
-      },
-    },
+          researchGroupID: true
+        }
+      }
+    }
   });
 
   return chemicals.map((chem) => ({
@@ -146,7 +144,7 @@ export const findChemicalsByLocation = async (locationID: number) => {
     location: chem.location
       ? {
           ...chem.location,
-          buildingName: chem.location.buildingName ?? "",
+          buildingName: chem.location.buildingName ?? ''
         }
       : null,
     researchGroup: chem.researchGroup || { groupName: '', researchGroupID: 0 }
@@ -173,9 +171,7 @@ interface AddChemicalParams {
   subLocation4?: string;
 }
 
-export const addChemical = async (
-  params: AddChemicalParams
-): Promise<ChemicalWithRelations> => {
+export const addChemical = async (params: AddChemicalParams): Promise<ChemicalWithRelations> => {
   const {
     qrID,
     casNumber,
@@ -193,18 +189,18 @@ export const addChemical = async (
     subLocation1,
     subLocation2,
     subLocation3,
-    subLocation4,
+    subLocation4
   } = params;
 
   const researchGroup = await prisma.researchGroup.findFirst({
-    where: { researchGroupID },
+    where: { researchGroupID }
   });
   if (!researchGroup) {
     throw new Error(`Research group with ID '${researchGroupID}' does not exist.`);
   }
 
   const data = {
-    qrID: qrID, 
+    qrID: qrID,
     casNumber: casNumber || '',
     chemicalName,
     chemicalType,
@@ -220,7 +216,7 @@ export const addChemical = async (
     subLocation1: subLocation1 ?? null,
     subLocation2: subLocation2 ?? null,
     subLocation3: subLocation3 ?? null,
-    subLocation4: subLocation4 ?? null,
+    subLocation4: subLocation4 ?? null
   };
 
   const newChemical = await prisma.chemical.create({
@@ -228,8 +224,8 @@ export const addChemical = async (
     include: {
       researchGroup: true,
       location: true,
-      qrCode: true,
-    },
+      qrCode: true
+    }
   });
 
   if (!newChemical.qrID) {
@@ -241,8 +237,8 @@ export const addChemical = async (
 
   return {
     ...newChemical,
-    qrID: newChemical.qrID,  
-    researchGroup: newChemical.researchGroup,
+    qrID: newChemical.qrID,
+    researchGroup: newChemical.researchGroup
   } as ChemicalWithRelations;
 };
 
@@ -278,7 +274,7 @@ export const updateChemical = async (params: UpdateChemicalParams) => {
       subLocation1: params.subLocation1 ?? null,
       subLocation2: params.subLocation2 ?? null,
       subLocation3: params.subLocation3 ?? null,
-      subLocation4: params.subLocation4 ?? null,
+      subLocation4: params.subLocation4 ?? null
     };
 
     if (params.locationID !== undefined && params.locationID !== null) {
@@ -291,10 +287,10 @@ export const updateChemical = async (params: UpdateChemicalParams) => {
       where: { chemicalID: params.chemicalID },
       data,
       include: {
-        researchGroup: true, 
+        researchGroup: true,
         location: true,
-        qrCode: true,
-      },
+        qrCode: true
+      }
     });
 
     if (!updatedChemical.qrID) {
@@ -316,7 +312,7 @@ export const deleteChemical = async (chemicalID: number) => {
     // Find the QR ID associated with this chemical
     const chemical = await prisma.chemical.findUnique({
       where: { chemicalID },
-      select: { qrID: true },
+      select: { qrID: true }
     });
 
     // if (!chemical) {
@@ -350,10 +346,10 @@ export const countData = async () => await prisma.chemical.count();
 export interface ChemicalImportData {
   qrID: string;
   chemicalName: string;
-  casNumber: string;  
+  casNumber: string;
   quantity: number;
   chemicalType: string;
-  restrictionStatus: boolean;  
+  restrictionStatus: boolean;
   supplier?: string;
   description?: string;
   researchGroup: string;
@@ -363,7 +359,7 @@ export interface ChemicalImportData {
   subLocation2?: string;
   subLocation3?: string;
   subLocation4?: string;
-  quartzyNumber?: string;  
+  quartzyNumber?: string;
 }
 
 export async function importChemicals(chemicals: ChemicalImportData[]) {
@@ -375,11 +371,11 @@ export async function importChemicals(chemicals: ChemicalImportData[]) {
           const location = await prisma.location.findFirst({
             where: {
               building: chemical.building,
-              room: chemical.room,
+              room: chemical.room
             },
             select: {
-              locationID: true,
-            },
+              locationID: true
+            }
           });
 
           if (!location) {
@@ -389,11 +385,11 @@ export async function importChemicals(chemicals: ChemicalImportData[]) {
           // Find research group by name
           const researchGroup = await prisma.researchGroup.findFirst({
             where: {
-              groupName: chemical.researchGroup,
+              groupName: chemical.researchGroup
             },
             select: {
-              researchGroupID: true,
-            },
+              researchGroupID: true
+            }
           });
 
           if (!researchGroup) {
@@ -408,7 +404,7 @@ export async function importChemicals(chemicals: ChemicalImportData[]) {
             casNumber: chemical.casNumber || '',
             supplier: chemical.supplier || '',
             description: chemical.description || '',
-            quartzyNumber: chemical.quartzyNumber || '',
+            quartzyNumber: chemical.quartzyNumber || ''
           });
 
           return { success: true, data: result };
@@ -421,7 +417,7 @@ export async function importChemicals(chemicals: ChemicalImportData[]) {
       })
     );
 
-    const errors = results.filter(result => !result.success).map(result => result.error);
+    const errors = results.filter((result) => !result.success).map((result) => result.error);
     if (errors.length > 0) {
       return { error: errors.join('\n') };
     }

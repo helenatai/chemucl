@@ -18,8 +18,8 @@ export const downloadQRCode = async (qrValue: string): Promise<string | undefine
       width: qrSize,
       color: {
         dark: '#000000',
-        light: '#ffffff',
-      },
+        light: '#ffffff'
+      }
     });
 
     const qrImage = new Image();
@@ -69,7 +69,7 @@ export const printQRCode = async (qrValue: string, printContainer: HTMLElement):
 export const generateMultipleQRCodes = async ({
   count,
   qrId,
-  exportType,
+  exportType
 }: {
   count?: number;
   qrId?: string;
@@ -96,7 +96,7 @@ export const generateMultipleQRCodes = async ({
   const generateAndCollectQR = async (overrideQrId?: string) => {
     const addQrCodeResult = await validateAndProcessQrCode('add', {
       type: 'NEW',
-      qrID: overrideQrId,
+      qrID: overrideQrId
     });
 
     if (addQrCodeResult.error) {

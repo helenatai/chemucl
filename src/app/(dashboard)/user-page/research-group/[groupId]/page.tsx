@@ -17,10 +17,5 @@ export default async function ResearchGroupPage({ params }: ResearchGroupPagePro
     notFound();
   }
 
-  return (
-    <ResearchGroupInformation 
-      researchGroup={researchGroup}
-      users={users}
-    />
-  );
-} 
+  return <ResearchGroupInformation researchGroup={researchGroup} users={users} />;
+}

@@ -37,7 +37,7 @@ export async function addChemicalAction(formData: FormData): Promise<ChemicalAct
     subLocation1: formData.get('subLocation1') as string,
     subLocation2: formData.get('subLocation2') as string,
     subLocation3: formData.get('subLocation3') as string,
-    subLocation4: formData.get('subLocation4') as string,
+    subLocation4: formData.get('subLocation4') as string
   };
 
   const chemicalResult = await validateAndProcessChemical('add', params);
@@ -52,9 +52,9 @@ export async function addChemicalAction(formData: FormData): Promise<ChemicalAct
   }
 
   const qrCodeResult = await validateAndProcessQrCode('add', {
-    qrID: qrIDValue, 
+    qrID: qrIDValue,
     type: 'CHEMICAL',
-    chemicalID: chemical.chemicalID,
+    chemicalID: chemical.chemicalID
   });
 
   if (qrCodeResult.error) {
@@ -66,6 +66,6 @@ export async function addChemicalAction(formData: FormData): Promise<ChemicalAct
     message: 'Chemical added successfully',
     chemicals: [chemical],
     success: true,
-    qrCode: qrCodeResult.qrCode,
+    qrCode: qrCodeResult.qrCode
   };
 }

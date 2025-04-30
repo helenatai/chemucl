@@ -3,16 +3,10 @@ import { usePermissions } from './usePermissions';
 import menuItems from 'menu-items';
 
 export const useMenuItems = () => {
-  const { 
-    canViewInventory,
-    canViewLocation,
-    canManageUsers,
-    canAccessLogs,
-    canAccessAudit
-  } = usePermissions();
+  const { canViewInventory, canViewLocation, canManageUsers, canAccessLogs, canAccessAudit } = usePermissions();
 
   const filteredMenuItems = useMemo(() => {
-    const items = menuItems.items.filter(item => {
+    const items = menuItems.items.filter((item) => {
       switch (item.id) {
         case 'inventory-page':
           return canViewInventory;
@@ -33,4 +27,4 @@ export const useMenuItems = () => {
   }, [canViewInventory, canViewLocation, canManageUsers, canAccessLogs, canAccessAudit]);
 
   return filteredMenuItems;
-}; 
+};

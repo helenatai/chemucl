@@ -22,13 +22,7 @@ interface TabPanelProps {
 
 function TabPanel({ children, value, index, ...other }: TabPanelProps) {
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`location-tabpanel-${index}`}
-      aria-labelledby={`location-tab-${index}`}
-      {...other}
-    >
+    <div role="tabpanel" hidden={value !== index} id={`location-tabpanel-${index}`} aria-labelledby={`location-tab-${index}`} {...other}>
       {value === index && <Box>{children}</Box>}
     </div>
   );
@@ -49,7 +43,7 @@ interface LocationTabsProps {
 const LocationTabs = ({ location, chemicals = [] }: LocationTabsProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  
+
   // Set initial tab based on current URL
   const initialTab = pathname.includes('/chemicals') ? 1 : 0;
   const [value, setValue] = useState(initialTab);
@@ -69,13 +63,7 @@ const LocationTabs = ({ location, chemicals = [] }: LocationTabsProps) => {
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
           <Box sx={{ mb: 3 }}>
-            <Tabs 
-              value={value} 
-              onChange={handleChange} 
-              aria-label="location tabs"
-              textColor="primary"
-              indicatorColor="primary"
-            >
+            <Tabs value={value} onChange={handleChange} aria-label="location tabs" textColor="primary" indicatorColor="primary">
               <Tab label="Location Information" {...a11yProps(0)} />
               <Tab label="View Chemicals" {...a11yProps(1)} />
             </Tabs>
@@ -92,4 +80,4 @@ const LocationTabs = ({ location, chemicals = [] }: LocationTabsProps) => {
   );
 };
 
-export default LocationTabs; 
+export default LocationTabs;

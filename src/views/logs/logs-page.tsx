@@ -2,8 +2,17 @@
 
 import React, { useState } from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, TextField, InputAdornment, Snackbar, Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  TextField,
+  InputAdornment,
+  Snackbar,
+  Alert,
   Grid
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -42,12 +51,7 @@ const LogsPage: React.FC<LogsPageProps> = ({ initialLogs }) => {
     const actionType = log.actionType.toLowerCase();
     const locationStr = `${log.locationBuilding || ''} ${log.locationRoom || ''}`.toLowerCase();
 
-    return (
-      chemName.includes(search) ||
-      userName.includes(search) ||
-      actionType.includes(search) ||
-      locationStr.includes(search)
-    );
+    return chemName.includes(search) || userName.includes(search) || actionType.includes(search) || locationStr.includes(search);
   });
 
   // 2. Pagination
@@ -102,19 +106,11 @@ const LogsPage: React.FC<LogsPageProps> = ({ initialLogs }) => {
                   <TableRow key={log.logID}>
                     <TableCell>{log.logID}</TableCell>
                     <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
-                    <TableCell>
-                      {log.chemicalName || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      {`${log.locationBuilding || 'N/A'} ${log.locationRoom || ''}`}
-                    </TableCell>
+                    <TableCell>{log.chemicalName || 'N/A'}</TableCell>
+                    <TableCell>{`${log.locationBuilding || 'N/A'} ${log.locationRoom || ''}`}</TableCell>
                     <TableCell>{log.actionType}</TableCell>
-                    <TableCell>
-                      {log.user ? log.user.name : 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      {log.user ? log.user.permission : 'N/A'}
-                    </TableCell>
+                    <TableCell>{log.user ? log.user.name : 'N/A'}</TableCell>
+                    <TableCell>{log.user ? log.user.permission : 'N/A'}</TableCell>
                   </TableRow>
                 );
               })}
@@ -150,4 +146,3 @@ const LogsPage: React.FC<LogsPageProps> = ({ initialLogs }) => {
 };
 
 export default LogsPage;
-

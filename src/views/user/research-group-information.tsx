@@ -2,9 +2,22 @@
 
 import React, { useState } from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, TextField, InputAdornment, Grid, IconButton,
-  Tooltip, Snackbar, Alert, Checkbox, Box
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  TextField,
+  InputAdornment,
+  Grid,
+  IconButton,
+  Tooltip,
+  Snackbar,
+  Alert,
+  Checkbox,
+  Box
 } from '@mui/material';
 
 import MainCard from 'ui-component/cards/MainCard';
@@ -48,10 +61,7 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
     setSearchQuery(event.target.value.toLowerCase());
     setPage(0);
   };
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(searchQuery) ||
-    u.email.toLowerCase().includes(searchQuery)
-  );
+  const filteredUsers = users.filter((u) => u.name.toLowerCase().includes(searchQuery) || u.email.toLowerCase().includes(searchQuery));
 
   const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +94,7 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
 
   const handleDeleteSelected = async () => {
     if (!confirm('Are you sure you want to delete the selected user(s)?')) return;
-    
+
     const result = await deleteUserAction(selectedUsers);
     if (!result.error) {
       const remaining = users.filter((u) => !selectedUsers.includes(u.id));
@@ -109,9 +119,9 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
     try {
       const updatedUsers = [...users];
       let success = true;
-      
+
       for (const userId of selectedUsers) {
-        const userIndex = updatedUsers.findIndex(u => u.id === userId);
+        const userIndex = updatedUsers.findIndex((u) => u.id === userId);
         if (userIndex !== -1 && !updatedUsers[userIndex].activeStatus) {
           const response = await updateUserAction(userId, true);
           if (!response.error && response.users && response.users.length > 0) {
@@ -121,7 +131,7 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
           }
         }
       }
-      
+
       if (success) {
         setUsers(updatedUsers);
         setSnackbar({
@@ -150,9 +160,9 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
     try {
       const updatedUsers = [...users];
       let success = true;
-      
+
       for (const userId of selectedUsers) {
-        const userIndex = updatedUsers.findIndex(u => u.id === userId);
+        const userIndex = updatedUsers.findIndex((u) => u.id === userId);
         if (userIndex !== -1 && updatedUsers[userIndex].activeStatus) {
           const response = await updateUserAction(userId, false);
           if (!response.error && response.users && response.users.length > 0) {
@@ -162,7 +172,7 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
           }
         }
       }
-      
+
       if (success) {
         setUsers(updatedUsers);
         setSnackbar({
@@ -198,7 +208,7 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
                   <InputAdornment position="start">
                     <SearchIcon fontSize="small" />
                   </InputAdornment>
-                ),
+                )
               }}
               placeholder="Search Member"
               value={searchQuery}
@@ -251,20 +261,9 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
               {currentPageData.map((user) => {
                 const isItemSelected = isSelected(user.id);
                 return (
-                  <TableRow 
-                    key={user.id}
-                    hover
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    selected={isItemSelected}
-                  >
+                  <TableRow key={user.id} hover role="checkbox" aria-checked={isItemSelected} tabIndex={-1} selected={isItemSelected}>
                     <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        checked={isItemSelected}
-                        onChange={(e) => handleClickCheckbox(e, user.id)}
-                      />
+                      <Checkbox color="primary" checked={isItemSelected} onChange={(e) => handleClickCheckbox(e, user.id)} />
                     </TableCell>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
@@ -302,11 +301,7 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          <Alert
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity}
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
             {snackbar.message}
           </Alert>
         </Snackbar>
@@ -315,4 +310,4 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ res
   );
 };
 
-export default ResearchGroupInformation; 
+export default ResearchGroupInformation;

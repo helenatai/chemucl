@@ -8,9 +8,5 @@ export default async function Page() {
   const locations = await findLocation();
   const researchGroups = await findResearchGroup();
 
-  return <InventoryPage 
-    initialChemicals={chemicals} 
-    initialLocations={locations}
-    initialResearchGroups={researchGroups}
-  />;
+  return <InventoryPage initialChemicals={chemicals} initialLocations={locations} initialResearchGroups={researchGroups} />;
 }

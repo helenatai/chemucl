@@ -1,15 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  TextField,
-  Grid,
-  DialogContent,
-  Snackbar,
-  Alert,
-} from '@mui/material';
+import { Box, Button, TextField, Grid, DialogContent, Snackbar, Alert } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 
 interface ChemFormProps {
@@ -49,7 +41,7 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
     subLocation2: '',
     subLocation3: '',
     subLocation4: '',
-    description: '',
+    description: ''
   });
 
   const [owners] = useState<Owner[]>(initialResearchGroups);
@@ -72,13 +64,13 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formValues.owner) {
-      setSnackbarMessage("Please select an owner.");
+      setSnackbarMessage('Please select an owner.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
       return;
     }
     if (!formValues.location) {
-      setSnackbarMessage("Please select a location.");
+      setSnackbarMessage('Please select a location.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
       return;
@@ -93,7 +85,7 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
     formData.append('subLocation2', formValues.subLocation2 || '');
     formData.append('subLocation3', formValues.subLocation3 || '');
     formData.append('subLocation4', formValues.subLocation4 || '');
-    
+
     try {
       await onSubmit(formData);
       setSnackbarMessage('Chemical saved successfully!');
@@ -108,24 +100,22 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
 
   const handleCASOrNameLookup = async (key: string, value: string) => {
     if (!value) return; // Exit if the value is empty
-  
+
     try {
-      const response = await fetch(
-        `https://commonchemistry.cas.org/api/search?q=${encodeURIComponent(value)}`
-      );
+      const response = await fetch(`https://commonchemistry.cas.org/api/search?q=${encodeURIComponent(value)}`);
       const data = await response.json();
-  
+
       if (data.results?.length > 0) {
         const result = data.results[0];
         if (key === 'casNumber') {
           setFormValues((prev) => ({
             ...prev,
-            chemicalName: result.name, // Autofill chemical name
+            chemicalName: result.name // Autofill chemical name
           }));
         } else if (key === 'chemicalName') {
           setFormValues((prev) => ({
             ...prev,
-            casNumber: result.casNumber, // Autofill CAS number
+            casNumber: result.casNumber // Autofill CAS number
           }));
         }
       }
@@ -138,8 +128,8 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
     <form onSubmit={handleSubmit}>
       <DialogContent
         sx={{
-          maxHeight: '500px', 
-          overflowY: 'auto', 
+          maxHeight: '500px',
+          overflowY: 'auto'
         }}
       >
         <Grid container spacing={1}>
@@ -224,64 +214,56 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
               value={formValues.supplier}
               onChange={handleChange}
               type="string"
-              sx={ {marginBottom: 2.5}}
+              sx={{ marginBottom: 2.5 }}
             />
           </Grid>
         </Grid>
         <Grid container spacing={1}>
           <Grid item xs={12}>
             <Autocomplete
-                options={owners}
-                getOptionLabel={(option) => option.groupName}
-                value={formValues.owner}
-                onChange={(event, newValue) =>
-                  setFormValues((prev) => ({
-                    ...prev,
-                    owner: newValue,
-                  }))
-                }
-                renderInput={(params) => <TextField {...params} label="Select Owner" required />}
-                sx={{ marginBottom: 1.5 }}
-              />
-            </Grid>
-          <Grid item xs={12}>
-          <Autocomplete
-            options={[
-              'Chemical',
-              'Poisons',
-              'Explosives',
-              'Chemical Weapon',
-              'Pyrophorics',
-              'Drug Precursor',
-              'Other'
-            ]}
-            value={formValues.chemicalType || null}
-            onChange={(event, newValue) =>
-              setFormValues((prev) => ({
-                ...prev,
-                chemicalType: newValue || '', // Ensures proper type assignment
-              }))
-            }
-            renderInput={(params) => <TextField {...params} label="Select Chemical Type" required />}
-            sx={{ marginBottom: 1.5 }}
-          />
+              options={owners}
+              getOptionLabel={(option) => option.groupName}
+              value={formValues.owner}
+              onChange={(event, newValue) =>
+                setFormValues((prev) => ({
+                  ...prev,
+                  owner: newValue
+                }))
+              }
+              renderInput={(params) => <TextField {...params} label="Select Owner" required />}
+              sx={{ marginBottom: 1.5 }}
+            />
           </Grid>
           <Grid item xs={12}>
             <Autocomplete
-                options={locations}
-                getOptionLabel={(option) => `${option.building} | ${option.room}`}
-                value={formValues.location} 
-                onChange={(event, newValue) =>
-                  setFormValues((prev) => ({
-                    ...prev,
-                    location: newValue, 
-                    building: newValue?.building || '',
-                    room: newValue?.room || '',
-                  }))
-                }
-                renderInput={(params) => <TextField {...params} label="Select Existing Location" required />}
-                sx={{ marginBottom: 0.5 }}
-              />
+              options={['Chemical', 'Poisons', 'Explosives', 'Chemical Weapon', 'Pyrophorics', 'Drug Precursor', 'Other']}
+              value={formValues.chemicalType || null}
+              onChange={(event, newValue) =>
+                setFormValues((prev) => ({
+                  ...prev,
+                  chemicalType: newValue || '' // Ensures proper type assignment
+                }))
+              }
+              renderInput={(params) => <TextField {...params} label="Select Chemical Type" required />}
+              sx={{ marginBottom: 1.5 }}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Autocomplete
+              options={locations}
+              getOptionLabel={(option) => `${option.building} | ${option.room}`}
+              value={formValues.location}
+              onChange={(event, newValue) =>
+                setFormValues((prev) => ({
+                  ...prev,
+                  location: newValue,
+                  building: newValue?.building || '',
+                  room: newValue?.room || ''
+                }))
+              }
+              renderInput={(params) => <TextField {...params} label="Select Existing Location" required />}
+              sx={{ marginBottom: 0.5 }}
+            />
           </Grid>
           <Grid item xs={6}>
             <TextField
@@ -295,15 +277,7 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
             />
           </Grid>
           <Grid item xs={6}>
-            <TextField
-              autoFocus
-              fullWidth
-              margin="dense"
-              label="Room"
-              name="room"
-              value={formValues.room}
-              onChange={handleChange}
-            />
+            <TextField autoFocus fullWidth margin="dense" label="Room" name="room" value={formValues.room} onChange={handleChange} />
           </Grid>
           <Grid item xs={6}>
             <TextField
@@ -317,72 +291,72 @@ const ChemForm: React.FC<ChemFormProps> = ({ onSubmit, onCancel, initialLocation
             />
           </Grid>
           <Grid item xs={6}>
-          <TextField
-            autoFocus
-            fullWidth
-            margin="dense"
-            label="Sub-location 2"
-            name="subLocation2"
-            value={formValues.subLocation2}
-            onChange={handleChange}
-          />
+            <TextField
+              autoFocus
+              fullWidth
+              margin="dense"
+              label="Sub-location 2"
+              name="subLocation2"
+              value={formValues.subLocation2}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              autoFocus
+              fullWidth
+              margin="dense"
+              label="Sub-location 3"
+              name="subLocation3"
+              value={formValues.subLocation3}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              autoFocus
+              fullWidth
+              margin="dense"
+              label="Sub-location 4"
+              name="subLocation4"
+              value={formValues.subLocation4}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              autoFocus
+              fullWidth
+              margin="dense"
+              label="Safety Information"
+              name="description"
+              value={formValues.description}
+              onChange={handleChange}
+              multiline
+              rows={4}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={6}>
-          <TextField
-            autoFocus
-            fullWidth
-            margin="dense"
-            label="Sub-location 3"
-            name="subLocation3"
-            value={formValues.subLocation3}
-            onChange={handleChange}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            autoFocus
-            fullWidth
-            margin="dense"
-            label="Sub-location 4"
-            name="subLocation4"
-            value={formValues.subLocation4}
-            onChange={handleChange}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            autoFocus
-            fullWidth
-            margin="dense"
-            label="Safety Information"
-            name="description"
-            value={formValues.description}
-            onChange={handleChange}
-            multiline
-            rows={4}
-          />
-        </Grid>
-      </Grid>
-      <Box display="flex" justifyContent="flex-end" mt={2}>
-        <Button onClick={onCancel} sx={{ mr: 2 }}>
-          Cancel
-        </Button>
-        <Button type="submit" variant="contained" color="primary">
-          Submit
-        </Button>
-      </Box>
-    </DialogContent>
-    <Snackbar
-      open={snackbarOpen}
-      autoHideDuration={3000}
-      onClose={handleSnackbarClose}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-    >
-      <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-        {snackbarMessage}
-      </Alert>
-    </Snackbar>
-  </form>
+        <Box display="flex" justifyContent="flex-end" mt={2}>
+          <Button onClick={onCancel} sx={{ mr: 2 }}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained" color="primary">
+            Submit
+          </Button>
+        </Box>
+      </DialogContent>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </form>
   );
 };
 

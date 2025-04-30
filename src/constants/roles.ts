@@ -23,4 +23,4 @@ export const PERMISSIONS = {
   // Audit permissions
   AUDIT_ACCESS: [ROLES.ADMIN, ROLES.AUDITOR],
   AUDIT_MODIFY: [ROLES.ADMIN, ROLES.AUDITOR]
-} as const; 
+} as const;

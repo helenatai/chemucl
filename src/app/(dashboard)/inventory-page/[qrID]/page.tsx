@@ -9,16 +9,10 @@ export default async function ChemicalInformationPage({ params }: { params: { qr
   const chemical = await findChemicalByQrID(qrID);
   const locations = await findLocation();
   const researchGroups = await findResearchGroup();
-  
+
   if (!chemical) {
     return notFound();
   }
 
-  return (
-    <ChemicalInformation 
-      chemical={chemical} 
-      locations={locations}
-      researchGroups={researchGroups}
-    />
-  );
+  return <ChemicalInformation chemical={chemical} locations={locations} researchGroups={researchGroups} />;
 }

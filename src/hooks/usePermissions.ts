@@ -3,25 +3,23 @@
 import { useSession } from 'next-auth/react';
 import { PERMISSIONS, ROLES } from '../constants/roles';
 
-type RoleType = typeof ROLES[keyof typeof ROLES];
+type RoleType = (typeof ROLES)[keyof typeof ROLES];
 
 export const usePermissions = () => {
   const { data: session } = useSession();
-  const userPermissions = session?.user?.permission?.split(',').map(p => p.trim()) as RoleType[] | undefined;
+  const userPermissions = session?.user?.permission?.split(',').map((p) => p.trim()) as RoleType[] | undefined;
 
   const hasPermission = (permissionGroup: keyof typeof PERMISSIONS): boolean => {
     if (!userPermissions || userPermissions.length === 0) return false;
-    
+
     // Check if any of the user's roles are included in the permission group
-    return userPermissions.some(role => 
-      (PERMISSIONS[permissionGroup] as readonly RoleType[]).includes(role)
-    );
+    return userPermissions.some((role) => (PERMISSIONS[permissionGroup] as readonly RoleType[]).includes(role));
   };
 
   // Get the base role (excluding Auditor)
   const getBaseRole = (): RoleType | undefined => {
     if (!userPermissions || userPermissions.length === 0) return undefined;
-    return userPermissions.find(role => role !== ROLES.AUDITOR);
+    return userPermissions.find((role) => role !== ROLES.AUDITOR);
   };
 
   // Check if user has Auditor role
@@ -56,4 +54,4 @@ export const usePermissions = () => {
     isAuditor: isAuditor(),
     userPermissions
   };
-}; 
+};

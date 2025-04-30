@@ -4,6 +4,5 @@ import { validateAndProcessChemical } from 'actions/chemical/chemicalActionHandl
 import { ChemicalActionResponse } from 'types/chemical';
 
 export async function updateChemicalAction(params: any): Promise<ChemicalActionResponse> {
-
   return await validateAndProcessChemical('update', params);
 }

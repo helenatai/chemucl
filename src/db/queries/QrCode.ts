@@ -29,9 +29,9 @@ export const addQrCode = async (params: QrCodeParams) => {
 
   const data: Prisma.QrCodeCreateInput = {
     qrID: qrID || '',
-    type, 
+    type,
     location: locationID ? { connect: { locationID } } : undefined,
-    chemical: chemicalID ? { connect: { chemicalID } } : undefined,
+    chemical: chemicalID ? { connect: { chemicalID } } : undefined
   };
 
   return prisma.qrCode.create({ data });
@@ -55,7 +55,7 @@ export const deleteQrCode = async (qrID: string) => {
 export const lastQrCode = async () => {
   return prisma.qrCode.findFirst({
     orderBy: {
-      qrID: 'desc',
-    },
+      qrID: 'desc'
+    }
   });
 };

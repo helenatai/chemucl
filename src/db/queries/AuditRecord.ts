@@ -5,20 +5,20 @@ export async function findAuditRecordsByAuditID(auditID: number): Promise<AuditR
   return prisma.auditRecord.findMany({
     where: { auditID },
     include: {
-      chemical: true, 
+      chemical: true,
       audit: {
         include: {
-          location: true,
-        },
-      },
-    },
+          location: true
+        }
+      }
+    }
   }) as Promise<AuditRecordWithRelations[]>;
 }
 
 export async function findMissingRecordsByAuditGeneralID(auditGeneralID: number): Promise<AuditRecordWithRelations[]> {
   return prisma.auditRecord.findMany({
     where: {
-      status: "Missing",
+      status: 'Missing',
       audit: {
         auditGeneralID // ensure the parent Audit belongs to the same round
       }
@@ -27,7 +27,7 @@ export async function findMissingRecordsByAuditGeneralID(auditGeneralID: number)
       chemical: true,
       audit: {
         include: {
-          location: true 
+          location: true
         }
       }
     }

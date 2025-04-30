@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import { AuditGeneralWithRelations } from 'types/auditGeneral';
 import { LocationWithRelations } from 'types/location';
-import AddFormModal from 'sections/AddFormModal';
-import AuditForm from 'sections/forms/AuditForm';
+import AddFormModal from 'components/forms/AddFormModal';
+import AuditForm from 'components/forms/AuditForm';
 import { addAuditAction } from 'actions/audit/server-actions/addAudit';
 import { useRouter } from 'next/navigation';
 import RoleGuard from 'utils/route-guard/RoleGuard';
@@ -14,8 +14,21 @@ import { useSession } from 'next-auth/react';
 
 // Material UI Imports
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, TextField, InputAdornment, CardContent, Grid, Snackbar, Alert, Fab, Tooltip
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  TextField,
+  InputAdornment,
+  CardContent,
+  Grid,
+  Snackbar,
+  Alert,
+  Fab,
+  Tooltip
 } from '@mui/material';
 
 // assets
@@ -35,7 +48,7 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  
+
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
@@ -45,7 +58,7 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
     setPage(0);
   };
 
-  const filteredAudits = audits.filter(audit => {
+  const filteredAudits = audits.filter((audit) => {
     const auditorName = audit.auditor?.name.toLowerCase() || '';
     const roundStr = audit.round.toString();
     const status = audit.status.toLowerCase();
@@ -64,7 +77,7 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
   const handleOpenAddModal = () => {
     setIsAddModalOpen(true);
   };
-  
+
   const handleCloseAddModal = () => {
     setIsAddModalOpen(false);
   };
@@ -88,13 +101,13 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
       setIsAddModalOpen(false);
-      router.refresh(); 
+      router.refresh();
     } else {
       setSnackbarMessage(`Error: ${response.error}`);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
-  }
+  };
 
   const currentPageData = filteredAudits.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -123,16 +136,16 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
               />
             </Grid>
             <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
-              <Tooltip title ="Add Audit">
+              <Tooltip title="Add Audit">
                 <Fab
-                    color="primary"
-                    size="small"
-                    onClick={handleOpenAddModal}
-                    sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
-                  >
-                    <AddIcon /> {/* Add Item Icon */}
-                  </Fab>
-                </Tooltip>
+                  color="primary"
+                  size="small"
+                  onClick={handleOpenAddModal}
+                  sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
+                >
+                  <AddIcon /> {/* Add Item Icon */}
+                </Fab>
+              </Tooltip>
             </Grid>
           </Grid>
         </CardContent>
@@ -161,14 +174,12 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
                   <TableCell>{audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}</TableCell>
                   <TableCell>{audit.lastAuditDate ? new Date(audit.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
                   <TableCell>
-                      <Grid container spacing={1}>
-                        <Grid item>
-                          <button onClick={() => handleView(audit.auditGeneralID)}>
-                            View
-                          </button>
-                        </Grid>
+                    <Grid container spacing={1}>
+                      <Grid item>
+                        <button onClick={() => handleView(audit.auditGeneralID)}>View</button>
                       </Grid>
-                    </TableCell>
+                    </Grid>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -186,11 +197,7 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
         />
 
         <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Locations for New Audit">
-          <AuditForm 
-            onSubmit={handleSubmitAuditForm} 
-            onCancel={handleCloseAddModal} 
-            initialLocations={initialLocations}
-          />
+          <AuditForm onSubmit={handleSubmitAuditForm} onCancel={handleCloseAddModal} initialLocations={initialLocations} />
         </AddFormModal>
 
         <Snackbar

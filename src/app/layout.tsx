@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import { Metadata } from 'next';
 
 import './globals.css';
 
@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/assets/images/ucl-logo.png',
     shortcut: '/assets/images/ucl-logo.png',
-    apple: '/assets/images/ucl-logo.png',
-  },
-}
+    apple: '/assets/images/ucl-logo.png'
+  }
+};
 
 // ==============================|| ROOT LAYOUT ||============================== //
 

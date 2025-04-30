@@ -32,7 +32,7 @@ export async function addLocationAction(formData: FormData) {
     qrID: qrIDValue,
     building: buildingCode,
     buildingName,
-    room,
+    room
   };
 
   console.log('Adding location with params:', params);
@@ -52,7 +52,7 @@ export async function addLocationAction(formData: FormData) {
   const qrCodeResult = await validateAndProcessQrCode('add', {
     qrID: qrIDValue,
     type: 'LOCATION',
-    locationID: location.locationID, // Attach QR code to location
+    locationID: location.locationID // Attach QR code to location
   });
 
   if (qrCodeResult.error) {
@@ -64,6 +64,6 @@ export async function addLocationAction(formData: FormData) {
     message: 'Location added successfully',
     location,
     success: true,
-    qrCode: qrCodeResult.qrCode,
+    qrCode: qrCodeResult.qrCode
   };
 }

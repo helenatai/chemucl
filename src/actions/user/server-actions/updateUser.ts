@@ -6,11 +6,11 @@ import { UserActionResponse } from 'types/user';
 export async function updateUserAction(userId: string, activeStatus: boolean): Promise<UserActionResponse> {
   const params = {
     id: userId,
-    activeStatus: activeStatus,
+    activeStatus: activeStatus
   };
 
   return validateAndProcessUser('update', params);
-} 
+}
 
 export async function updateUserDetailsAction(params: {
   id: string;
@@ -21,4 +21,4 @@ export async function updateUserDetailsAction(params: {
   activeStatus?: boolean;
 }): Promise<UserActionResponse> {
   return validateAndProcessUser('updateDetails', params);
-} 
+}

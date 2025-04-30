@@ -5,5 +5,5 @@ import { findLocation } from 'db/queries/Location';
 export default async function Page() {
   const audits = await findAuditGeneral();
   const locations = await findLocation();
-  return <AuditGeneralPage initialAudits={audits} initialLocations={locations}/>;
+  return <AuditGeneralPage initialAudits={audits} initialLocations={locations} />;
 }

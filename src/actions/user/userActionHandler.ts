@@ -7,17 +7,18 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from 'utils/authOptions';
 import bcrypt from 'bcrypt';
 import { prisma } from 'db';
+import { revalidatePath } from 'next/cache';
 
 const addUserSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   role: z.enum(['Admin', 'Staff', 'Research Student']),
-  researchGroupID: z.string().optional(),
+  researchGroupID: z.string().optional()
 });
 
 const updateUserSchema = z.object({
   id: z.string(),
-  activeStatus: z.boolean(),
+  activeStatus: z.boolean()
 });
 
 const updateUserDetailsSchema = z.object({
@@ -26,7 +27,7 @@ const updateUserDetailsSchema = z.object({
   email: z.string().email('Invalid email address').optional(),
   permission: z.string().optional(),
   researchGroupID: z.number().nullable().optional(),
-  activeStatus: z.boolean().optional(),
+  activeStatus: z.boolean().optional()
 });
 
 // New schema for delete operation
@@ -35,12 +36,13 @@ const deleteUserSchema = z.object({
 });
 
 type ActionType = 'add' | 'update' | 'updateDetails' | 'delete';
-type ParamsType = z.infer<typeof addUserSchema> | z.infer<typeof updateUserSchema> | z.infer<typeof updateUserDetailsSchema> | z.infer<typeof deleteUserSchema>;
+type ParamsType =
+  | z.infer<typeof addUserSchema>
+  | z.infer<typeof updateUserSchema>
+  | z.infer<typeof updateUserDetailsSchema>
+  | z.infer<typeof deleteUserSchema>;
 
-export async function validateAndProcessUser(
-  action: ActionType,
-  params: ParamsType
-): Promise<UserActionResponse> {
+export async function validateAndProcessUser(action: ActionType, params: ParamsType): Promise<UserActionResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -57,45 +59,46 @@ export async function validateAndProcessUser(
     if (action === 'add') {
       const validatedData = addUserSchema.parse(params);
       const hashedPassword = await bcrypt.hash('chemucl', 10);
-      
+
       const newUser = await addUser({
         name: validatedData.fullName,
         email: validatedData.email,
         permission: validatedData.role,
         researchGroupID: validatedData.researchGroupID ? parseInt(validatedData.researchGroupID) : undefined,
-        password: hashedPassword,
+        password: hashedPassword
       });
 
+      revalidatePath('/user-page');
       return { message: 'User added successfully', users: [newUser] };
-    } 
-    else if (action === 'update') {
+    } else if (action === 'update') {
       const validatedData = updateUserSchema.parse(params);
-      
+
       const updatedUser = await updateUser({
         id: validatedData.id,
-        activeStatus: validatedData.activeStatus,
+        activeStatus: validatedData.activeStatus
       });
 
+      revalidatePath('/user-page');
       return { message: 'User updated successfully', users: [updatedUser] };
-    }
-    else if (action === 'updateDetails') {
+    } else if (action === 'updateDetails') {
       const validatedData = updateUserDetailsSchema.parse(params);
-      
+
       const updatedUser = await updateUser({
         id: validatedData.id,
         name: validatedData.name,
         email: validatedData.email,
         permission: validatedData.permission,
         researchGroupID: validatedData.researchGroupID,
-        activeStatus: validatedData.activeStatus,
+        activeStatus: validatedData.activeStatus
       });
 
+      revalidatePath('/user-page');
       return { message: 'User updated successfully', users: [updatedUser] };
-    }
-    else if (action === 'delete') {
+    } else if (action === 'delete') {
       const validatedData = deleteUserSchema.parse(params);
-      
+
       await deleteUser(validatedData.userIds);
+      revalidatePath('/user-page');
       return {
         error: undefined,
         users: []
@@ -116,7 +119,7 @@ const importUserSchema = z.object({
   email: z.string().email(),
   permission: z.enum(['Admin', 'Staff', 'Research Student']),
   researchGroup: z.string(),
-  activeStatus: z.boolean().default(true),
+  activeStatus: z.boolean().default(true)
 });
 
 export async function validateAndProcessImport(users: any[]): Promise<UserActionResponse> {
@@ -141,11 +144,11 @@ export async function validateAndProcessImport(users: any[]): Promise<UserAction
           // Find research group by name
           const researchGroup = await prisma.researchGroup.findFirst({
             where: {
-              groupName: validatedData.researchGroup,
+              groupName: validatedData.researchGroup
             },
             select: {
-              researchGroupID: true,
-            },
+              researchGroupID: true
+            }
           });
 
           if (!researchGroup) {
@@ -167,7 +170,7 @@ export async function validateAndProcessImport(users: any[]): Promise<UserAction
             email: validatedData.email,
             permission: validatedData.permission,
             researchGroupID: researchGroup.researchGroupID,
-            activeStatus: validatedData.activeStatus,
+            activeStatus: validatedData.activeStatus
           });
 
           return { success: true, data: newUser };
@@ -182,7 +185,7 @@ export async function validateAndProcessImport(users: any[]): Promise<UserAction
 
     const errors = results
       .filter((result): result is { success: false; error: string } => !result.success && 'error' in result)
-      .map(result => result.error);
+      .map((result) => result.error);
 
     if (errors.length > 0) {
       return { error: errors.join('\n'), users: [] };
@@ -190,9 +193,13 @@ export async function validateAndProcessImport(users: any[]): Promise<UserAction
 
     const successfulUsers = results
       .filter((result): result is { success: true; data: any } => result.success && 'data' in result)
-      .map(result => result.data);
+      .map((result) => result.data);
 
-    return { 
+    if (successfulUsers.length > 0) {
+      revalidatePath('/user-page');
+    }
+
+    return {
       message: 'Users imported successfully',
       users: successfulUsers
     };
@@ -200,4 +207,4 @@ export async function validateAndProcessImport(users: any[]): Promise<UserAction
     console.error('Error importing users:', error);
     return { error: error instanceof Error ? error.message : 'Failed to import users', users: [] };
   }
-} 
+}

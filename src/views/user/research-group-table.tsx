@@ -2,9 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, Checkbox, TextField, InputAdornment, IconButton, Tooltip, Fab,
-  Snackbar, Alert, Grid, Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Checkbox,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Tooltip,
+  Fab,
+  Snackbar,
+  Alert,
+  Grid,
+  Box
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/AddTwoTone';
@@ -13,8 +27,8 @@ import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 
 import { ResearchGroupWithRelations } from 'types/researchGroup';
 import { UserWithRelations } from 'types/user';
-import AddFormModal from 'sections/AddFormModal';
-import ResearchGroupForm from 'sections/forms/ResearchGroupForm';
+import AddFormModal from 'components/forms/AddFormModal';
+import ResearchGroupForm from 'components/forms/ResearchGroupForm';
 import { addResearchGroupAction } from 'actions/research-group/server-actions/addResearchGroup';
 import { useRouter, usePathname } from 'next/navigation';
 import ResearchGroupInformation from './research-group-information';
@@ -52,9 +66,7 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
     setSearch(event.target.value.toLowerCase());
     setPage(0);
   };
-  const filteredGroups = groups.filter((g) =>
-    g.groupName.toLowerCase().includes(search)
-  );
+  const filteredGroups = groups.filter((g) => g.groupName.toLowerCase().includes(search));
 
   const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,12 +158,7 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
   }, [pathname]);
 
   if (selectedGroup) {
-    return (
-      <ResearchGroupInformation 
-        researchGroup={selectedGroup}
-        users={groupUsers}
-      />
-    );
+    return <ResearchGroupInformation researchGroup={selectedGroup} users={groupUsers} />;
   }
 
   return (
@@ -218,11 +225,7 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
               return (
                 <TableRow key={grp.researchGroupID}>
                   <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={selected}
-                      onChange={(e) => handleClickCheckbox(e, grp.researchGroupID)}
-                    />
+                    <Checkbox color="primary" checked={selected} onChange={(e) => handleClickCheckbox(e, grp.researchGroupID)} />
                   </TableCell>
                   <TableCell>{sequentialNumber}</TableCell>
                   <TableCell>{grp.groupName}</TableCell>
@@ -254,22 +257,11 @@ const ResearchGroupTable: React.FC<ResearchGroupTableProps> = ({ initialResearch
       </Box>
 
       <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Add Research Group">
-        <ResearchGroupForm 
-          onSubmit={handleSubmitForm} 
-          onCancel={handleCloseAddModal} 
-        />
+        <ResearchGroupForm onSubmit={handleSubmitForm} onCancel={handleCloseAddModal} />
       </AddFormModal>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

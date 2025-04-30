@@ -10,7 +10,7 @@ export const findAuditGeneral = async (): Promise<AuditGeneralWithRelations[]> =
       auditor: {
         select: {
           id: true,
-          name: true,
+          name: true
         }
       }
     }
@@ -25,7 +25,7 @@ export const findAuditGeneralByID = async (auditGeneralID: number): Promise<Audi
       auditor: {
         select: { id: true, name: true }
       },
-      // Optionally can include related audits 
+      // Optionally can include related audits
       audits: true
     }
   });
@@ -37,9 +37,8 @@ export interface AddAuditGeneralParams {
 }
 
 export async function addAuditGeneral(data: AddAuditGeneralParams): Promise<{ audit: AuditGeneralWithRelations }> {
-
   const lastAudit = await prisma.auditGeneral.findFirst({
-    orderBy: { round: 'desc' },
+    orderBy: { round: 'desc' }
   });
   const newRound = lastAudit ? lastAudit.round + 1 : 1;
 
@@ -50,11 +49,11 @@ export async function addAuditGeneral(data: AddAuditGeneralParams): Promise<{ au
       status: 'Ongoing',
       startDate: new Date(),
       pendingCount: data.locations.length,
-      finishedCount: 0,
+      finishedCount: 0
     },
-    include: { auditor: true },
+    include: { auditor: true }
   });
-  
+
   for (const loc of data.locations) {
     const foundLocation = await prisma.location.findFirst({
       where: {
@@ -92,12 +91,12 @@ export async function addAuditGeneral(data: AddAuditGeneralParams): Promise<{ au
     for (const chem of chemicals) {
       await prisma.auditRecord.create({
         data: {
-          auditID: createdAudit.auditID, 
+          auditID: createdAudit.auditID,
           chemicalID: chem.chemicalID,
-          status: 'Unaudited', 
+          status: 'Unaudited',
           notes: '',
-          auditDate: new Date(), 
-          lastAuditDate: null, 
+          auditDate: new Date(),
+          lastAuditDate: null,
           locationID: foundLocation.locationID,
           people: ''
         }
@@ -118,9 +117,9 @@ export async function updateAuditGeneral(data: UpdateAuditGeneralParams): Promis
     where: { auditGeneralID: data.auditGeneralID },
     data: {
       status: data.status,
-      lastAuditDate: new Date(),
+      lastAuditDate: new Date()
     },
-    include: { auditor: true },
+    include: { auditor: true }
   });
   return { audit: auditGeneral };
 }
@@ -128,15 +127,15 @@ export async function updateAuditGeneral(data: UpdateAuditGeneralParams): Promis
 export async function checkAndUpdateAuditGeneralStatus(auditGeneralID: number): Promise<void> {
   const auditGeneral = await prisma.auditGeneral.findUnique({
     where: { auditGeneralID },
-    select: { pendingCount: true, status: true },
+    select: { pendingCount: true, status: true }
   });
-  if (auditGeneral && auditGeneral.pendingCount === 0 && auditGeneral.status !== "Completed") {
+  if (auditGeneral && auditGeneral.pendingCount === 0 && auditGeneral.status !== 'Completed') {
     await prisma.auditGeneral.update({
       where: { auditGeneralID },
-      data: { 
-        status: "Completed",
+      data: {
+        status: 'Completed',
         lastAuditDate: new Date()
-      },
+      }
     });
   }
 }

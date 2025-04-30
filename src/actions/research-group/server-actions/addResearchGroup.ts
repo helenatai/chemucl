@@ -11,7 +11,7 @@ export async function addResearchGroupAction(formData: FormData): Promise<Resear
   }
 
   const params = {
-    groupName: formData.get('groupName') as string,
+    groupName: formData.get('groupName') as string
     // Add any other fields you expect from the form
   };
 

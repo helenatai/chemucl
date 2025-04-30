@@ -3,8 +3,16 @@
 import React, { useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, TablePagination, TextField, InputAdornment, Paper
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  TextField,
+  InputAdornment,
+  Paper
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import type { AuditRecordWithRelations } from 'types/auditRecord';
@@ -62,7 +70,7 @@ const AuditLocationChemicals: React.FC<AuditLocationChemicalsProps> = ({ auditID
               <InputAdornment position="start">
                 <SearchIcon fontSize="small" />
               </InputAdornment>
-            ),
+            )
           }}
         />
 
@@ -87,12 +95,8 @@ const AuditLocationChemicals: React.FC<AuditLocationChemicalsProps> = ({ auditID
                     <TableCell>{rec.chemical.chemicalName}</TableCell>
                     <TableCell>{rec.chemical.casNumber}</TableCell>
                     <TableCell>{rec.status}</TableCell>
-                    <TableCell>
-                      {rec.auditDate ? new Date(rec.auditDate).toLocaleString() : 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      {rec.lastAuditDate ? new Date(rec.lastAuditDate).toLocaleString() : 'N/A'}
-                    </TableCell>
+                    <TableCell>{rec.auditDate ? new Date(rec.auditDate).toLocaleString() : 'N/A'}</TableCell>
+                    <TableCell>{rec.lastAuditDate ? new Date(rec.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
                   </TableRow>
                 );
               })}

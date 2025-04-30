@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Box, Button, Typography, CircularProgress } from '@mui/material';
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { scanLocationAction, scanChemicalAction, completeAuditAction, pauseAuditAction } from 'actions/audit/server-actions/auditActions';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -27,7 +27,7 @@ const modalStyle = {
   bgcolor: 'background.paper',
   borderRadius: 2,
   boxShadow: 24,
-  p: 3,
+  p: 3
 };
 
 const fixedErrorHeight = 40;
@@ -39,9 +39,8 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
   onLocationVerified,
   onChemicalScanned,
   onComplete,
-  onPause,
+  onPause
 }) => {
-
   const [mode, setMode] = useState<'location' | 'item'>('location');
   const modeRef = useRef<'location' | 'item'>(mode);
   useEffect(() => {
@@ -50,12 +49,11 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
 
   const [locationVerified, setLocationVerified] = useState(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string>('');  
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [scannerInitialized, setScannerInitialized] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  const [scanning] = useState(true);
   const [scanFeedback, setScanFeedback] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
@@ -68,12 +66,8 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
   const scanCooldownRef = useRef<boolean>(false);
   const scanHistoryRef = useRef<Set<string>>(new Set());
 
-  // // To prevent immediate repeated scans of the same code
-  // const [lastScannedCode, setLastScannedCode] = useState<string | null>(null);
-  // const [lastScanTime, setLastScanTime] = useState<number>(0);
-
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
-  const scannerContainerId = "qr-reader-container";
+  const scannerContainerId = 'qr-reader-container';
 
   useEffect(() => {
     if (errorMessage) {
@@ -82,13 +76,10 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
     }
   }, [errorMessage]);
 
-  // Clean up the scanner when component unmounts or modal closes
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.clear().catch((error: any) => 
-          console.error("Failed to clear scanner.", error)
-        );
+        scannerRef.current.clear().catch((error: any) => console.error('Failed to clear scanner.', error));
         scannerRef.current = null;
       }
     };
@@ -97,50 +88,48 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
   useEffect(() => {
     if (open && !scannerInitialized) {
       setLoading(true);
-      
+
       const initScanner = setTimeout(async () => {
         const container = document.getElementById(scannerContainerId);
-        
+
         if (container) {
           const qrReaderElement = document.createElement('div');
           qrReaderElement.id = 'qr-reader';
           qrReaderElement.style.width = '100%';
           container.innerHTML = '';
           container.appendChild(qrReaderElement);
-          
-          const config = { 
-            fps: 10, 
-            qrbox: 250, 
-            rememberLastUsedCamera: true,
-            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+
+          const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0,
-            showTorchButtonIfSupported: true
+            showTorchButtonIfSupported: true,
+            showZoomSliderIfSupported: true,
+            defaultZoomValueIfSupported: 2
           };
           const verbose = false;
 
           try {
-            // Wait for DOM to be fully ready
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            scannerRef.current = new Html5QrcodeScanner("qr-reader", config, verbose);
-            
-            // Add error handling for header message
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            const scanner = new Html5QrcodeScanner(scannerContainerId, config, verbose);
+            scannerRef.current = scanner;
+
             const headerElement = document.getElementById('qr-reader-header');
             if (headerElement) {
               headerElement.style.display = 'none';
             }
-            
-            scannerRef.current.render(
+
+            scanner.render(
               async (decodedText: string) => {
-                if (!scanning || scanCooldownRef.current || processing) {
+                if (scanCooldownRef.current || processing) {
                   return;
                 }
-            
+
                 scanCooldownRef.current = true;
                 setTimeout(() => {
                   scanCooldownRef.current = false;
-                }, 5000); 
-            
+                }, 5000);
+
                 if (modeRef.current === 'item' && scanHistoryRef.current.has(decodedText)) {
                   setScanFeedback({
                     message: 'Item already scanned',
@@ -149,10 +138,10 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
                   });
                   return;
                 }
-            
+
                 setProcessing(true);
                 setErrorMessage('');
-            
+
                 if (modeRef.current === 'location') {
                   const result = await scanLocationAction(auditId, decodedText);
                   if (!result.valid) {
@@ -167,7 +156,7 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
                   setScannedData(decodedText);
                   onLocationVerified(decodedText);
                   setLocationVerified(true);
-                  setMode('item');                   // Switch to scanning chemicals
+                  setMode('item');
                   setScanFeedback({
                     message: 'Location verified successfully!',
                     type: 'success',
@@ -186,32 +175,31 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
                   }
                   setScannedData(decodedText);
                   onChemicalScanned(decodedText);
-                  scanHistoryRef.current.add(decodedText); // Add to scan history
+                  scanHistoryRef.current.add(decodedText);
                   setScanFeedback({
                     message: 'Item scanned successfully!',
                     type: 'success',
                     open: true
                   });
                 }
-                // wait some time
                 setTimeout(() => {
                   setProcessing(false);
                 }, 5000);
               },
               (errorMessage: string) => {
-                console.error("QR Code Scan Error:", errorMessage);
+                console.error('QR Code Scan Error:', errorMessage);
               }
             );
-            
+
             setScannerInitialized(true);
           } catch (error) {
-            console.error("Failed to initialize scanner:", error);
-            setErrorMessage("Failed to initialize scanner. Please try again.");
+            console.error('Failed to initialize scanner:', error);
+            setErrorMessage('Failed to initialize scanner. Please try again.');
           }
-          
+
           setLoading(false);
         }
-      }, 500); // Increased delay to ensure DOM is ready
+      }, 500);
 
       return () => clearTimeout(initScanner);
     }
@@ -243,7 +231,6 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
         await onPause();
         onClose();
       }
-
     } catch (err) {
       console.error('Error pausing audit:', err);
     } finally {
@@ -252,80 +239,62 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      aria-labelledby="qr-scanner-modal"
-      aria-describedby="qr-scanner-modal-description"
-    >
+    <Modal open={open} onClose={onClose} aria-labelledby="qr-scanner-modal" aria-describedby="qr-scanner-modal-description">
       <>
-      <Box sx={modalStyle}>
-        <Typography variant="h3" component="h2" sx={{ mb: 2 }}>
-          {mode === 'location' ? '1. Scan Location QR' : '2. Scan Item QR'}
-        </Typography>
+        <Box sx={modalStyle}>
+          <Typography variant="h3" component="h2" sx={{ mb: 2 }}>
+            {mode === 'location' ? '1. Scan Location QR' : '2. Scan Item QR'}
+          </Typography>
 
-        <Box sx={{ minHeight: fixedErrorHeight }}>
-          {errorMessage && (
-            <Typography variant="body2" sx={{ color: 'red', whiteSpace: 'pre-line' }}>
-              {errorMessage}
+          <Box sx={{ minHeight: fixedErrorHeight }}>
+            {errorMessage && (
+              <Typography variant="body2" sx={{ color: 'red', whiteSpace: 'pre-line' }}>
+                {errorMessage}
+              </Typography>
+            )}
+          </Box>
+
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
+          <div id={scannerContainerId} style={{ width: '100%', minHeight: 240 }}></div>
+
+          {mode === 'location' && locationVerified && scannedData && (
+            <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1, mb: 2 }}>
+              Location verified: {scannedData}
             </Typography>
           )}
+
+          {mode === 'item' && scannedData && (
+            <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1, mb: 2 }}>
+              Last scanned item: {scannedData}
+            </Typography>
+          )}
+
+          {mode === 'item' && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+              <Button variant="outlined" onClick={handlePause} disabled={loading}>
+                Pause Audit
+              </Button>
+              <Button variant="contained" onClick={handleComplete} disabled={loading}>
+                {loading ? <CircularProgress size={24} /> : 'Complete Audit'}
+              </Button>
+            </Box>
+          )}
         </Box>
-
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
-
-        {/* scanner container */}
-        <div id={scannerContainerId} style={{ width: '100%', minHeight: 240 }}></div>
-
-        {mode === 'location' && locationVerified && scannedData && (
-          <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1, mb: 2 }}>
-            Location verified: {scannedData}
-          </Typography>
-        )}
-
-        {mode === 'item' && scannedData && (
-          <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1, mb: 2 }}>
-            Last scanned item: {scannedData}
-          </Typography>
-        )}
-
-        {mode === 'item' && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-            <Button 
-              variant="outlined" 
-              onClick={handlePause} 
-              disabled={loading}
-            >
-              Pause Audit
-            </Button>
-            <Button 
-              variant="contained" 
-              onClick={handleComplete}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Complete Audit'}
-            </Button>
-          </Box>
-        )}
-      </Box>
-      <Snackbar
-        open={scanFeedback.open}
-        autoHideDuration={3000}
-        onClose={() => setScanFeedback(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert 
-          severity={scanFeedback.type} 
-          sx={{ width: '100%' }}
-          onClose={() => setScanFeedback(prev => ({ ...prev, open: false }))}
+        <Snackbar
+          open={scanFeedback.open}
+          autoHideDuration={3000}
+          onClose={() => setScanFeedback((prev) => ({ ...prev, open: false }))}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
-          {scanFeedback.message}
-        </Alert>
-      </Snackbar>
+          <Alert severity={scanFeedback.type} sx={{ width: '100%' }} onClose={() => setScanFeedback((prev) => ({ ...prev, open: false }))}>
+            {scanFeedback.message}
+          </Alert>
+        </Snackbar>
       </>
     </Modal>
   );

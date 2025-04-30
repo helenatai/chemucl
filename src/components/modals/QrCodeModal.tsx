@@ -28,8 +28,8 @@ const QR_CODE_CONFIG = {
   width: 200,
   color: {
     dark: '#000000',
-    light: '#ffffff',
-  },
+    light: '#ffffff'
+  }
 };
 
 const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose, type = 'chemical' }) => {
@@ -55,7 +55,7 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose, type = '
         } else {
           result = await findLocationByQrID(qrID);
         }
-        
+
         if (!isMounted) return;
 
         if (!result) {
@@ -80,7 +80,7 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose, type = '
 
     const generateQRCode = async () => {
       if (!canvasRef.current) return;
-      
+
       try {
         await QRCode.toCanvas(canvasRef.current, qrID, QR_CODE_CONFIG);
       } catch (err) {
@@ -112,25 +112,20 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose, type = '
   };
 
   const getTitle = () => {
-    if (error) return "Error";
-    if (!data) return "Loading...";
-    
+    if (error) return 'Error';
+    if (!data) return 'Loading...';
+
     if (type === 'chemical' && 'chemicalName' in data) {
       return data.chemicalName;
     } else if (type === 'location' && 'building' in data) {
       return `${data.building} ${data.room}`;
     }
-    
-    return "Loading...";
+
+    return 'Loading...';
   };
 
   return (
-    <Modal 
-      open={open} 
-      onClose={onClose} 
-      aria-labelledby="qr-code-title" 
-      aria-describedby="qr-code-description"
-    >
+    <Modal open={open} onClose={onClose} aria-labelledby="qr-code-title" aria-describedby="qr-code-description">
       <Box
         sx={{
           position: 'absolute',
@@ -141,7 +136,7 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose, type = '
           bgcolor: 'background.paper',
           boxShadow: 24,
           borderRadius: 2,
-          overflow: 'hidden',
+          overflow: 'hidden'
         }}
       >
         <MainCard
@@ -160,20 +155,12 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ open, qrID, onClose, type = '
             ) : (
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                  <canvas
-                    ref={canvasRef}
-                    style={{ width: '200px', height: '200px' }}
-                    aria-label="QR Code"
-                  />
+                  <canvas ref={canvasRef} style={{ width: '200px', height: '200px' }} aria-label="QR Code" />
                 </Box>
                 <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
                   {qrID}
                 </Typography>
-                <Button 
-                  variant="contained" 
-                  onClick={handleSaveAsPng} 
-                  sx={{ mt: 1, mb: 2 }}
-                >
+                <Button variant="contained" onClick={handleSaveAsPng} sx={{ mt: 1, mb: 2 }}>
                   Save as PNG
                 </Button>
               </>

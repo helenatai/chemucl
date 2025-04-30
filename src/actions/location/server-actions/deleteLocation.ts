@@ -6,7 +6,7 @@ export async function deleteLocationAction(locationID: number) {
   try {
     // Pass in an array of location IDs (even if just one)
     const result = await validateAndProcessLocation('delete', {
-      locationIDs: [locationID],
+      locationIDs: [locationID]
     });
 
     if (result.error) {

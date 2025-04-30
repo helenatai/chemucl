@@ -56,14 +56,8 @@ const ChemicalsTable: React.FC<ChemicalsTableProps> = ({ chemicals }) => {
               <TableCell padding="checkbox">
                 <Checkbox
                   color="primary"
-                  indeterminate={
-                    selectedChemicals.length > 0 &&
-                    selectedChemicals.length < chemicals.length
-                  }
-                  checked={
-                    chemicals.length > 0 &&
-                    selectedChemicals.length === chemicals.length
-                  }
+                  indeterminate={selectedChemicals.length > 0 && selectedChemicals.length < chemicals.length}
+                  checked={chemicals.length > 0 && selectedChemicals.length === chemicals.length}
                   onChange={(e) => handleSelectAllChange(e.target.checked)}
                 />
               </TableCell>
@@ -85,9 +79,7 @@ const ChemicalsTable: React.FC<ChemicalsTableProps> = ({ chemicals }) => {
                   <Checkbox
                     color="primary"
                     checked={selectedChemicals.includes(chemical.chemicalID)}
-                    onChange={(e) =>
-                      handleCheckboxChange(chemical.chemicalID, e.target.checked)
-                    }
+                    onChange={(e) => handleCheckboxChange(chemical.chemicalID, e.target.checked)}
                   />
                 </TableCell>
                 <TableCell>{chemical.qrID}</TableCell>
@@ -100,9 +92,7 @@ const ChemicalsTable: React.FC<ChemicalsTableProps> = ({ chemicals }) => {
                     : 'No Location'}
                 </TableCell>
                 <TableCell>{chemical.chemicalType}</TableCell>
-                <TableCell>
-                  {chemical.researchGroup ? chemical.researchGroup.groupName : 'No Group'}
-                </TableCell>
+                <TableCell>{chemical.researchGroup ? chemical.researchGroup.groupName : 'No Group'}</TableCell>
                 <TableCell>{chemical.dateAdded?.toLocaleDateString()}</TableCell>
                 <TableCell>{chemical.dateUpdated?.toLocaleDateString()}</TableCell>
               </TableRow>

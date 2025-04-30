@@ -1,23 +1,15 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  Box,
-  Alert,
-  LinearProgress,
-  Stack
-} from '@mui/material';
+import { Button, Typography, Box, Alert, LinearProgress, Stack, Modal } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DownloadIcon from '@mui/icons-material/Download';
 import Papa from 'papaparse';
 import { ParseResult } from 'papaparse';
 import { ROLES } from 'constants/roles';
+import MainCard from 'components/ui-component/cards/MainCard';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface ImportUsersDialogProps {
   open: boolean;
@@ -28,28 +20,18 @@ interface ImportUsersDialogProps {
 interface UserImportData {
   name: string;
   email: string;
-  permission: typeof ROLES[keyof typeof ROLES];
+  permission: (typeof ROLES)[keyof typeof ROLES];
   researchGroup: string;
   activeStatus?: boolean;
 }
 
-const ImportUsersDialog: React.FC<ImportUsersDialogProps> = ({
-  open,
-  onClose,
-  onImport
-}) => {
+const ImportUsersDialog: React.FC<ImportUsersDialogProps> = ({ open, onClose, onImport }) => {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const requiredColumns = [
-    'Name',
-    'Email',
-    'Permission',
-    'Research Group',
-    'Active Status'
-  ];
+  const requiredColumns = ['Name', 'Email', 'Permission', 'Research Group', 'Active Status'];
 
   const handleDownloadTemplate = () => {
     const csvContent = requiredColumns.join(',') + '\n';
@@ -65,12 +47,18 @@ const ImportUsersDialog: React.FC<ImportUsersDialogProps> = ({
 
   const transformHeaderToKey = (header: string): string => {
     switch (header) {
-      case 'Name': return 'name';
-      case 'Email': return 'email';
-      case 'Permission': return 'permission';
-      case 'Research Group': return 'researchGroup';
-      case 'Active Status': return 'activeStatus';
-      default: return header.toLowerCase();
+      case 'Name':
+        return 'name';
+      case 'Email':
+        return 'email';
+      case 'Permission':
+        return 'permission';
+      case 'Research Group':
+        return 'researchGroup';
+      case 'Active Status':
+        return 'activeStatus';
+      default:
+        return header.toLowerCase();
     }
   };
 
@@ -81,7 +69,7 @@ const ImportUsersDialog: React.FC<ImportUsersDialogProps> = ({
 
     // Check headers
     const headers = Object.keys(data[0]);
-    const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+    const missingColumns = requiredColumns.filter((col) => !headers.includes(col));
     if (missingColumns.length > 0) {
       throw new Error(`Missing required columns: ${missingColumns.join(', ')}`);
     }
@@ -155,65 +143,59 @@ const ImportUsersDialog: React.FC<ImportUsersDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Import Users</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2}>
-          <Typography variant="body1">
-            To import users, please use our CSV template format below:
-          </Typography>
-          <Box sx={{ textAlign: 'center', py: 2 }}>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileSelect}
-              style={{ display: 'none' }}
-              ref={fileInputRef}
-            />
-            <Button
-              variant="outlined"
-              startIcon={<CloudUploadIcon />}
-              onClick={() => fileInputRef.current?.click()}
-              sx={{ mr: 2 }}
-            >
-              Choose File
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              onClick={handleDownloadTemplate}
-            >
-              Download Template
-            </Button>
-          </Box>
-
-          {file && (
-            <Alert severity="info">
-              Selected file: {file.name}
-            </Alert>
-          )}
-
-          {error && (
-            <Alert severity="error">
-              {error}
-            </Alert>
-          )}
-
-          {isLoading && <LinearProgress />}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button 
-          onClick={handleImport} 
-          variant="contained" 
-          disabled={!file || isLoading}
+    <Modal open={open} onClose={onClose} aria-labelledby="modal-title" aria-describedby="modal-description">
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '600px',
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          borderRadius: 2,
+          overflow: 'hidden'
+        }}
+      >
+        <MainCard
+          title="Import Users"
+          secondary={
+            <IconButton onClick={onClose}>
+              <CloseIcon />
+            </IconButton>
+          }
         >
-          Import
-        </Button>
-      </DialogActions>
-    </Dialog>
+          <Box sx={{ p: 2 }}>
+            <Stack spacing={2}>
+              <Typography variant="body1">To import users, please use our CSV template format below:</Typography>
+              <Box sx={{ textAlign: 'center', py: 2 }}>
+                <input type="file" accept=".csv" onChange={handleFileSelect} style={{ display: 'none' }} ref={fileInputRef} />
+                <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleDownloadTemplate} sx={{ mr: 2 }}>
+                  Download Template
+                </Button>
+                <Button variant="outlined" startIcon={<CloudUploadIcon />} onClick={() => fileInputRef.current?.click()}>
+                  Choose File
+                </Button>
+              </Box>
+
+              {file && <Alert severity="info">Selected file: {file.name}</Alert>}
+              {error && <Alert severity="error">{error}</Alert>}
+              {isLoading && <LinearProgress />}
+            </Stack>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+              <Button onClick={onClose} sx={{ mr: 1 }}>
+                Cancel
+              </Button>
+              <Button onClick={handleImport} variant="contained" disabled={!file || isLoading}>
+                Import
+              </Button>
+            </Box>
+          </Box>
+        </MainCard>
+      </Box>
+    </Modal>
   );
 };
 
-export default ImportUsersDialog; 
+export default ImportUsersDialog;

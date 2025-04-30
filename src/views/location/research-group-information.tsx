@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Checkbox, Box, TablePagination } from '@mui/material';
+import {
+  Grid,
+  TextField,
+  IconButton,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Checkbox,
+  Box,
+  TablePagination
+} from '@mui/material';
 import { InputAdornment } from '@mui/material';
-import { 
-  Search as SearchIcon, 
-  PersonAdd, 
-  PersonAddDisabled, 
-  Delete as DeleteIcon 
-} from '@mui/icons-material';
+import { Search as SearchIcon, PersonAdd, PersonAddDisabled, Delete as DeleteIcon } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import MainCard from 'components/ui-component/cards/MainCard';
 import { UserWithRelations } from 'types/user';
@@ -25,9 +33,8 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ use
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value.toLowerCase();
-    const filtered = users.filter((user) =>
-      user.name.toLowerCase().includes(searchValue) ||
-      user.email.toLowerCase().includes(searchValue)
+    const filtered = users.filter(
+      (user) => user.name.toLowerCase().includes(searchValue) || user.email.toLowerCase().includes(searchValue)
     );
     setFilteredUsers(filtered);
   };
@@ -92,7 +99,7 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ use
                 <InputAdornment position="start">
                   <SearchIcon fontSize="small" />
                 </InputAdornment>
-              ),
+              )
             }}
             placeholder="Search Member"
             value={searchQuery}
@@ -145,20 +152,9 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ use
             {currentPageData.map((user) => {
               const isItemSelected = isSelected(user.id);
               return (
-                <TableRow 
-                  key={user.id}
-                  hover
-                  role="checkbox"
-                  aria-checked={isItemSelected}
-                  tabIndex={-1}
-                  selected={isItemSelected}
-                >
+                <TableRow key={user.id} hover role="checkbox" aria-checked={isItemSelected} tabIndex={-1} selected={isItemSelected}>
                   <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={isItemSelected}
-                      onChange={(e) => handleClickCheckbox(e, user.id)}
-                    />
+                    <Checkbox color="primary" checked={isItemSelected} onChange={(e) => handleClickCheckbox(e, user.id)} />
                   </TableCell>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -193,4 +189,4 @@ const ResearchGroupInformation: React.FC<ResearchGroupInformationProps> = ({ use
   );
 };
 
-export default ResearchGroupInformation; 
+export default ResearchGroupInformation;

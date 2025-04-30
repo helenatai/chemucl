@@ -8,12 +8,9 @@ interface ResearchGroupFormProps {
   onCancel: () => void;
 }
 
-const ResearchGroupForm: React.FC<ResearchGroupFormProps> = ({
-  onSubmit,
-  onCancel,
-}) => {
+const ResearchGroupForm: React.FC<ResearchGroupFormProps> = ({ onSubmit, onCancel }) => {
   const [formValues, setFormValues] = useState({
-    groupName: '',
+    groupName: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +32,7 @@ const ResearchGroupForm: React.FC<ResearchGroupFormProps> = ({
       <DialogContent
         sx={{
           maxHeight: '500px',
-          overflowY: 'auto',
+          overflowY: 'auto'
         }}
       >
         <Grid container spacing={1}>
@@ -67,4 +64,4 @@ const ResearchGroupForm: React.FC<ResearchGroupFormProps> = ({
   );
 };
 
-export default ResearchGroupForm; 
+export default ResearchGroupForm;

@@ -39,17 +39,17 @@ const MenuProps = {
   PaperProps: {
     style: {
       maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
+      width: 250
+    }
+  }
 };
 
 const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({ ...user });
   const [selectedRoles, setSelectedRoles] = useState<string[]>(() => {
-    const roles = user.permission?.split(',').map(role => role.trim()) || [];
-    return roles.filter(role => role !== '');
+    const roles = user.permission?.split(',').map((role) => role.trim()) || [];
+    return roles.filter((role) => role !== '');
   });
   const router = useRouter();
   const { canManageUsers } = usePermissions();
@@ -59,23 +59,23 @@ const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups 
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   const availableRoles = ['Admin', 'Staff', 'Research Student', 'Auditor'];
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setEditedUser(prev => ({ ...prev, [name]: value }));
+    setEditedUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (e: SelectChangeEvent<string | number>) => {
     const { name, value } = e.target;
     if (name === 'researchGroupID') {
-      setEditedUser(prev => ({ 
-        ...prev, 
+      setEditedUser((prev) => ({
+        ...prev,
         [name]: value === '' ? null : Number(value),
-        researchGroup: value === '' ? null : researchGroups.find(g => g.researchGroupID === Number(value)) || null
+        researchGroup: value === '' ? null : researchGroups.find((g) => g.researchGroupID === Number(value)) || null
       }));
     } else if (name === 'activeStatus') {
-      setEditedUser(prev => ({ 
-        ...prev, 
+      setEditedUser((prev) => ({
+        ...prev,
         [name]: value === 'true'
       }));
     }
@@ -83,11 +83,9 @@ const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups 
 
   const handleRoleChange = (event: SelectChangeEvent<typeof selectedRoles>) => {
     const {
-      target: { value },
+      target: { value }
     } = event;
-    setSelectedRoles(
-      typeof value === 'string' ? value.split(',') : value,
-    );
+    setSelectedRoles(typeof value === 'string' ? value.split(',') : value);
   };
 
   const handleSnackbarClose = (_event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -100,7 +98,7 @@ const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups 
   const handleSave = async () => {
     try {
       const combinedRoles = selectedRoles.join(', ');
-      
+
       const result = await updateUserDetailsAction({
         id: editedUser.id,
         name: editedUser.name,
@@ -131,7 +129,12 @@ const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups 
 
   const handleCancel = () => {
     setEditedUser({ ...user });
-    setSelectedRoles(user.permission?.split(',').map(role => role.trim()).filter(role => role !== '') || []);
+    setSelectedRoles(
+      user.permission
+        ?.split(',')
+        .map((role) => role.trim())
+        .filter((role) => role !== '') || []
+    );
     setIsEditing(false);
   };
 
@@ -178,12 +181,7 @@ const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups 
               </Select>
             </FormControl>
           ) : (
-            <TextField
-              fullWidth
-              label="Active Status"
-              value={editedUser.activeStatus ? 'True' : 'False'}
-              InputProps={{ readOnly: true }}
-            />
+            <TextField fullWidth label="Active Status" value={editedUser.activeStatus ? 'True' : 'False'} InputProps={{ readOnly: true }} />
           )}
         </Grid>
         <Grid item xs={12} md={6}>
@@ -240,22 +238,14 @@ const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups 
                 MenuProps={MenuProps}
               >
                 {availableRoles.map((role) => (
-                  <MenuItem
-                    key={role}
-                    value={role}
-                  >
+                  <MenuItem key={role} value={role}>
                     {role}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           ) : (
-            <TextField
-              fullWidth
-              label="Roles"
-              value={selectedRoles.join(', ')}
-              InputProps={{ readOnly: true }}
-            />
+            <TextField fullWidth label="Roles" value={selectedRoles.join(', ')} InputProps={{ readOnly: true }} />
           )}
         </Grid>
 
@@ -272,12 +262,7 @@ const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups 
                 </Button>
               </Stack>
             ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setIsEditing(true)}
-                disabled={!canManageUsers}
-              >
+              <Button variant="contained" color="primary" onClick={() => setIsEditing(true)} disabled={!canManageUsers}>
                 Edit
               </Button>
             )}
@@ -300,4 +285,4 @@ const UserInformation: React.FC<UserInformationProps> = ({ user, researchGroups 
   );
 };
 
-export default UserInformation; 
+export default UserInformation;

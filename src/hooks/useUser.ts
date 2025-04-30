@@ -38,6 +38,6 @@ export default function useUser() {
     user: detailedUser || session?.user,
     isAuthenticated: status === 'authenticated',
     isLoading: status === 'loading' || (status === 'authenticated' && !detailedUser),
-    isAdmin: detailedUser?.permission === 'ADMIN',
+    isAdmin: detailedUser?.permission === 'ADMIN'
   };
-} 
+}

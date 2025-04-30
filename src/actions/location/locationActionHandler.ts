@@ -3,12 +3,13 @@
 import { z } from 'zod';
 import { LocationActionResponse } from 'types/location';
 import { addLocation, updateLocation, deleteLocation, findLocation } from 'db/queries/Location';
+import { revalidatePath } from 'next/cache';
 
 const addLocationSchema = z.object({
   building: z.string(),
   buildingName: z.string(),
   room: z.string(),
-  qrID: z.string(),
+  qrID: z.string()
 });
 
 const updateLocationSchema = z.object({
@@ -16,13 +17,10 @@ const updateLocationSchema = z.object({
   building: z.string(),
   buildingName: z.string(),
   room: z.string(),
-  qrID: z.string(),
+  qrID: z.string()
 });
 
-export async function validateAndProcessLocation(
-  action: string,
-  params: any
-): Promise<LocationActionResponse> {
+export async function validateAndProcessLocation(action: string, params: any): Promise<LocationActionResponse> {
   try {
     if (action === 'add') {
       const validation = addLocationSchema.safeParse(params);
@@ -37,15 +35,16 @@ export async function validateAndProcessLocation(
           building: validatedData.building,
           buildingName: validatedData.buildingName,
           room: validatedData.room,
-          qrID: validatedData.qrID, 
+          qrID: validatedData.qrID
         });
 
+        revalidatePath('/location-page');
         return { locations: [newLocation] };
       } catch (error) {
         return { error: (error as Error).message, locations: [] };
       }
-    } 
-    
+    }
+
     if (action === 'update') {
       const validation = updateLocationSchema.safeParse(params);
       if (!validation.success) {
@@ -56,8 +55,8 @@ export async function validateAndProcessLocation(
 
       // First check if location exists
       const existingLocation = await findLocation();
-      const locationExists = existingLocation.some(loc => loc.locationID === validatedData.locationID);
-      
+      const locationExists = existingLocation.some((loc) => loc.locationID === validatedData.locationID);
+
       if (!locationExists) {
         return { error: 'Location not found', locations: [] };
       }
@@ -70,9 +69,11 @@ export async function validateAndProcessLocation(
         qrID: validatedData.qrID
       });
 
+      revalidatePath('/location-page');
+      revalidatePath(`/location-page/${validatedData.qrID}`);
       return { locations: [updatedLocation] };
     }
-    
+
     if (action === 'delete') {
       if (!Array.isArray(params.locationIDs) || params.locationIDs.length === 0) {
         return { error: 'Invalid request: No locations selected for deletion.', locations: [] };
@@ -81,6 +82,7 @@ export async function validateAndProcessLocation(
       for (const id of params.locationIDs) {
         await deleteLocation(id);
       }
+      revalidatePath('/location-page');
       return { locations: [] };
     }
 
@@ -89,4 +91,3 @@ export async function validateAndProcessLocation(
     return { error: (error as Error).message, locations: [] };
   }
 }
-

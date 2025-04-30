@@ -11,7 +11,7 @@ import { CSVLink } from 'react-csv';
 // ==============================|| CSV Export ||============================== //
 
 interface CSVExportProps {
-  data: any[]; 
+  data: any[];
   filename: string;
   headers: { label: string; key: string }[];
   label?: string;
@@ -20,12 +20,7 @@ interface CSVExportProps {
 const CSVExport: React.FC<CSVExportProps> = ({ data, headers, filename, label }) => {
   return (
     <div style={{ display: 'inline-block' }}>
-      <CSVLink
-        data={data}
-        headers={headers}
-        filename={filename}
-        style={{ textDecoration: 'none', color: 'inherit' }}
-      >
+      <CSVLink data={data} headers={headers} filename={filename} style={{ textDecoration: 'none', color: 'inherit' }}>
         {label ? (
           <Button variant="contained" color="primary">
             {label}

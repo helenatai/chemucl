@@ -22,9 +22,9 @@ const RoleGuard = ({ children, allowedPermissions, fallbackPath = '/inventory-pa
       return;
     }
 
-    const userPermissions = session.user?.permission?.split(',').map(p => p.trim()) || [];
-    const hasAllowedPermission = userPermissions.some(permission => allowedPermissions.includes(permission));
-    
+    const userPermissions = session.user?.permission?.split(',').map((p) => p.trim()) || [];
+    const hasAllowedPermission = userPermissions.some((permission) => allowedPermissions.includes(permission));
+
     if (!hasAllowedPermission) {
       router.push(fallbackPath);
     }
@@ -34,8 +34,8 @@ const RoleGuard = ({ children, allowedPermissions, fallbackPath = '/inventory-pa
     return <div>Loading...</div>;
   }
 
-  const userPermissions = session?.user?.permission?.split(',').map(p => p.trim()) || [];
-  const hasAllowedPermission = userPermissions.some(permission => allowedPermissions.includes(permission));
+  const userPermissions = session?.user?.permission?.split(',').map((p) => p.trim()) || [];
+  const hasAllowedPermission = userPermissions.some((permission) => allowedPermissions.includes(permission));
 
   if (!hasAllowedPermission) {
     return null;
@@ -44,4 +44,4 @@ const RoleGuard = ({ children, allowedPermissions, fallbackPath = '/inventory-pa
   return <>{children}</>;
 };
 
-export default RoleGuard; 
+export default RoleGuard;

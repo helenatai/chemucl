@@ -1,11 +1,13 @@
+import Image from 'next/image';
+
 const Logo = () => {
   return (
-    <img
-      src="/assets/images/auth/ucl-logo-white.png" 
+    <Image
+      src="/assets/images/auth/ucl-logo-white.png"
       alt="My App Logo"
-      width="120" 
-      height="auto" 
-      style={{ maxWidth: '100%', height: 'auto' }} 
+      width={120}
+      height={120}
+      style={{ maxWidth: '100%', height: 'auto' }}
     />
   );
 };

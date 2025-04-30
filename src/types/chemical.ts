@@ -35,4 +35,4 @@ export type ChemicalActionResponse = {
   message?: string;
   success?: boolean;
   qrCode?: any;
-}
+};

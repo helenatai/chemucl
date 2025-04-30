@@ -17,12 +17,10 @@ interface SelectedLocationRow {
 }
 
 const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocations }) => {
-  const [selectedLocations, setSelectedLocations] = useState<SelectedLocationRow[]>([
-    { buildingName: '', room: '' },
-  ]);
+  const [selectedLocations, setSelectedLocations] = useState<SelectedLocationRow[]>([{ buildingName: '', room: '' }]);
 
   const uniqueBuildings = useMemo(() => {
-    return Array.from(new Set(initialLocations.map(loc => loc.buildingName.trim())));
+    return Array.from(new Set(initialLocations.map((loc) => loc.buildingName.trim())));
   }, [initialLocations]);
 
   const addLocationRow = () => {
@@ -75,7 +73,7 @@ const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocati
         return;
       }
     }
-    onSubmit(selectedLocations); 
+    onSubmit(selectedLocations);
   };
 
   return (
@@ -87,8 +85,8 @@ const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocati
             ? Array.from(
                 new Set(
                   initialLocations
-                    .filter(loc => loc.buildingName.trim().toLowerCase() === row.buildingName.trim().toLowerCase())
-                    .map(loc => loc.room)
+                    .filter((loc) => loc.buildingName.trim().toLowerCase() === row.buildingName.trim().toLowerCase())
+                    .map((loc) => loc.room)
                 )
               )
             : [];
@@ -98,10 +96,7 @@ const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocati
                 <Autocomplete
                   options={uniqueBuildings}
                   value={row.buildingName}
-                  onChange={(
-                    event: React.SyntheticEvent<Element, Event>,
-                    newValue: string | null
-                  ) => handleBuildingChange(index, newValue)}
+                  onChange={(event: React.SyntheticEvent<Element, Event>, newValue: string | null) => handleBuildingChange(index, newValue)}
                   renderInput={(params) => <TextField {...params} label="Building" required />}
                 />
               </Grid>
@@ -109,10 +104,7 @@ const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocati
                 <Autocomplete
                   options={roomOptions}
                   value={row.room}
-                  onChange={(
-                    event: React.SyntheticEvent<Element, Event>,
-                    newValue: string | null
-                  ) => handleRoomChange(index, newValue)}
+                  onChange={(event: React.SyntheticEvent<Element, Event>, newValue: string | null) => handleRoomChange(index, newValue)}
                   renderInput={(params) => <TextField {...params} label="Room" required />}
                   disabled={!row.buildingName}
                 />

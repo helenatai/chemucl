@@ -9,21 +9,21 @@ export const findLocation = async () => {
       qrID: true,
       building: true,
       buildingName: true,
-      room: true,
-    },
+      room: true
+    }
   });
 
   const locationsWithChemicals = await Promise.all(
     locations.map(async (loc) => {
       const chemicalCount = await prisma.chemical.count({
-        where: { locationID: loc.locationID },
+        where: { locationID: loc.locationID }
       });
 
       return {
         ...loc,
-        qrID: loc.qrID, 
-        buildingName: loc.buildingName ?? "",
-        totalChemicals: chemicalCount, 
+        qrID: loc.qrID,
+        buildingName: loc.buildingName ?? '',
+        totalChemicals: chemicalCount
       };
     })
   );
@@ -39,17 +39,17 @@ export const findLocationByQrID = async (qrID: string) => {
       qrID: true,
       building: true,
       buildingName: true,
-      room: true,
-    },
+      room: true
+    }
   });
 
   if (!loc) {
-    return null; 
+    return null;
   }
 
   return {
     ...loc,
-    buildingName: loc.buildingName ?? "",
+    buildingName: loc.buildingName ?? ''
   };
 };
 
@@ -66,11 +66,11 @@ interface AddLocationParams {
 
 export const addLocation = async (params: AddLocationParams) => {
   const newLocation = await prisma.location.create({
-    data: params,
+    data: params
   });
   return {
     ...newLocation,
-    buildingName: newLocation.buildingName ?? "",
+    buildingName: newLocation.buildingName ?? ''
   };
 };
 
@@ -116,13 +116,13 @@ export const updateLocation = async (params: UpdateLocationParams) => {
 
   return {
     ...updatedLocation,
-    buildingName: updatedLocation.buildingName ?? "",
+    buildingName: updatedLocation.buildingName ?? ''
   };
 };
 
 export const deleteLocation = async (locationID: number) => {
   return await prisma.location.delete({
-    where: { locationID },
+    where: { locationID }
   });
 };
 

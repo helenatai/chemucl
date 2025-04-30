@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 
@@ -16,7 +15,6 @@ import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 
 // third party
@@ -54,8 +52,8 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
   return (
     <Box>
       <Grid container spacing={2}>
-          <Grid item xs={12}>
-            {/* <Button
+        <Grid item xs={12}>
+          {/* <Button
               fullWidth
               size="large"
               variant="contained"
@@ -72,167 +70,161 @@ const JWTLogin = ({ loginProp, ...others }: { loginProp?: number }) => {
             >
               Sign in with UCL SSO
             </Button> */}
-            <Button
-              fullWidth
-              size="large"
-              variant="contained"
-              color="primary"
-              onClick={async () => {             
-                try {
-                  const res = await signIn('uclapi', {
-                    redirect: true,  
-                    callbackUrl: '/inventory-page'
-                  });
-                  
-                  console.log("SignIn response:", res);
-                  if (res?.error) {
-                    setError(res.error);
-                  } else if (res?.url) {
-                    router.push(res.url);
-                  }
-                } catch (err) {
-                  console.error("UCL SSO error:", err);
-                  setError("An error occurred during UCL SSO login");
+          <Button
+            fullWidth
+            size="large"
+            variant="contained"
+            color="primary"
+            onClick={async () => {
+              try {
+                const res = await signIn('uclapi', {
+                  redirect: true,
+                  callbackUrl: '/inventory-page'
+                });
+
+                console.log('SignIn response:', res);
+                if (res?.error) {
+                  setError(res.error);
+                } else if (res?.url) {
+                  router.push(res.url);
                 }
-              }}
-            >
-              Sign in with UCL SSO
-            </Button>
-          </Grid>
+              } catch (err) {
+                console.error('UCL SSO error:', err);
+                setError('An error occurred during UCL SSO login');
+              }
+            }}
+          >
+            Sign in with UCL SSO
+          </Button>
+        </Grid>
 
-          <Grid item xs={12}>
-            <Divider>or</Divider>
-          </Grid>
-          
-          <Grid item xs={12}>
-            <Formik
-              initialValues={{
-                email: '',
-                password: '',
-                submit: null
-              }}
-              validationSchema={Yup.object().shape({
-                email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-                password: Yup.string().max(255).required('Password is required')
-              })}
-              onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-                try {
-                  setError(null);
-                  const result = await signIn('credentials', {
-                    redirect: false,
-                    email: values.email,
-                    password: values.password,
-                  });
+        <Grid item xs={12}>
+          <Divider>or</Divider>
+        </Grid>
 
-                  if (result?.error) {
-                    setError(result.error);
-                    setStatus({ success: false });
-                    setSubmitting(false);
-                  } 
-                  else {
-                    setStatus({ success: true });
-                    router.push(DASHBOARD_PATH);
-                  }
-                } catch (err: any) {
-                  console.error(err);
-                  if (scriptedRef.current) {
-                    setStatus({ success: false });
-                    setError(err.message || 'An unexpected error occurred');
-                    setSubmitting(false);
-                  }
+        <Grid item xs={12}>
+          <Formik
+            initialValues={{
+              email: '',
+              password: '',
+              submit: null
+            }}
+            validationSchema={Yup.object().shape({
+              email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+              password: Yup.string().max(255).required('Password is required')
+            })}
+            onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+              try {
+                setError(null);
+                const result = await signIn('credentials', {
+                  redirect: false,
+                  email: values.email,
+                  password: values.password
+                });
+
+                if (result?.error) {
+                  setError(result.error);
+                  setStatus({ success: false });
+                  setSubmitting(false);
+                } else {
+                  setStatus({ success: true });
+                  router.push(DASHBOARD_PATH);
                 }
-              }}
-            >
-              {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
-                <form noValidate onSubmit={handleSubmit} {...others}>
-                  <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...theme.typography.customInput }}>
-                    <InputLabel htmlFor="outlined-adornment-email-login">Email Address</InputLabel>
-                    <OutlinedInput
-                      id="outlined-adornment-email-login"
-                      type="email"
-                      value={values.email}
-                      name="email"
-                      onBlur={handleBlur}
-                      onChange={handleChange}
-                      inputProps={{}}
-                    />
-                    {touched.email && errors.email && (
-                      <FormHelperText error id="standard-weight-helper-text-email-login">
-                        {errors.email}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
+              } catch (err: any) {
+                console.error(err);
+                if (scriptedRef.current) {
+                  setStatus({ success: false });
+                  setError(err.message || 'An unexpected error occurred');
+                  setSubmitting(false);
+                }
+              }
+            }}
+          >
+            {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
+              <form noValidate onSubmit={handleSubmit} {...others}>
+                <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...theme.typography.customInput }}>
+                  <InputLabel htmlFor="outlined-adornment-email-login">Email Address</InputLabel>
+                  <OutlinedInput
+                    id="outlined-adornment-email-login"
+                    type="email"
+                    value={values.email}
+                    name="email"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    inputProps={{}}
+                  />
+                  {touched.email && errors.email && (
+                    <FormHelperText error id="standard-weight-helper-text-email-login">
+                      {errors.email}
+                    </FormHelperText>
+                  )}
+                </FormControl>
 
-                  <FormControl fullWidth error={Boolean(touched.password && errors.password)} sx={{ ...theme.typography.customInput }}>
-                    <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
-                    <OutlinedInput
-                      id="outlined-adornment-password-login"
-                      type={showPassword ? 'text' : 'password'}
-                      value={values.password}
-                      name="password"
-                      onBlur={handleBlur}
-                      onChange={handleChange}
-                      endAdornment={
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={handleClickShowPassword}
-                            onMouseDown={handleMouseDownPassword}
-                            edge="end"
-                            size="large"
-                          >
-                            {showPassword ? <Visibility /> : <VisibilityOff />}
-                          </IconButton>
-                        </InputAdornment>
+                <FormControl fullWidth error={Boolean(touched.password && errors.password)} sx={{ ...theme.typography.customInput }}>
+                  <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
+                  <OutlinedInput
+                    id="outlined-adornment-password-login"
+                    type={showPassword ? 'text' : 'password'}
+                    value={values.password}
+                    name="password"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                          size="large"
+                        >
+                          {showPassword ? <Visibility /> : <VisibilityOff />}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    inputProps={{}}
+                    label="Password"
+                  />
+                  {touched.password && errors.password && (
+                    <FormHelperText error id="standard-weight-helper-text-password-login">
+                      {errors.password}
+                    </FormHelperText>
+                  )}
+                </FormControl>
+
+                <Grid container alignItems="center" justifyContent="space-between">
+                  <Grid item>
+                    <FormControlLabel
+                      control={
+                        <Checkbox checked={checked} onChange={(event) => setChecked(event.target.checked)} name="checked" color="primary" />
                       }
-                      inputProps={{}}
-                      label="Password"
+                      label="Keep me logged in"
                     />
-                    {touched.password && errors.password && (
-                      <FormHelperText error id="standard-weight-helper-text-password-login">
-                        {errors.password}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-
-                  <Grid container alignItems="center" justifyContent="space-between">
-                    <Grid item>
-                      <FormControlLabel
-                        control={
-                          <Checkbox checked={checked} onChange={(event) => setChecked(event.target.checked)} name="checked" color="primary" />
-                        }
-                        label="Keep me logged in"
-                      />
-                    </Grid>
-                    <Grid item>
-                      <Typography variant="subtitle1" component={Link} href={'/forgot-password'} color="secondary" sx={{ textDecoration: 'none' }}>
-                        Forgot Password?
-                      </Typography>
-                    </Grid>
                   </Grid>
+                </Grid>
 
-                  {error && (
-                    <Box sx={{ mt: 3 }}>
-                      <FormHelperText error>{error}</FormHelperText>
-                    </Box>
-                  )}
-
-                  {errors.submit && (
-                    <Box sx={{ mt: 3 }}>
-                      <FormHelperText error>{errors.submit}</FormHelperText>
-                    </Box>
-                  )}
-                  <Box sx={{ mt: 2 }}>
-                    <AnimateButton>
-                      <Button color="secondary" disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained">
-                        Sign In
-                      </Button>
-                    </AnimateButton>
+                {error && (
+                  <Box sx={{ mt: 3 }}>
+                    <FormHelperText error>{error}</FormHelperText>
                   </Box>
-                </form>
-              )}
-            </Formik>
-          </Grid>
+                )}
+
+                {errors.submit && (
+                  <Box sx={{ mt: 3 }}>
+                    <FormHelperText error>{errors.submit}</FormHelperText>
+                  </Box>
+                )}
+                <Box sx={{ mt: 2 }}>
+                  <AnimateButton>
+                    <Button color="secondary" disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained">
+                      Sign In
+                    </Button>
+                  </AnimateButton>
+                </Box>
+              </form>
+            )}
+          </Formik>
+        </Grid>
       </Grid>
     </Box>
   );

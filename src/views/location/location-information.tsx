@@ -19,7 +19,6 @@ import SubCard from 'components/ui-component/cards/SubCard';
 import { gridSpacing } from 'store/constant';
 import { updateLocationAction } from 'actions/location/server-actions/updateLocation';
 
-
 interface LocationWithRelations {
   locationID: number;
   qrID: string;
@@ -52,9 +51,9 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
         width: 150,
         color: {
           dark: '#000000',
-          light: '#ffffff',
-        },
-      }).catch(err => console.error('QR Code Generation Error:', err));
+          light: '#ffffff'
+        }
+      }).catch((err) => console.error('QR Code Generation Error:', err));
     }
   }, [isEditing, editedLocation.qrID, location.qrID]);
 
@@ -76,7 +75,7 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const qrIdError = validateQrId(editedLocation.qrID);
     if (qrIdError) {
       setSnackbarMessage(qrIdError);
@@ -97,7 +96,9 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
     }
 
     if (fieldChanges.length > 0 && editedLocation.qrID === location.qrID && !hasShownWarning) {
-      setSnackbarMessage(`Warning: You've changed ${fieldChanges.join(', ')}. Please verify if the QR ID needs to be updated to match the new values.`);
+      setSnackbarMessage(
+        `Warning: You've changed ${fieldChanges.join(', ')}. Please verify if the QR ID needs to be updated to match the new values.`
+      );
       setSnackbarSeverity('warning');
       setSnackbarOpen(true);
       setHasShownWarning(true);
@@ -118,8 +119,8 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
       setIsEditing(false);
-      setHasShownWarning(false); 
-      
+      setHasShownWarning(false);
+
       setTimeout(() => {
         router.push('/location-page');
       }, 1500);
@@ -133,7 +134,7 @@ const LocationInformation = ({ location }: { location: LocationWithRelations }) 
   const handleCancel = () => {
     setEditedLocation({ ...location });
     setIsEditing(false);
-    setHasShownWarning(false); 
+    setHasShownWarning(false);
   };
 
   return (

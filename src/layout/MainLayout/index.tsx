@@ -69,7 +69,7 @@ const MainLayout: FC<Props> = ({ children }) => {
       <MainContentStyled {...{ borderRadius, menuOrientation, open: drawerOpen!, theme }}>
         <Container maxWidth={container ? 'lg' : false} {...(!container && { sx: { px: { xs: 0 } } })}>
           {/* breadcrumb */}
-            <Breadcrumbs />
+          <Breadcrumbs />
           {children}
         </Container>
       </MainContentStyled>

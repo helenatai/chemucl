@@ -7,6 +7,7 @@ import { addLog } from 'db/queries/Log';
 import { prisma } from 'db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from 'utils/authOptions';
+import { revalidatePath } from 'next/cache';
 
 const addChemicalSchema = z.object({
   chemicalName: z.string(),
@@ -24,7 +25,7 @@ const addChemicalSchema = z.object({
   subLocation1: z.string().nullable().optional(),
   subLocation2: z.string().nullable().optional(),
   subLocation3: z.string().nullable().optional(),
-  subLocation4: z.string().nullable().optional(),
+  subLocation4: z.string().nullable().optional()
 });
 
 const updateChemicalSchema = z.object({
@@ -43,7 +44,7 @@ const updateChemicalSchema = z.object({
   subLocation1: z.string().nullable().optional(),
   subLocation2: z.string().nullable().optional(),
   subLocation3: z.string().nullable().optional(),
-  subLocation4: z.string().nullable().optional(),
+  subLocation4: z.string().nullable().optional()
 });
 
 const importChemicalSchema = z.object({
@@ -62,7 +63,7 @@ const importChemicalSchema = z.object({
   subLocation3: z.string().nullable().optional(),
   subLocation4: z.string().nullable().optional(),
   restrictionStatus: z.boolean(),
-  quartzyNumber: z.string().nullable().optional(),
+  quartzyNumber: z.string().nullable().optional()
 });
 
 export async function validateAndProcessChemical(action: string, params: any): Promise<ChemicalActionResponse> {
@@ -83,8 +84,8 @@ export async function validateAndProcessChemical(action: string, params: any): P
     try {
       const newChemical = await addChemical({
         chemicalName: validatedData.chemicalName,
-        casNumber: validatedData.casNumber ?? undefined,      
-        qrID: validatedData.qrID,                                
+        casNumber: validatedData.casNumber ?? undefined,
+        qrID: validatedData.qrID,
         restrictionStatus: validatedData.restrictionStatus,
         locationID: validatedData.locationID,
         chemicalType: validatedData.chemicalType,
@@ -97,7 +98,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
         subLocation1: validatedData.subLocation1 ?? undefined,
         subLocation2: validatedData.subLocation2 ?? undefined,
         subLocation3: validatedData.subLocation3 ?? undefined,
-        subLocation4: validatedData.subLocation4 ?? undefined,
+        subLocation4: validatedData.subLocation4 ?? undefined
       });
 
       await addLog({
@@ -107,9 +108,10 @@ export async function validateAndProcessChemical(action: string, params: any): P
         description: `Chemical '${newChemical.chemicalName}' added.`,
         chemicalName: newChemical.chemicalName,
         locationBuilding: newChemical.location?.building ?? 'N/A',
-        locationRoom: newChemical.location?.room ?? 'N/A',
+        locationRoom: newChemical.location?.room ?? 'N/A'
       });
 
+      revalidatePath('/inventory-page');
       return { message: 'Chemical added successfully.', chemicals: [newChemical] };
     } catch (error) {
       console.error('Full error object:', error);
@@ -119,10 +121,9 @@ export async function validateAndProcessChemical(action: string, params: any): P
       return { error: 'An error occurred while adding the chemical.', chemicals: [] };
     }
   } else if (action === 'update') {
-    
     const validation = updateChemicalSchema.safeParse(params);
     if (!validation.success) {
-      console.error("Validation Failed:", validation.error.flatten());
+      console.error('Validation Failed:', validation.error.flatten());
       return { error: validation.error.flatten(), chemicals: [] };
     }
 
@@ -140,17 +141,17 @@ export async function validateAndProcessChemical(action: string, params: any): P
         description: `Chemical '${updatedChemical.chemicalName}' updated.`,
         chemicalName: updatedChemical.chemicalName,
         locationBuilding: updatedChemical.location?.building ?? 'N/A',
-        locationRoom: updatedChemical.location?.room ?? 'N/A',
+        locationRoom: updatedChemical.location?.room ?? 'N/A'
       });
 
+      revalidatePath('/inventory-page');
+      revalidatePath(`/inventory-page/${params.qrID}`);
       return { message: 'Chemical updated successfully.', chemicals: [updatedChemical] };
     } catch (error) {
       console.error('Error updating chemical:', error);
       return { error: 'An error occurred while updating the chemical.', chemicals: [] };
     }
-  }
-
-  else if (action === 'delete') {
+  } else if (action === 'delete') {
     if (!Array.isArray(params.chemicalIDs) || params.chemicalIDs.length === 0) {
       return { error: 'Invalid request: No chemicals selected for deletion.', chemicals: [] };
     }
@@ -164,15 +165,15 @@ export async function validateAndProcessChemical(action: string, params: any): P
             location: {
               select: {
                 building: true,
-                room: true,
-              },
-            },
-          },
+                room: true
+              }
+            }
+          }
         });
 
-        const chemicalName = chemicalSnapshot?.chemicalName ?? "N/A";
-        const locationBuilding = chemicalSnapshot?.location?.building ?? "N/A";
-        const locationRoom = chemicalSnapshot?.location?.room ?? "N/A";
+        const chemicalName = chemicalSnapshot?.chemicalName ?? 'N/A';
+        const locationBuilding = chemicalSnapshot?.location?.building ?? 'N/A';
+        const locationRoom = chemicalSnapshot?.location?.room ?? 'N/A';
 
         await addLog({
           userID: session.user.id,
@@ -181,18 +182,17 @@ export async function validateAndProcessChemical(action: string, params: any): P
           description: `Chemical '${chemicalName}' deleted.`,
           chemicalName,
           locationBuilding,
-          locationRoom,
+          locationRoom
         });
         await deleteChemical(id);
       }
+      revalidatePath('/inventory-page');
       return { message: 'Selected chemicals and their QR codes deleted successfully.', chemicals: [] };
     } catch (error) {
       console.error('Error deleting chemicals:', error);
       return { error: 'An error occurred while deleting chemicals.', chemicals: [] };
     }
-  }
-
-  else {
+  } else {
     return { error: 'Invalid action type. Supported actions: "add", "update", "delete".', chemicals: [] };
   }
 }
@@ -220,11 +220,11 @@ export async function validateAndProcessImport(chemicals: any[]): Promise<Chemic
           const location = await prisma.location.findFirst({
             where: {
               building: validatedData.building,
-              room: validatedData.room,
+              room: validatedData.room
             },
             select: {
-              locationID: true,
-            },
+              locationID: true
+            }
           });
 
           if (!location) {
@@ -234,11 +234,11 @@ export async function validateAndProcessImport(chemicals: any[]): Promise<Chemic
           // Find research group by name
           const researchGroup = await prisma.researchGroup.findFirst({
             where: {
-              groupName: validatedData.researchGroup,
+              groupName: validatedData.researchGroup
             },
             select: {
-              researchGroupID: true,
-            },
+              researchGroupID: true
+            }
           });
 
           if (!researchGroup) {
@@ -271,7 +271,7 @@ export async function validateAndProcessImport(chemicals: any[]): Promise<Chemic
             subLocation1: validatedData.subLocation1 || undefined,
             subLocation2: validatedData.subLocation2 || undefined,
             subLocation3: validatedData.subLocation3 || undefined,
-            subLocation4: validatedData.subLocation4 || undefined,
+            subLocation4: validatedData.subLocation4 || undefined
           });
 
           // Add log entry
@@ -282,7 +282,7 @@ export async function validateAndProcessImport(chemicals: any[]): Promise<Chemic
             description: `Chemical '${newChemical.chemicalName}' imported.`,
             chemicalName: newChemical.chemicalName,
             locationBuilding: validatedData.building,
-            locationRoom: validatedData.room,
+            locationRoom: validatedData.room
           });
 
           return { success: true, data: newChemical };
@@ -297,7 +297,7 @@ export async function validateAndProcessImport(chemicals: any[]): Promise<Chemic
 
     const errors = results
       .filter((result): result is { success: false; error: string } => !result.success && 'error' in result)
-      .map(result => result.error);
+      .map((result) => result.error);
 
     if (errors.length > 0) {
       return { error: errors.join('\n'), chemicals: [] };
@@ -305,16 +305,19 @@ export async function validateAndProcessImport(chemicals: any[]): Promise<Chemic
 
     const successfulChemicals = results
       .filter((result): result is { success: true; data: any } => result.success && 'data' in result)
-      .map(result => result.data);
+      .map((result) => result.data);
 
-    return { 
+    if (successfulChemicals.length > 0) {
+      revalidatePath('/inventory-page');
+    }
+
+    return {
       message: 'Chemicals imported successfully',
       chemicals: successfulChemicals,
-      success: true 
+      success: true
     };
   } catch (error) {
     console.error('Error importing chemicals:', error);
     return { error: error instanceof Error ? error.message : 'Failed to import chemicals', chemicals: [] };
   }
 }
-

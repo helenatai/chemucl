@@ -20,7 +20,7 @@ export async function addAuditAction(formData: FormData): Promise<AuditGeneralAc
 
   const params = {
     auditorID,
-    locations,
+    locations
   };
 
   const auditResult = await validateAndProcessAuditGeneral('add', params);

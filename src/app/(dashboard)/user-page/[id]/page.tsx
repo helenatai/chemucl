@@ -17,7 +17,5 @@ export default async function UserPage({ params }: UserPageProps) {
     notFound();
   }
 
-  return (
-    <UserInformation user={user} researchGroups={researchGroups} />
-  );
-} 
+  return <UserInformation user={user} researchGroups={researchGroups} />;
+}

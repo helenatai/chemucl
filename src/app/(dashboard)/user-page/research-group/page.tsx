@@ -6,10 +6,5 @@ export default async function ResearchGroupListPage() {
   const users = await findUser();
   const researchGroups = await findResearchGroup();
 
-  return (
-    <UserPage
-      initialUsers={users}
-      initialResearchGroups={researchGroups}
-    />
-  );
-} 
+  return <UserPage initialUsers={users} initialResearchGroups={researchGroups} />;
+}

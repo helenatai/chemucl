@@ -9,4 +9,3 @@ export type ResearchGroupActionResponse = {
   researchGroup?: ResearchGroupWithRelations;
   error?: string | object;
 };
-  

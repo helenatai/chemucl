@@ -15,17 +15,12 @@ interface UserFormProps {
   }[];
 }
 
-const UserForm: React.FC<UserFormProps> = ({
-  open,
-  onSubmit,
-  onCancel,
-  initialResearchGroups,
-}) => {
+const UserForm: React.FC<UserFormProps> = ({ open, onSubmit, onCancel, initialResearchGroups }) => {
   const [formValues, setFormValues] = useState({
     fullName: '',
     email: '',
     role: '',
-    researchGroupID: '',
+    researchGroupID: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,7 +40,7 @@ const UserForm: React.FC<UserFormProps> = ({
   const roleOptions = [
     { value: ROLES.ADMIN, label: 'Admin' },
     { value: ROLES.STAFF, label: 'Staff' },
-    { value: ROLES.RESEARCH_STUDENT, label: 'Research Student' },
+    { value: ROLES.RESEARCH_STUDENT, label: 'Research Student' }
   ];
 
   return (
@@ -53,7 +48,7 @@ const UserForm: React.FC<UserFormProps> = ({
       <DialogContent
         sx={{
           maxHeight: '500px',
-          overflowY: 'auto',
+          overflowY: 'auto'
         }}
       >
         <Grid container spacing={1}>
@@ -91,22 +86,14 @@ const UserForm: React.FC<UserFormProps> = ({
             <Autocomplete
               options={roleOptions}
               getOptionLabel={(option) => option.label}
-              value={roleOptions.find(option => option.value === formValues.role) || null}
+              value={roleOptions.find((option) => option.value === formValues.role) || null}
               onChange={(_, newValue) => {
-                setFormValues(prev => ({
+                setFormValues((prev) => ({
                   ...prev,
                   role: newValue ? newValue.value : ''
                 }));
               }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  required
-                  fullWidth
-                  margin="dense"
-                  label="User Role"
-                />
-              )}
+              renderInput={(params) => <TextField {...params} required fullWidth margin="dense" label="User Role" />}
             />
           </Grid>
 
@@ -115,22 +102,14 @@ const UserForm: React.FC<UserFormProps> = ({
             <Autocomplete
               options={initialResearchGroups}
               getOptionLabel={(option) => option.groupName}
-              value={initialResearchGroups.find(group => group.researchGroupID.toString() === formValues.researchGroupID) || null}
+              value={initialResearchGroups.find((group) => group.researchGroupID.toString() === formValues.researchGroupID) || null}
               onChange={(_, newValue) => {
-                setFormValues(prev => ({
+                setFormValues((prev) => ({
                   ...prev,
                   researchGroupID: newValue ? newValue.researchGroupID.toString() : ''
                 }));
               }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  required
-                  fullWidth
-                  margin="dense"
-                  label="Research Group"
-                />
-              )}
+              renderInput={(params) => <TextField {...params} required fullWidth margin="dense" label="Research Group" />}
             />
           </Grid>
         </Grid>
@@ -148,4 +127,4 @@ const UserForm: React.FC<UserFormProps> = ({
   );
 };
 
-export default UserForm; 
+export default UserForm;

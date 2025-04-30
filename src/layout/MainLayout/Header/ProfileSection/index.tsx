@@ -28,7 +28,10 @@ import { IconLogout } from '@tabler/icons-react';
 
 const getInitials = (name: string = '') => {
   const names = name.split(' ');
-  return names.map(n => n[0]).join('').toUpperCase();
+  return names
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase();
 };
 
 const ProfileSection = () => {
@@ -39,7 +42,7 @@ const ProfileSection = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut({ 
+      await signOut({
         redirect: true,
         callbackUrl: '/login'
       });
@@ -143,9 +146,7 @@ const ProfileSection = () => {
                         {userInitials}
                       </Avatar>
                       <Stack spacing={0.3}>
-                        <Typography variant="h5">
-                          {user?.name}
-                        </Typography>
+                        <Typography variant="h5">{user?.name}</Typography>
                         <Typography variant="caption" color="textSecondary">
                           {user?.permission}
                         </Typography>
@@ -154,9 +155,9 @@ const ProfileSection = () => {
                   </Box>
                   <Divider />
                   <Box>
-                    <ListItemButton 
+                    <ListItemButton
                       onClick={handleLogout}
-                      sx={{ 
+                      sx={{
                         py: 1.5,
                         '&:hover': {
                           bgcolor: theme.palette.grey[100]
@@ -166,7 +167,7 @@ const ProfileSection = () => {
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <IconLogout stroke={1.5} size="20px" color={theme.palette.primary.main} />
                       </ListItemIcon>
-                      <ListItemText 
+                      <ListItemText
                         primary={
                           <Typography variant="body2" color={theme.palette.primary.main}>
                             Logout

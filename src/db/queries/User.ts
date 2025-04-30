@@ -15,10 +15,10 @@ export const findUser = async (): Promise<UserWithRelations[]> => {
       researchGroup: {
         select: {
           researchGroupID: true,
-          groupName: true,
-        },
-      },
-    },
+          groupName: true
+        }
+      }
+    }
   });
 
   return users;
@@ -57,10 +57,10 @@ export const findUserById = async (id: string): Promise<UserWithRelations | null
         researchGroup: {
           select: {
             researchGroupID: true,
-            groupName: true,
-          },
-        },
-      },
+            groupName: true
+          }
+        }
+      }
     });
     return user;
   } catch (error) {
@@ -87,11 +87,11 @@ export const addUser = async (params: AddUserParams): Promise<UserWithRelations>
       activeStatus,
       researchGroupID: researchGroupID ?? null,
       permission,
-      password,
+      password
     },
     include: {
-      researchGroup: true,
-    },
+      researchGroup: true
+    }
   });
 };
 
@@ -106,19 +106,17 @@ export interface UpdateUserParams {
 
 export const updateUser = async (params: UpdateUserParams): Promise<UserWithRelations> => {
   const { id, ...updateFields } = params;
-  
+
   // Filter out undefined values and ensure activeStatus is properly handled
-  const data = Object.fromEntries(
-    Object.entries(updateFields).filter(([_, value]) => value !== undefined)
-  );
-  
+  const data = Object.fromEntries(Object.entries(updateFields).filter(([_, value]) => value !== undefined));
+
   try {
     return await prisma.user.update({
       where: { id },
       data,
       include: {
-        researchGroup: true,
-      },
+        researchGroup: true
+      }
     });
   } catch (error) {
     console.error('Error updating user:', error);
@@ -141,7 +139,7 @@ export const countData = async (): Promise<number> => await prisma.user.count();
 export const findUsersByResearchGroup = async (researchGroupID: number): Promise<UserWithRelations[]> => {
   const users = await prisma.user.findMany({
     where: {
-      researchGroupID: researchGroupID,
+      researchGroupID: researchGroupID
     },
     select: {
       id: true,
@@ -153,19 +151,19 @@ export const findUsersByResearchGroup = async (researchGroupID: number): Promise
       researchGroup: {
         select: {
           researchGroupID: true,
-          groupName: true,
-        },
-      },
-    },
+          groupName: true
+        }
+      }
+    }
   });
 
-  return users.map(user => ({
+  return users.map((user) => ({
     ...user,
-    researchGroup: user.researchGroup ? {
-      researchGroupID: user.researchGroup.researchGroupID,
-      groupName: user.researchGroup.groupName
-    } : null
+    researchGroup: user.researchGroup
+      ? {
+          researchGroupID: user.researchGroup.researchGroupID,
+          groupName: user.researchGroup.groupName
+        }
+      : null
   }));
 };
-
-

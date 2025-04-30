@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 
 // material-ui
 import { Theme } from '@mui/material/styles';
@@ -29,7 +30,13 @@ const Login = () => {
                 <Grid container spacing={2} alignItems="center" justifyContent="center">
                   <Grid item sx={{ mb: 3 }}>
                     <Link href="#" aria-label="logo">
-                      <img src="assets/images/auth/ucl-logo-white.png" alt="UCL image" style={{ width: '200px', height: 'auto' }} />
+                      <Image
+                        src="/assets/images/auth/ucl-logo-white.png"
+                        alt="UCL image"
+                        width={200}
+                        height={200}
+                        style={{ width: '200px', height: 'auto' }}
+                      />
                     </Link>
                   </Grid>
                   <Grid item xs={12}>
@@ -49,13 +56,7 @@ const Login = () => {
                   <Grid item xs={12}>
                     <Divider />
                   </Grid>
-                  <Grid item xs={12}>
-                    <Grid item container direction="column" alignItems="center" xs={12}>
-                      <Typography component={Link} href={'/register'} variant="subtitle1" sx={{ textDecoration: 'none' }}>
-                        Don&apos;t have an account?
-                      </Typography>
-                    </Grid>
-                  </Grid>
+                  
                 </Grid>
               </AuthCardWrapper>
             </Grid>

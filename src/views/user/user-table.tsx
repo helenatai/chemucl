@@ -2,21 +2,36 @@
 
 import React, { useState } from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, Checkbox, TextField, InputAdornment, 
-  Grid, IconButton, Tooltip, Fab, Snackbar, Alert, Box, CardContent
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Checkbox,
+  TextField,
+  InputAdornment,
+  Grid,
+  IconButton,
+  Tooltip,
+  Fab,
+  Snackbar,
+  Alert,
+  Box,
+  CardContent
 } from '@mui/material';
 
 import { UserWithRelations } from 'types/user';
-import AddFormModal from 'sections/AddFormModal';
-import UserForm from 'sections/forms/UserForm';
+import AddFormModal from 'components/forms/AddFormModal';
+import UserForm from 'components/forms/UserForm';
 import { ResearchGroupWithRelations } from 'types/researchGroup';
 import { addUserAction } from 'actions/user/server-actions/addUser';
 import { useRouter } from 'next/navigation';
 import { updateUserAction } from 'actions/user/server-actions/updateUser';
 import { deleteUserAction } from 'actions/user/server-actions/deleteUser';
 import { importUsersAction } from 'actions/user/server-actions/importUsers';
-import ImportUsersDialog from 'components/dialogs/ImportUsersDialog';
+import ImportUsersDialog from 'components/modals/ImportUsersModal';
 
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/AddTwoTone';
@@ -40,7 +55,7 @@ interface SnackbarState {
 const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGroups }) => {
   const router = useRouter();
   const [users, setUsers] = useState<UserWithRelations[]>(initialUsers);
-  const [researchGroups ] = useState<ResearchGroupWithRelations[]>(initialResearchGroups);
+  const [researchGroups] = useState<ResearchGroupWithRelations[]>(initialResearchGroups);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
@@ -57,10 +72,7 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
     setSearchQuery(event.target.value.toLowerCase());
     setPage(0);
   };
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(searchQuery) ||
-    u.email.toLowerCase().includes(searchQuery)
-  );
+  const filteredUsers = users.filter((u) => u.name.toLowerCase().includes(searchQuery) || u.email.toLowerCase().includes(searchQuery));
 
   const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,7 +103,7 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
 
   const handleDeleteSelected = async () => {
     if (!confirm('Are you sure you want to delete the selected user(s)?')) return;
-    
+
     const result = await deleteUserAction(selectedUsers);
     if (!result.error) {
       const remaining = users.filter((u) => !selectedUsers.includes(u.id));
@@ -148,9 +160,9 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
     try {
       const updatedUsers = [...users];
       let success = true;
-      
+
       for (const userId of selectedUsers) {
-        const userIndex = updatedUsers.findIndex(u => u.id === userId);
+        const userIndex = updatedUsers.findIndex((u) => u.id === userId);
         if (userIndex !== -1 && !updatedUsers[userIndex].activeStatus) {
           const response = await updateUserAction(userId, true);
           if (!response.error && response.users && response.users.length > 0) {
@@ -160,7 +172,7 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
           }
         }
       }
-      
+
       if (success) {
         setUsers(updatedUsers);
         setSnackbar({
@@ -189,9 +201,9 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
     try {
       const updatedUsers = [...users];
       let success = true;
-      
+
       for (const userId of selectedUsers) {
-        const userIndex = updatedUsers.findIndex(u => u.id === userId);
+        const userIndex = updatedUsers.findIndex((u) => u.id === userId);
         if (userIndex !== -1 && updatedUsers[userIndex].activeStatus) {
           const response = await updateUserAction(userId, false);
           if (!response.error && response.users && response.users.length > 0) {
@@ -202,7 +214,7 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
           }
         }
       }
-      
+
       if (success) {
         setUsers(updatedUsers);
         setSnackbar({
@@ -267,25 +279,25 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
 
   return (
     <>
-    <CardContent>
-      <Grid container justifyContent="space-between" alignItems="center" spacing={2}>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            placeholder="Search User"
-            value={searchQuery}
-            onChange={handleSearch}
-            size="small"
-            sx={{ minWidth: '250px' }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              )
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
+      <CardContent>
+        <Grid container justifyContent="space-between" alignItems="center" spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              placeholder="Search User"
+              value={searchQuery}
+              onChange={handleSearch}
+              size="small"
+              sx={{ minWidth: '250px' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                )
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
             {selectedUsers.length > 0 && (
               <>
                 <Tooltip title="Activate Selected">
@@ -320,8 +332,8 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
                 <AddIcon />
               </Fab>
             </Tooltip>
+          </Grid>
         </Grid>
-      </Grid>
       </CardContent>
 
       <TableContainer>
@@ -352,11 +364,7 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
               return (
                 <TableRow key={user.id}>
                   <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={selected}
-                      onChange={(e) => handleClickCheckbox(e, user.id)}
-                    />
+                    <Checkbox color="primary" checked={selected} onChange={(e) => handleClickCheckbox(e, user.id)} />
                   </TableCell>
                   <TableCell>{sequentialNumber}</TableCell>
                   <TableCell>{user.name}</TableCell>
@@ -391,30 +399,13 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialResearchGrou
       </Box>
 
       <AddFormModal open={isAddModalOpen} onClose={handleCloseAddModal} title="Add User">
-        <UserForm 
-          open={isAddModalOpen} 
-          onSubmit={handleSubmitForm} 
-          onCancel={handleCloseAddModal}
-          initialResearchGroups={researchGroups}
-        />
+        <UserForm open={isAddModalOpen} onSubmit={handleSubmitForm} onCancel={handleCloseAddModal} initialResearchGroups={researchGroups} />
       </AddFormModal>
 
-      <ImportUsersDialog
-        open={isImportModalOpen}
-        onClose={handleCloseImportModal}
-        onImport={handleImport}
-      />
+      <ImportUsersDialog open={isImportModalOpen} onClose={handleCloseImportModal} onImport={handleImport} />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -9,7 +9,7 @@ export interface LogWithRelations {
   user?: {
     id: string;
     name: string;
-    permission: string; 
+    permission: string;
   } | null;
   description?: string | null;
   chemicalName?: string | null;

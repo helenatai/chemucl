@@ -6,13 +6,13 @@ import { findMissingRecordsByAuditGeneralID } from 'db/queries/AuditRecord';
 
 export default async function Page({ params }: { params: { auditGeneralID: string } }) {
   const auditGeneralID = parseInt(params.auditGeneralID, 10);
-  
+
   // Fetch the parent audit round
   const auditGeneral = await findAuditGeneralByID(auditGeneralID);
-  // Fetch the child audit records 
+  // Fetch the child audit records
   const audits = await findAuditsByAuditGeneralID(auditGeneralID);
 
   const missingRecords = await findMissingRecordsByAuditGeneralID(auditGeneralID);
 
-  return <AuditLocations auditGeneral={auditGeneral} audits={audits} missingRecords={missingRecords}/>;
+  return <AuditLocations auditGeneral={auditGeneral} audits={audits} missingRecords={missingRecords} />;
 }

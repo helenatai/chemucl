@@ -1,5 +1,5 @@
 'use client';
-import { CSSProperties, ReactElement, useEffect, useState } from 'react';
+import { CSSProperties, ReactElement, useEffect, useState, useCallback } from 'react';
 
 // next
 import Link from 'next/link';
@@ -111,6 +111,60 @@ const Breadcrumbs = ({
 
   let customLocation = pathname;
 
+  const getCollapse = useCallback(
+    (menu: NavItemType) => {
+      if (!custom && menu.children) {
+        menu.children.filter((collapse: NavItemType) => {
+          if (collapse.type && collapse.type === 'collapse') {
+            getCollapse(collapse as { children: NavItemType[]; type?: string });
+            if (collapse.url === customLocation) {
+              setMain(collapse);
+              setItem(collapse);
+            }
+          } else if (collapse.type && collapse.type === 'item') {
+            const urlPattern = collapse.url?.replace(/:[^/]+/g, '[^/]+');
+            if (urlPattern && new RegExp(`^${urlPattern}$`).test(customLocation)) {
+              if (customLocation === '/user-page' || customLocation === '/user-page/research-group') {
+                setMain(undefined);
+                setItem({
+                  ...collapse,
+                  title: collapse.id === 'research-group' ? 'Research Group' : 'User'
+                });
+              } else if (customLocation.startsWith('/user-page/research-group/')) {
+                const groupId = pathname.split('/').pop() || '';
+                const groupName = decodeURIComponent(groupId).replace(/-/g, ' ');
+                setMain({
+                  id: 'research-group',
+                  title: 'Research Group',
+                  type: 'item',
+                  url: '/user-page/research-group',
+                  breadcrumbs: true
+                });
+                setItem({
+                  id: 'research-group-info',
+                  title: groupName,
+                  type: 'item',
+                  breadcrumbs: true
+                });
+              } else if (collapse.id === 'user-info') {
+                setMain(menu);
+                setItem(collapse);
+              } else {
+                setMain(menu);
+                setItem({
+                  ...collapse,
+                  title: pathname.split('/').pop()
+                });
+              }
+            }
+          }
+          return false;
+        });
+      }
+    },
+    [custom, customLocation, pathname]
+  );
+
   useEffect(() => {
     navigation?.items?.map((menu: NavItemType) => {
       if (menu.type && menu.type === 'group') {
@@ -152,13 +206,15 @@ const Breadcrumbs = ({
                   type: 'group',
                   url: '/audit-page',
                   breadcrumbs: true,
-                  children: [{
-                    id: 'audit-info',
-                    title: `Round ${audit.round}`,
-                    type: 'item',
-                    url: `/audit-page/${auditId}`,
-                    breadcrumbs: true
-                  }]
+                  children: [
+                    {
+                      id: 'audit-info',
+                      title: `Round ${audit.round}`,
+                      type: 'item',
+                      url: `/audit-page/${auditId}`,
+                      breadcrumbs: true
+                    }
+                  ]
                 });
                 setItem({
                   id: 'audit-chemicals',
@@ -190,61 +246,7 @@ const Breadcrumbs = ({
     };
 
     fetchData();
-  }, [customLocation, pathname]);
-
-  const getCollapse = (menu: NavItemType) => {
-    if (!custom && menu.children) {
-      menu.children.filter((collapse: NavItemType) => {
-        if (collapse.type && collapse.type === 'collapse') {
-          getCollapse(collapse as { children: NavItemType[]; type?: string });
-          if (collapse.url === customLocation) {
-            setMain(collapse);
-            setItem(collapse);
-          }
-        } else if (collapse.type && collapse.type === 'item') {
-          const urlPattern = collapse.url?.replace(/:[^/]+/g, '[^/]+');
-          if (urlPattern && new RegExp(`^${urlPattern}$`).test(customLocation)) {
-            if (customLocation === '/user-page' || customLocation === '/user-page/research-group') {
-              setMain(undefined);
-              setItem({
-                ...collapse,
-                title: collapse.id === 'research-group' ? 'Research Group' : 'User'
-              });
-            }
-            else if (customLocation.startsWith('/user-page/research-group/')) {
-              const groupId = pathname.split('/').pop() || '';
-              const groupName = decodeURIComponent(groupId).replace(/-/g, ' ');
-              setMain({
-                id: 'research-group',
-                title: 'Research Group',
-                type: 'item',
-                url: '/user-page/research-group',
-                breadcrumbs: true
-              });
-              setItem({
-                id: 'research-group-info',
-                title: groupName,
-                type: 'item',
-                breadcrumbs: true
-              });
-            }
-            else if (collapse.id === 'user-info') {
-              setMain(menu);
-              setItem(collapse);
-            }
-            else {
-              setMain(menu);
-              setItem({
-                ...collapse,
-                title: pathname.split('/').pop()
-              });
-            }
-          }
-        }
-        return false;
-      });
-    }
-  };
+  }, [customLocation, pathname, getCollapse]);
 
   const SeparatorIcon = separator!;
   const separatorIcon = separator ? <SeparatorIcon stroke={1.5} size="16px" /> : <IconTallymark1 stroke={1.5} size="16px" />;
@@ -260,11 +262,7 @@ const Breadcrumbs = ({
     CollapseIcon = main.icon ? main.icon : AccountTreeTwoToneIcon;
     mainContent = (
       <Link href={main.url || '/'} style={{ textDecoration: 'none' }}>
-        <Typography
-          variant="subtitle1"
-          sx={linkSX}
-          color={pathname === main.url ? 'text.primary' : 'text.secondary'}
-        >
+        <Typography variant="subtitle1" sx={linkSX} color={pathname === main.url ? 'text.primary' : 'text.secondary'}>
           {icons && <CollapseIcon style={iconSX} />}
           {main.title}
         </Typography>
@@ -292,13 +290,7 @@ const Breadcrumbs = ({
                   separator={separatorIcon}
                   sx={{ '& .MuiBreadcrumbs-separator': { width: 16, ml: 1.25, mr: 1.25 } }}
                 >
-                  <Typography
-                    component={Link}
-                    href={main.url || '/'}
-                    color="textSecondary"
-                    variant="subtitle1"
-                    sx={linkSX}
-                  >
+                  <Typography component={Link} href={main.url || '/'} color="textSecondary" variant="subtitle1" sx={linkSX}>
                     {icons && <HomeTwoToneIcon style={iconSX} />}
                     {main.title}
                   </Typography>
@@ -315,7 +307,7 @@ const Breadcrumbs = ({
     );
   }
 
-  if (((item && item.type === 'item') || (item?.type === 'group' && item?.url) || custom)) {
+  if ((item && item.type === 'item') || (item?.type === 'group' && item?.url) || custom) {
     itemTitle = item?.title;
 
     ItemIcon = item?.icon ? item.icon : AccountTreeTwoToneIcon;
@@ -326,11 +318,14 @@ const Breadcrumbs = ({
       </Typography>
     );
 
-    if ((item?.breadcrumbs !== false || custom)) {
+    if (item?.breadcrumbs !== false || custom) {
       // For main tabs, show only the title without navigation
       if (customLocation === '/user-page' || customLocation === '/user-page/research-group') {
         breadcrumbContent = (
-          <Card sx={card === false ? { mb: 3, bgcolor: 'transparent', ...sx } : { mb: 3, bgcolor: 'background.default', ...sx }} {...others}>
+          <Card
+            sx={card === false ? { mb: 3, bgcolor: 'transparent', ...sx } : { mb: 3, bgcolor: 'background.default', ...sx }}
+            {...others}
+          >
             <Box sx={{ p: 2, pl: card === false ? 0 : 2 }}>
               <Grid
                 container
@@ -348,10 +343,13 @@ const Breadcrumbs = ({
       }
       // For subpages, show the full breadcrumb navigation
       else if (isSubPage) {
-        const pageTitle = customLocation.startsWith('/user-page/research-group/') ? 'Research Group' : (main?.title as string || '');
-        
+        const pageTitle = customLocation.startsWith('/user-page/research-group/') ? 'Research Group' : (main?.title as string) || '';
+
         breadcrumbContent = (
-          <Card sx={card === false ? { mb: 3, bgcolor: 'transparent', ...sx } : { mb: 3, bgcolor: 'background.default', ...sx }} {...others}>
+          <Card
+            sx={card === false ? { mb: 3, bgcolor: 'transparent', ...sx } : { mb: 3, bgcolor: 'background.default', ...sx }}
+            {...others}
+          >
             <Box sx={{ p: 2, pl: card === false ? 0 : 2 }}>
               <Grid
                 container
@@ -370,19 +368,11 @@ const Breadcrumbs = ({
                       sx={{ '& .MuiBreadcrumbs-separator': { width: 16, ml: 1.25, mr: 1.25 } }}
                     >
                       <Link href="/user-page/research-group" style={{ textDecoration: 'none' }}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={linkSX}
-                          color="text.secondary"
-                        >
+                        <Typography variant="subtitle1" sx={linkSX} color="text.secondary">
                           Research Group
                         </Typography>
                       </Link>
-                      <Typography
-                        variant="subtitle1"
-                        sx={linkSX}
-                        color="text.primary"
-                      >
+                      <Typography variant="subtitle1" sx={linkSX} color="text.primary">
                         {groupName || pathname.split('/').pop()}
                       </Typography>
                     </MuiBreadcrumbs>
@@ -394,31 +384,19 @@ const Breadcrumbs = ({
                       sx={{ '& .MuiBreadcrumbs-separator': { width: 16, ml: 1.25, mr: 1.25 } }}
                     >
                       <Link href="/audit-page" style={{ textDecoration: 'none' }}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={linkSX}
-                          color="text.secondary"
-                        >
+                        <Typography variant="subtitle1" sx={linkSX} color="text.secondary">
                           Audit
                         </Typography>
                       </Link>
                       {main?.children?.[0] && (
                         <Link href={main.children[0].url || '/'} style={{ textDecoration: 'none' }}>
-                          <Typography
-                            variant="subtitle1"
-                            sx={linkSX}
-                            color="text.secondary"
-                          >
+                          <Typography variant="subtitle1" sx={linkSX} color="text.secondary">
                             {main.children[0].title}
                           </Typography>
                         </Link>
                       )}
                       {itemTitle && (
-                        <Typography
-                          variant="subtitle1"
-                          sx={linkSX}
-                          color="text.primary"
-                        >
+                        <Typography variant="subtitle1" sx={linkSX} color="text.primary">
                           {itemTitle}
                         </Typography>
                       )}
@@ -432,21 +410,13 @@ const Breadcrumbs = ({
                     >
                       {main && (
                         <Link href={main.url || '/'} style={{ textDecoration: 'none' }}>
-                          <Typography
-                            variant="subtitle1"
-                            sx={linkSX}
-                            color="text.secondary"
-                          >
+                          <Typography variant="subtitle1" sx={linkSX} color="text.secondary">
                             {main.title}
                           </Typography>
                         </Link>
                       )}
                       {itemTitle && (
-                        <Typography
-                          variant="subtitle1"
-                          sx={linkSX}
-                          color="text.primary"
-                        >
+                        <Typography variant="subtitle1" sx={linkSX} color="text.primary">
                           {itemTitle}
                         </Typography>
                       )}

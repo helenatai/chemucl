@@ -8,8 +8,8 @@ export async function addUserAction(formData: FormData): Promise<UserActionRespo
     fullName: formData.get('fullName') as string,
     email: formData.get('email') as string,
     role: formData.get('role') as 'Admin' | 'Staff' | 'Research Student',
-    researchGroupID: formData.get('researchGroupID') as string,
+    researchGroupID: formData.get('researchGroupID') as string
   };
 
   return validateAndProcessUser('add', params);
-} 
+}

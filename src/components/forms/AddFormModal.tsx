@@ -25,7 +25,7 @@ const AddFormModal: React.FC<AddFormModalProps> = ({ open, onClose, title, child
           bgcolor: 'background.paper',
           boxShadow: 24,
           borderRadius: 2,
-          overflow: 'hidden',
+          overflow: 'hidden'
         }}
       >
         <MainCard
