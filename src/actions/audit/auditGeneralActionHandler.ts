@@ -7,7 +7,6 @@ import { revalidatePath } from 'next/cache';
 
 const AuditGeneralSchema = z.object({
   auditorID: z.string(),
-
   locations: z
     .string()
     .refine(
@@ -24,16 +23,26 @@ const AuditGeneralSchema = z.object({
     .transform((val) => JSON.parse(val) as { buildingName: string; room: string }[])
 });
 
+const UpdateAuditSchema = z.object({
+  auditGeneralID: z.number(),
+  status: z.string()
+});
+
 export type AuditGeneralInput = z.infer<typeof AuditGeneralSchema>;
 
-export async function validateAndProcessAuditGeneral(operation: 'add' | 'update', params: any): Promise<AuditGeneralActionResponse> {
+export async function validateAndProcessAuditGeneral(operation: 'add' | 'update' | 'invalid', params: any): Promise<AuditGeneralActionResponse> {
   try {
-    const auditData: AuditGeneralInput = AuditGeneralSchema.parse({
-      auditorID: params.auditorID,
-      locations: params.locations
-    });
+    if (operation === 'invalid') {
+      return { error: 'Invalid operation', success: false, audit: null };
+    }
 
     if (operation === 'add') {
+      const validationResult = AuditGeneralSchema.safeParse(params);
+      if (!validationResult.success) {
+        return { error: validationResult.error.message, success: false, audit: null };
+      }
+
+      const auditData = validationResult.data;
       const result = await addAuditGeneral({
         auditorID: auditData.auditorID,
         locations: auditData.locations
@@ -44,7 +53,18 @@ export async function validateAndProcessAuditGeneral(operation: 'add' | 'update'
         message: 'Audit added successfully',
         success: true
       };
-    } else if (operation === 'update') {
+    }
+
+    if (operation === 'update') {
+      if (!params.auditGeneralID) {
+        return { error: 'auditGeneralID is required for update', success: false, audit: null };
+      }
+
+      const validationResult = UpdateAuditSchema.safeParse(params);
+      if (!validationResult.success) {
+        return { error: validationResult.error.message, success: false, audit: null };
+      }
+
       const result = await updateAuditGeneral({
         auditGeneralID: params.auditGeneralID,
         status: params.status

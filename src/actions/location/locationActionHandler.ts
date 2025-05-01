@@ -6,10 +6,10 @@ import { addLocation, updateLocation, deleteLocation, findLocation } from 'db/qu
 import { revalidatePath } from 'next/cache';
 
 const addLocationSchema = z.object({
-  building: z.string(),
-  buildingName: z.string(),
-  room: z.string(),
-  qrID: z.string()
+  building: z.string().min(1, 'Building is required'),
+  buildingName: z.string().min(1, 'Building name is required'),
+  room: z.string().min(1, 'Room is required'),
+  qrID: z.string().min(1, 'QR ID is required')
 });
 
 const updateLocationSchema = z.object({
@@ -25,7 +25,7 @@ export async function validateAndProcessLocation(action: string, params: any): P
     if (action === 'add') {
       const validation = addLocationSchema.safeParse(params);
       if (!validation.success) {
-        return { error: validation.error.flatten(), locations: [] };
+        return { error: validation.error.errors[0].message, locations: [] };
       }
 
       const validatedData = validation.data;

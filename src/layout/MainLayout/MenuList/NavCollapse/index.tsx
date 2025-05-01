@@ -245,7 +245,7 @@ const NavCollapse = ({ menu, level, parentId }: NavCollapseProps) => {
                   '&.Mui-selected': {
                     bgcolor: 'secondary.light',
                     color: iconSelectedColor,
-                    '&:hover': { color: iconSelectedColor, bgcolor: '.secondary.light' }
+                    '&:hover': { color: iconSelectedColor, bgcolor: 'secondary.light' }
                   }
                 }),
               ...((!drawerOpen || level !== 1) && {

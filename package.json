@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
-    "prettier": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\""
+    "prettier": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"
@@ -72,10 +75,14 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "@types/bcrypt": "^5.0.2",
     "@types/chance": "^1.1.6",
+    "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.15",
-    "@types/node": "^20.17.17",
+    "@types/node": "^22.15.3",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.18",
     "@types/react-csv": "^1.1.10",
@@ -93,6 +100,7 @@
     "prettier": "^3.2.5",
     "prisma": "^5.12.1",
     "sass": "^1.71.1",
+    "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"

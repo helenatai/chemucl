@@ -95,9 +95,12 @@ export async function validateAndProcessUser(action: ActionType, params: ParamsT
       revalidatePath('/user-page');
       return { message: 'User updated successfully', users: [updatedUser] };
     } else if (action === 'delete') {
-      const validatedData = deleteUserSchema.parse(params);
+      const validationResult = deleteUserSchema.safeParse(params);
+      if (!validationResult.success || validationResult.data.userIds.length === 0) {
+        return { error: 'Invalid request: No locations selected for deletion.', users: [] };
+      }
 
-      await deleteUser(validatedData.userIds);
+      await deleteUser(validationResult.data.userIds);
       revalidatePath('/user-page');
       return {
         error: undefined,

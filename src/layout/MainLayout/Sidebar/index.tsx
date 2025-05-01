@@ -19,6 +19,9 @@ import { drawerWidth } from 'store/constant';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
+// types
+import { MenuOrientation } from 'types/config';
+
 // ==============================|| SIDEBAR DRAWER ||============================== //
 
 const Sidebar = () => {
@@ -27,7 +30,7 @@ const Sidebar = () => {
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
 
-  const { miniDrawer } = useConfig();
+  const { menuOrientation, miniDrawer } = useConfig();
 
   const logo = useMemo(
     () => (
@@ -38,25 +41,28 @@ const Sidebar = () => {
     []
   );
 
-  const drawer = useMemo(
-    () => (
+  const drawer = useMemo(() => {
+    const isVerticalOpen = menuOrientation === MenuOrientation.VERTICAL && drawerOpen;
+
+    let drawerSX = { paddingLeft: '0px', paddingRight: '0px', marginTop: '20px' };
+    if (drawerOpen) drawerSX = { paddingLeft: '16px', paddingRight: '16px', marginTop: '0px' };
+
+    return (
       <>
-        {!downMD && (
-          <PerfectScrollbar
-            component="div"
-            style={{
-              height: !downMD ? 'calc(100vh - 88px)' : 'calc(100vh - 56px)',
-              paddingLeft: '16px',
-              paddingRight: '16px'
-            }}
-          >
+        {downMD ? (
+          <Box sx={drawerSX}>
             <MenuList />
+            {isVerticalOpen}
+          </Box>
+        ) : (
+          <PerfectScrollbar style={{ height: 'calc(100vh - 88px)', ...drawerSX }}>
+            <MenuList />
+            {isVerticalOpen}
           </PerfectScrollbar>
         )}
       </>
-    ),
-    [downMD]
-  );
+    );
+  }, [downMD, drawerOpen, menuOrientation]);
 
   return (
     <Box component="nav" sx={{ flexShrink: { md: 0 }, width: { xs: 'auto', md: drawerWidth } }} aria-label="mailbox folders">

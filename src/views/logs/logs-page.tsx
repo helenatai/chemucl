@@ -27,7 +27,6 @@ interface LogsPageProps {
 }
 
 const LogsPage: React.FC<LogsPageProps> = ({ initialLogs }) => {
-  const [logs] = useState<LogWithRelations[]>(initialLogs);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -44,7 +43,7 @@ const LogsPage: React.FC<LogsPageProps> = ({ initialLogs }) => {
     setPage(0);
   };
 
-  const filteredLogs = logs.filter((log) => {
+  const filteredLogs = initialLogs.filter((log) => {
     // You can check chemical name, user name, or action, etc.
     const chemName = log.chemicalName?.toLowerCase() ?? '';
     const userName = log.user?.name.toLowerCase() ?? '';

@@ -12,7 +12,7 @@ const baseResearchGroupSchema = z.object({
 });
 
 const addResearchGroupSchema = baseResearchGroupSchema.extend({
-  groupName: z.string() // groupName is required for adding
+  groupName: z.string().min(1, { message: 'Group name is required' }) // groupName is required for adding
 });
 
 const updateResearchGroupSchema = baseResearchGroupSchema.extend({
@@ -22,27 +22,15 @@ const updateResearchGroupSchema = baseResearchGroupSchema.extend({
 
 // Main handler function for research group actions
 export async function validateAndProcessResearchGroup(action: string, params: any): Promise<ResearchGroupActionResponse> {
-  let validationResult;
-
-  // Choose schema based on action type
-  if (action === 'add') {
-    validationResult = addResearchGroupSchema.safeParse(params);
-  } else if (action === 'update') {
-    validationResult = updateResearchGroupSchema.safeParse(params);
-  } else {
-    validationResult = baseResearchGroupSchema.safeParse(params);
-  }
-
-  // Return error if validation fails
-  if (!validationResult.success) {
-    return { error: validationResult.error.flatten() };
-  }
-
-  const validatedParams = validationResult.data;
-
   try {
     switch (action) {
       case 'find': {
+        const validationResult = baseResearchGroupSchema.safeParse(params);
+        if (!validationResult.success) {
+          return { error: validationResult.error.message };
+        }
+
+        const validatedParams = validationResult.data;
         const researchGroups = await prisma.researchGroup.findMany({
           where: validatedParams.groupName
             ? {
@@ -57,9 +45,15 @@ export async function validateAndProcessResearchGroup(action: string, params: an
       }
 
       case 'add': {
+        const validationResult = addResearchGroupSchema.safeParse(params);
+        if (!validationResult.success) {
+          return { error: validationResult.error.message };
+        }
+
+        const validatedParams = validationResult.data;
         const newResearchGroup = await prisma.researchGroup.create({
           data: {
-            groupName: validatedParams.groupName || ''
+            groupName: validatedParams.groupName
           }
         });
         revalidatePath('/user-page/research-group');
@@ -67,10 +61,16 @@ export async function validateAndProcessResearchGroup(action: string, params: an
       }
 
       case 'update': {
-        if (!validatedParams.researchGroupID) {
+        if (!params.researchGroupID) {
           return { error: 'researchGroupID is required for update.' };
         }
 
+        const validationResult = updateResearchGroupSchema.safeParse(params);
+        if (!validationResult.success) {
+          return { error: validationResult.error.message };
+        }
+
+        const validatedParams = validationResult.data;
         const updatedResearchGroup = await prisma.researchGroup.update({
           where: { researchGroupID: validatedParams.researchGroupID },
           data: {
@@ -82,12 +82,12 @@ export async function validateAndProcessResearchGroup(action: string, params: an
       }
 
       case 'delete': {
-        if (!validatedParams.researchGroupID) {
+        if (!params.researchGroupID) {
           return { error: 'researchGroupID is required for delete.' };
         }
 
         const deletedResearchGroup = await prisma.researchGroup.delete({
-          where: { researchGroupID: validatedParams.researchGroupID }
+          where: { researchGroupID: params.researchGroupID }
         });
         revalidatePath('/user-page/research-group');
         return { researchGroup: deletedResearchGroup };
