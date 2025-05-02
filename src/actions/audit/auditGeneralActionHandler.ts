@@ -30,7 +30,10 @@ const UpdateAuditSchema = z.object({
 
 export type AuditGeneralInput = z.infer<typeof AuditGeneralSchema>;
 
-export async function validateAndProcessAuditGeneral(operation: 'add' | 'update' | 'invalid', params: any): Promise<AuditGeneralActionResponse> {
+export async function validateAndProcessAuditGeneral(
+  operation: 'add' | 'update' | 'invalid',
+  params: any
+): Promise<AuditGeneralActionResponse> {
   try {
     if (operation === 'invalid') {
       return { error: 'Invalid operation', success: false, audit: null };

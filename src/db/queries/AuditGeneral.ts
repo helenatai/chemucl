@@ -25,7 +25,6 @@ export const findAuditGeneralByID = async (auditGeneralID: number): Promise<Audi
       auditor: {
         select: { id: true, name: true }
       },
-      // Optionally can include related audits
       audits: true
     }
   });

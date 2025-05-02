@@ -12,6 +12,8 @@ import AuditQrScannerModal from 'components/modals/AuditQrScannerModal';
 import CSVExport from 'components/ui-component/extended/utils/CSVExport';
 import RoleGuard from 'utils/route-guard/RoleGuard';
 import { ROLES } from 'constants/roles';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -27,6 +29,9 @@ interface AuditLocationsProps {
 
 const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, missingRecords }) => {
   const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   // search and pagination for audits tab
   const [tabIndex, setTabIndex] = useState(0);
@@ -92,12 +97,10 @@ const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, m
 
   const handleLocationVerified = (qrData: string) => {
     console.log('Location verified:', qrData);
-    // Optionally, compare with expected QR code for the location.
   };
 
   const handleChemicalScanned = (qrData: string) => {
     console.log('Chemical scanned:', qrData);
-    // TODO: Call a server action to update the corresponding AuditRecord status from "Unaudited" to "Audited"
   };
 
   const handleCompleteAudit = async () => {
@@ -135,7 +138,7 @@ const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, m
   ];
 
   const csvData = filteredMissing.map((record) => {
-    const locationText = record.audit && record.audit.location ? `${record.audit.location.building} ${record.audit.location.room}` : '';
+    const locationText = record.audit && record.audit.location ? `${record.audit.location.buildingName} ${record.audit.location.room}` : '';
     return {
       chemicalName: record.chemical.chemicalName,
       casNumber: record.chemical.casNumber,
@@ -184,32 +187,36 @@ const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, m
                     <Table>
                       <TableHead>
                         <TableRow>
-                          <TableCell>Index</TableCell>
+                          {!isMobile && <TableCell>Index</TableCell>}
                           <TableCell>Location</TableCell>
-                          <TableCell>Progress</TableCell>
+                          {!isMobile && <TableCell>Progress</TableCell>}
                           <TableCell>Status</TableCell>
-                          <TableCell>Start Time</TableCell>
-                          <TableCell>End Time</TableCell>
+                          {!isTablet && <TableCell>Start Time</TableCell>}
+                          {!isTablet && <TableCell>End Time</TableCell>}
                           <TableCell>Action</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAudits.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((audit, index) => (
                           <TableRow key={audit.auditID}>
-                            <TableCell>{index + 1}</TableCell>
+                            {!isMobile && <TableCell>{index + 1}</TableCell>}
                             <TableCell>
                               {audit.location?.buildingName} {audit.location?.room}
                             </TableCell>
-                            <TableCell>
-                              {audit.finishedCount} / {audit.finishedCount + audit.pendingCount}
-                            </TableCell>
+                            {!isMobile && (
+                              <TableCell>
+                                {audit.finishedCount} / {audit.finishedCount + audit.pendingCount}
+                              </TableCell>
+                            )}
                             <TableCell>{audit.status}</TableCell>
-                            <TableCell>{audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}</TableCell>
-                            <TableCell>{audit.lastAuditDate ? new Date(audit.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
+                            {!isTablet && <TableCell>{audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}</TableCell>}
+                            {!isTablet && (
+                              <TableCell>{audit.lastAuditDate ? new Date(audit.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
+                            )}
                             <TableCell>
                               <Grid container spacing={2}>
                                 <Grid item>
-                                  <button onClick={() => handleView(auditGeneral?.auditGeneralID!, audit.auditID)}>View Chemicals</button>
+                                  <button onClick={() => handleView(auditGeneral?.auditGeneralID!, audit.auditID)}>View</button>
                                 </Grid>
                                 <Grid item>
                                   <button onClick={() => handleOpenQrModal(audit)}>Audit</button>
@@ -237,8 +244,14 @@ const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, m
               {/* Tab 1: Missing Chemicals */}
               {tabIndex === 1 && (
                 <>
-                  <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                    <Grid item xs={12} sm={6}>
+                  <Grid
+                    container
+                    justifyContent={isMobile ? 'flex-start' : 'space-between'}
+                    alignItems="center"
+                    spacing={isMobile ? 1 : 2}
+                    sx={{ mb: 2 }}
+                  >
+                    <Grid item xs={isMobile ? 8 : 'auto'}>
                       <TextField
                         InputProps={{
                           startAdornment: (
@@ -251,23 +264,26 @@ const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, m
                         value={missingSearch}
                         onChange={handleMissingSearch}
                         size="small"
-                        sx={{ width: 250 }}
+                        sx={{
+                          width: isMobile ? '100%' : '250px'
+                        }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
-                      <CSVExport data={csvData} headers={csvHeaders} filename={fileName} label="Export Report" />
+                    <Grid item xs={isMobile ? 4 : 'auto'} sx={{ textAlign: isMobile ? 'left' : 'right' }}>
+                      <CSVExport data={csvData} headers={csvHeaders} filename={fileName} label={isMobile ? 'Export' : 'Export Report'} />
                     </Grid>
                   </Grid>
                   <TableContainer>
                     <Table>
                       <TableHead>
                         <TableRow>
-                          <TableCell>Index</TableCell>
+                          {!isMobile && <TableCell>Index</TableCell>}
                           <TableCell>Chemical</TableCell>
-                          <TableCell>CAS Number</TableCell>
+                          {!isMobile && <TableCell>CAS Number</TableCell>}
+                          {!isMobile && <TableCell>Status</TableCell>}
                           <TableCell>Location</TableCell>
-                          <TableCell>Start Time</TableCell>
-                          <TableCell>End Time</TableCell>
+                          {!isTablet && <TableCell>Start Time</TableCell>}
+                          {!isTablet && <TableCell>End Time</TableCell>}
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -275,14 +291,17 @@ const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, m
                           const seqIndex = missingPage * missingRowsPerPage + index + 1;
                           return (
                             <TableRow key={record.auditRecordID}>
-                              <TableCell>{seqIndex}</TableCell>
+                              {!isMobile && <TableCell>{seqIndex}</TableCell>}
                               <TableCell>{record.chemical.chemicalName}</TableCell>
-                              <TableCell>{record.chemical.casNumber}</TableCell>
+                              {!isMobile && <TableCell>{record.chemical.casNumber}</TableCell>}
+                              {!isMobile && <TableCell>{record.status}</TableCell>}
                               <TableCell>
                                 {record.audit?.location?.building} {record.audit?.location?.room}
                               </TableCell>
-                              <TableCell>{record.auditDate ? new Date(record.auditDate).toLocaleString() : 'N/A'}</TableCell>
-                              <TableCell>{record.lastAuditDate ? new Date(record.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
+                              {!isTablet && <TableCell>{record.auditDate ? new Date(record.auditDate).toLocaleString() : 'N/A'}</TableCell>}
+                              {!isTablet && (
+                                <TableCell>{record.lastAuditDate ? new Date(record.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
+                              )}
                             </TableRow>
                           );
                         })}
@@ -314,6 +333,8 @@ const AuditLocations: React.FC<AuditLocationsProps> = ({ auditGeneral, audits, m
             onChemicalScanned={handleChemicalScanned}
             onComplete={handleCompleteAudit}
             onPause={handlePauseAudit}
+            totalItems={currentAuditRecord!.finishedCount + currentAuditRecord!.pendingCount}
+            finishedCount={currentAuditRecord!.finishedCount}
           />
         )}
       </MainCard>

@@ -9,27 +9,27 @@ jest.mock('db', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
-      findUnique: jest.fn(),
+      findUnique: jest.fn()
     },
     location: {
-      findFirst: jest.fn(),
+      findFirst: jest.fn()
     },
     chemical: {
       count: jest.fn(),
-      findMany: jest.fn(),
+      findMany: jest.fn()
     },
     audit: {
-      create: jest.fn(),
+      create: jest.fn()
     },
     auditRecord: {
-      create: jest.fn(),
-    },
-  },
+      create: jest.fn()
+    }
+  }
 }));
 
 // Mock revalidatePath
 jest.mock('next/cache', () => ({
-  revalidatePath: jest.fn(),
+  revalidatePath: jest.fn()
 }));
 
 describe('Audit Action Handler', () => {
@@ -162,4 +162,4 @@ describe('Audit Action Handler', () => {
       expect(revalidatePath).not.toHaveBeenCalled();
     });
   });
-}); 
+});

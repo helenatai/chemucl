@@ -11,7 +11,7 @@ import AddFormModal from 'components/forms/AddFormModal';
 import ChemForm from 'components/forms/ChemicalForm';
 import QrCodeModal from 'components/modals/QrCodeModal';
 import CSVExport from 'ui-component/extended/utils/CSVExport';
-import { usePermissions } from '../../hooks/usePermissions';
+import { usePermissions } from 'hooks/usePermissions';
 import ImportInventoryDialog from 'components/modals/ImportInventoryModal';
 import { importChemicalsAction } from 'actions/chemical/server-actions/importChemicals';
 import ColumnCustomizationModal from 'components/modals/CustomiseModal';

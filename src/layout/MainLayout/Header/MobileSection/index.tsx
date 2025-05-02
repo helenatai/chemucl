@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef, useState } from 'react';
 
 // material-ui
@@ -10,7 +12,6 @@ import Popper from '@mui/material/Popper';
 import Toolbar from '@mui/material/Toolbar';
 
 // project imports
-import LocalizationSection from '../LocalizationSection';
 import Transitions from 'ui-component/extended/Transitions';
 
 // assets
@@ -82,9 +83,7 @@ const MobileSection = () => {
               <Paper>
                 {open && (
                   <AppBar color="inherit">
-                    <Toolbar sx={{ py: 2.75 }}>
-                      <LocalizationSection />
-                    </Toolbar>
+                    <Toolbar sx={{ py: 2.75 }}>{/* Mobile menu content can be added here if needed */}</Toolbar>
                   </AppBar>
                 )}
               </Paper>

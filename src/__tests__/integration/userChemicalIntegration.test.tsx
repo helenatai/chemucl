@@ -18,9 +18,9 @@ describe('User-Chemical Integration Tests', () => {
       id: 'admin-user-id',
       name: 'Admin User',
       email: 'admin@ucl.ac.uk',
-      permission: 'Admin',
+      permission: 'Admin'
     },
-    expires: new Date().toISOString(),
+    expires: new Date().toISOString()
   };
 
   const mockStaffSession: Session = {
@@ -28,9 +28,9 @@ describe('User-Chemical Integration Tests', () => {
       id: 'staff-user-id',
       name: 'Staff User',
       email: 'staff@ucl.ac.uk',
-      permission: 'Staff',
+      permission: 'Staff'
     },
-    expires: new Date().toISOString(),
+    expires: new Date().toISOString()
   };
 
   const mockResearchStudentSession: Session = {
@@ -38,9 +38,9 @@ describe('User-Chemical Integration Tests', () => {
       id: 'student-user-id',
       name: 'Research Student',
       email: 'student@ucl.ac.uk',
-      permission: 'Research Student',
+      permission: 'Research Student'
     },
-    expires: new Date().toISOString(),
+    expires: new Date().toISOString()
   };
 
   const mockChemical: ChemicalWithRelations = {
@@ -53,15 +53,15 @@ describe('User-Chemical Integration Tests', () => {
       locationID: 1,
       building: 'Test Building',
       buildingName: 'Test Building',
-      room: 'Test Room',
+      room: 'Test Room'
     },
     chemicalType: 'Chemical',
     researchGroup: {
       researchGroupID: 1,
-      groupName: 'Test Group',
+      groupName: 'Test Group'
     },
     activeStatus: true,
-    quantity: 1000,
+    quantity: 1000
   };
 
   beforeEach(() => {
@@ -82,7 +82,7 @@ describe('User-Chemical Integration Tests', () => {
       locationID: 1,
       chemicalType: 'Chemical',
       researchGroupID: 1,
-      quantity: 1000,
+      quantity: 1000
     });
 
     expect(result.error).toBeUndefined();
@@ -90,7 +90,7 @@ describe('User-Chemical Integration Tests', () => {
       expect.objectContaining({
         userID: mockAdminSession.user.id,
         actionType: 'Added',
-        chemicalName: 'Test Chemical',
+        chemicalName: 'Test Chemical'
       })
     );
   });
@@ -106,7 +106,7 @@ describe('User-Chemical Integration Tests', () => {
       locationID: 1,
       chemicalType: 'Chemical',
       researchGroupID: 1,
-      quantity: 1000,
+      quantity: 1000
     });
 
     expect(result.error).toBeUndefined();
@@ -114,7 +114,7 @@ describe('User-Chemical Integration Tests', () => {
       expect.objectContaining({
         userID: mockStaffSession.user.id,
         actionType: 'Added',
-        chemicalName: 'Test Chemical',
+        chemicalName: 'Test Chemical'
       })
     );
   });
@@ -130,7 +130,7 @@ describe('User-Chemical Integration Tests', () => {
       locationID: 1,
       chemicalType: 'Chemical',
       researchGroupID: 1,
-      quantity: 1000,
+      quantity: 1000
     });
 
     expect(result.error).toBeUndefined();
@@ -138,7 +138,7 @@ describe('User-Chemical Integration Tests', () => {
       expect.objectContaining({
         userID: mockResearchStudentSession.user.id,
         actionType: 'Added',
-        chemicalName: 'Test Chemical',
+        chemicalName: 'Test Chemical'
       })
     );
   });
@@ -146,7 +146,7 @@ describe('User-Chemical Integration Tests', () => {
   it('should allow admin to update a chemical', async () => {
     const updatedChemical = {
       ...mockChemical,
-      chemicalName: 'Updated Chemical',
+      chemicalName: 'Updated Chemical'
     };
 
     (updateChemical as any).mockResolvedValue(updatedChemical);
@@ -160,7 +160,7 @@ describe('User-Chemical Integration Tests', () => {
       locationID: mockChemical.location?.locationID ?? 1,
       chemicalType: mockChemical.chemicalType,
       researchGroupID: mockChemical.researchGroup.researchGroupID,
-      quantity: mockChemical.quantity,
+      quantity: mockChemical.quantity
     });
 
     expect(result.error).toBeUndefined();
@@ -168,7 +168,7 @@ describe('User-Chemical Integration Tests', () => {
       expect.objectContaining({
         userID: mockAdminSession.user.id,
         actionType: 'Updated',
-        chemicalName: 'Updated Chemical',
+        chemicalName: 'Updated Chemical'
       })
     );
   });
@@ -177,7 +177,7 @@ describe('User-Chemical Integration Tests', () => {
     (getServerSession as any).mockResolvedValue(mockStaffSession);
     const updatedChemical = {
       ...mockChemical,
-      chemicalName: 'Updated Chemical',
+      chemicalName: 'Updated Chemical'
     };
 
     (updateChemical as any).mockResolvedValue(updatedChemical);
@@ -191,7 +191,7 @@ describe('User-Chemical Integration Tests', () => {
       locationID: mockChemical.location?.locationID ?? 1,
       chemicalType: mockChemical.chemicalType,
       researchGroupID: mockChemical.researchGroup.researchGroupID,
-      quantity: mockChemical.quantity,
+      quantity: mockChemical.quantity
     });
 
     expect(result.error).toBeUndefined();
@@ -199,7 +199,7 @@ describe('User-Chemical Integration Tests', () => {
       expect.objectContaining({
         userID: mockStaffSession.user.id,
         actionType: 'Updated',
-        chemicalName: 'Updated Chemical',
+        chemicalName: 'Updated Chemical'
       })
     );
   });
@@ -208,7 +208,7 @@ describe('User-Chemical Integration Tests', () => {
     (getServerSession as any).mockResolvedValue(mockResearchStudentSession);
     const updatedChemical = {
       ...mockChemical,
-      chemicalName: 'Updated Chemical',
+      chemicalName: 'Updated Chemical'
     };
 
     (updateChemical as any).mockResolvedValue(updatedChemical);
@@ -222,7 +222,7 @@ describe('User-Chemical Integration Tests', () => {
       locationID: mockChemical.location?.locationID ?? 1,
       chemicalType: mockChemical.chemicalType,
       researchGroupID: mockChemical.researchGroup.researchGroupID,
-      quantity: mockChemical.quantity,
+      quantity: mockChemical.quantity
     });
 
     expect(result.error).toBeUndefined();
@@ -230,14 +230,14 @@ describe('User-Chemical Integration Tests', () => {
       expect.objectContaining({
         userID: mockResearchStudentSession.user.id,
         actionType: 'Updated',
-        chemicalName: 'Updated Chemical',
+        chemicalName: 'Updated Chemical'
       })
     );
   });
 
   it('should allow admin to delete a chemical', async () => {
     const result = await validateAndProcessChemical('delete', {
-      chemicalIDs: [mockChemical.chemicalID],
+      chemicalIDs: [mockChemical.chemicalID]
     });
 
     expect(result.error).toBeUndefined();
@@ -249,7 +249,7 @@ describe('User-Chemical Integration Tests', () => {
         chemicalName: 'N/A',
         description: "Chemical 'N/A' deleted.",
         locationBuilding: 'N/A',
-        locationRoom: 'N/A',
+        locationRoom: 'N/A'
       })
     );
   });
@@ -258,7 +258,7 @@ describe('User-Chemical Integration Tests', () => {
     (getServerSession as any).mockResolvedValue(mockStaffSession);
 
     const result = await validateAndProcessChemical('delete', {
-      chemicalIDs: [mockChemical.chemicalID],
+      chemicalIDs: [mockChemical.chemicalID]
     });
 
     expect(result.error).toBeUndefined();
@@ -270,7 +270,7 @@ describe('User-Chemical Integration Tests', () => {
         chemicalName: 'N/A',
         description: "Chemical 'N/A' deleted.",
         locationBuilding: 'N/A',
-        locationRoom: 'N/A',
+        locationRoom: 'N/A'
       })
     );
   });
@@ -279,7 +279,7 @@ describe('User-Chemical Integration Tests', () => {
     (getServerSession as any).mockResolvedValue(mockResearchStudentSession);
 
     const result = await validateAndProcessChemical('delete', {
-      chemicalIDs: [mockChemical.chemicalID],
+      chemicalIDs: [mockChemical.chemicalID]
     });
 
     expect(result.error).toBeUndefined();
@@ -291,7 +291,7 @@ describe('User-Chemical Integration Tests', () => {
         chemicalName: 'N/A',
         description: "Chemical 'N/A' deleted.",
         locationBuilding: 'N/A',
-        locationRoom: 'N/A',
+        locationRoom: 'N/A'
       })
     );
   });

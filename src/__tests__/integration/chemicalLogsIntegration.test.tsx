@@ -7,23 +7,23 @@ import { ROLES } from '../../constants/roles';
 
 // Mock next-auth
 jest.mock('next-auth/next', () => ({
-  getServerSession: jest.fn(),
+  getServerSession: jest.fn()
 }));
 
 // Mock next/cache
 jest.mock('next/cache', () => ({
-  revalidatePath: jest.fn(),
+  revalidatePath: jest.fn()
 }));
 
 // Mock database queries
 jest.mock('db/queries/Chemical', () => ({
   addChemical: jest.fn(),
   updateChemical: jest.fn(),
-  deleteChemical: jest.fn(),
+  deleteChemical: jest.fn()
 }));
 
 jest.mock('db/queries/Log', () => ({
-  addLog: jest.fn(),
+  addLog: jest.fn()
 }));
 
 describe('Chemical-Logs Integration Tests', () => {
@@ -32,8 +32,8 @@ describe('Chemical-Logs Integration Tests', () => {
       id: 'admin123',
       name: 'Admin User',
       email: 'admin@example.com',
-      permission: ROLES.ADMIN,
-    },
+      permission: ROLES.ADMIN
+    }
   } as Session;
 
   const mockStaffSession = {
@@ -41,8 +41,8 @@ describe('Chemical-Logs Integration Tests', () => {
       id: 'staff123',
       name: 'Staff User',
       email: 'staff@example.com',
-      permission: ROLES.STAFF,
-    },
+      permission: ROLES.STAFF
+    }
   } as Session;
 
   const mockResearchStudentSession = {
@@ -50,8 +50,8 @@ describe('Chemical-Logs Integration Tests', () => {
       id: 'student123',
       name: 'Research Student',
       email: 'student@example.com',
-      permission: ROLES.RESEARCH_STUDENT,
-    },
+      permission: ROLES.RESEARCH_STUDENT
+    }
   } as Session;
 
   const mockChemical = {
@@ -204,7 +204,7 @@ describe('Chemical-Logs Integration Tests', () => {
       const updatedChemical = {
         ...mockChemical,
         chemicalName: 'Updated Chemical',
-        quantity: 200,
+        quantity: 200
       };
 
       const result = await validateAndProcessChemical('update', {
@@ -245,7 +245,7 @@ describe('Chemical-Logs Integration Tests', () => {
       const updatedChemical = {
         ...mockChemical,
         chemicalName: 'Updated Chemical',
-        quantity: 200,
+        quantity: 200
       };
 
       const result = await validateAndProcessChemical('update', {
@@ -286,7 +286,7 @@ describe('Chemical-Logs Integration Tests', () => {
       const updatedChemical = {
         ...mockChemical,
         chemicalName: 'Updated Chemical',
-        quantity: 200,
+        quantity: 200
       };
 
       const result = await validateAndProcessChemical('update', {
@@ -324,7 +324,7 @@ describe('Chemical-Logs Integration Tests', () => {
 
     it('should log when admin deletes a chemical', async () => {
       const result = await validateAndProcessChemical('delete', {
-        chemicalIDs: [mockChemical.chemicalID],
+        chemicalIDs: [mockChemical.chemicalID]
       });
 
       expect(result.error).toBeUndefined();
@@ -345,7 +345,7 @@ describe('Chemical-Logs Integration Tests', () => {
       (getServerSession as jest.Mock).mockResolvedValue(mockStaffSession);
 
       const result = await validateAndProcessChemical('delete', {
-        chemicalIDs: [mockChemical.chemicalID],
+        chemicalIDs: [mockChemical.chemicalID]
       });
 
       expect(result.error).toBeUndefined();
@@ -366,7 +366,7 @@ describe('Chemical-Logs Integration Tests', () => {
       (getServerSession as jest.Mock).mockResolvedValue(mockResearchStudentSession);
 
       const result = await validateAndProcessChemical('delete', {
-        chemicalIDs: [mockChemical.chemicalID],
+        chemicalIDs: [mockChemical.chemicalID]
       });
 
       expect(result.error).toBeUndefined();
@@ -383,4 +383,4 @@ describe('Chemical-Logs Integration Tests', () => {
       );
     });
   });
-}); 
+});

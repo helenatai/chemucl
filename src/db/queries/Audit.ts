@@ -22,44 +22,6 @@ export async function verifyLocationQrHandler(auditId: number, scannedQr: string
   return { valid: expectedQr === scannedQr, expected: expectedQr };
 }
 
-// export async function updateAuditRecordForChemicalScanHandler(auditId: number, scannedChemicalQr: string): Promise<{ success: boolean; message?: string }> {
-//   const chemical = await prisma.chemical.findUnique({
-//     where: { qrID: scannedChemicalQr },
-//   });
-//   if (!chemical) {
-//     return { success: false, message: "No chemical found for the provided QR code." };
-//   }
-
-//   const auditRecord = await prisma.auditRecord.findFirst({
-//     where: {
-//       auditID: auditId,
-//       chemicalID: chemical.chemicalID,
-//       status: "Unaudited"
-//     }
-//   });
-//   if (!auditRecord) {
-//     return { success: false, message: "No unaudited record found for this chemical." };
-//   }
-
-//   await prisma.auditRecord.update({
-//     where: { auditRecordID: auditRecord.auditRecordID },
-//     data: {
-//       status: "Audited",
-//       lastAuditDate: new Date()
-//     }
-//   });
-
-//   await prisma.audit.update({
-//     where: { auditID: auditId },
-//     data: {
-//       finishedCount: { increment: 1 },
-//       pendingCount: { decrement: 1 }
-//     }
-//   });
-
-//   return { success: true };
-// }
-
 export async function updateAuditRecordForChemicalScanHandler(
   auditId: number,
   scannedChemicalQr: string

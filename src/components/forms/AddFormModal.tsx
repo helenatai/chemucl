@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Modal, Box, IconButton } from '@mui/material';
+import { Box, IconButton, Modal } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import MainCard from 'ui-component/cards/MainCard';
 
@@ -21,7 +21,12 @@ const AddFormModal: React.FC<AddFormModalProps> = ({ open, onClose, title, child
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: '600px',
+          width: {
+            xs: '95%', // Almost full width on mobile
+            sm: '80%', // 80% width on tablet
+            md: '600px' // Fixed width on desktop
+          },
+          maxWidth: '600px',
           bgcolor: 'background.paper',
           boxShadow: 24,
           borderRadius: 2,

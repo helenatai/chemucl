@@ -9,14 +9,14 @@ jest.mock('db', () => ({
       findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
-      delete: jest.fn(),
-    },
-  },
+      delete: jest.fn()
+    }
+  }
 }));
 
 // Mock revalidatePath
 jest.mock('next/cache', () => ({
-  revalidatePath: jest.fn(),
+  revalidatePath: jest.fn()
 }));
 
 describe('Research Group Action Handler', () => {
@@ -182,4 +182,4 @@ describe('Research Group Action Handler', () => {
       expect(revalidatePath).not.toHaveBeenCalled();
     });
   });
-}); 
+});

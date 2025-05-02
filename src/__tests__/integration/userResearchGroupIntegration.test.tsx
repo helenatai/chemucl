@@ -140,4 +140,4 @@ describe('User-Research Group Integration Tests', () => {
       expect(newUser.researchGroup).toBeNull();
     });
   });
-}); 
+});

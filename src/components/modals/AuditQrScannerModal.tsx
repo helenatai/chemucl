@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Box, Button, Typography, CircularProgress } from '@mui/material';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { scanLocationAction, scanChemicalAction, completeAuditAction, pauseAuditAction } from 'actions/audit/server-actions/auditActions';
+import { findLocationByQrID } from 'db/queries/Location';
+import { findChemicalByQrID } from 'db/queries/Chemical';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
@@ -15,6 +17,8 @@ interface AuditQrScannerModalProps {
   onChemicalScanned: (qrData: string) => void;
   onComplete: () => Promise<void>;
   onPause: () => void;
+  totalItems?: number;
+  finishedCount?: number;
 }
 
 const modalStyle = {
@@ -39,7 +43,9 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
   onLocationVerified,
   onChemicalScanned,
   onComplete,
-  onPause
+  onPause,
+  totalItems = 0,
+  finishedCount = 0
 }) => {
   const [mode, setMode] = useState<'location' | 'item'>('location');
   const modeRef = useRef<'location' | 'item'>(mode);
@@ -49,10 +55,12 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
 
   const [locationVerified, setLocationVerified] = useState(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
+  const [scannedItemInfo, setScannedItemInfo] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [scannerInitialized, setScannerInitialized] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [itemsScanned, setItemsScanned] = useState(finishedCount);
 
   const [scanFeedback, setScanFeedback] = useState<{
     message: string;
@@ -153,7 +161,14 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
                     setTimeout(() => setProcessing(false), 5000);
                     return;
                   }
-                  setScannedData(decodedText);
+
+                  // Get location details
+                  const locationDetails = await findLocationByQrID(decodedText);
+                  if (locationDetails) {
+                    setScannedData(decodedText);
+                    setScannedItemInfo(`${locationDetails.building} ${locationDetails.room}`);
+                  }
+
                   onLocationVerified(decodedText);
                   setLocationVerified(true);
                   setMode('item');
@@ -173,9 +188,17 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
                     setTimeout(() => setProcessing(false), 5000);
                     return;
                   }
-                  setScannedData(decodedText);
+
+                  // Get chemical details
+                  const chemicalDetails = await findChemicalByQrID(decodedText);
+                  if (chemicalDetails) {
+                    setScannedData(decodedText);
+                    setScannedItemInfo(chemicalDetails.chemicalName);
+                  }
+
                   onChemicalScanned(decodedText);
                   scanHistoryRef.current.add(decodedText);
+                  setItemsScanned((prev) => prev + 1);
                   setScanFeedback({
                     message: 'Item scanned successfully!',
                     type: 'success',
@@ -246,6 +269,12 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
             {mode === 'location' ? '1. Scan Location QR' : '2. Scan Item QR'}
           </Typography>
 
+          {mode === 'item' && (
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Items scanned: {itemsScanned}/{totalItems}
+            </Typography>
+          )}
+
           <Box sx={{ minHeight: fixedErrorHeight }}>
             {errorMessage && (
               <Typography variant="body2" sx={{ color: 'red', whiteSpace: 'pre-line' }}>
@@ -262,15 +291,15 @@ const AuditQrScannerModal: React.FC<AuditQrScannerModalProps> = ({
 
           <div id={scannerContainerId} style={{ width: '100%', minHeight: 240 }}></div>
 
-          {mode === 'location' && locationVerified && scannedData && (
+          {mode === 'location' && locationVerified && scannedData && scannedItemInfo && (
             <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1, mb: 2 }}>
-              Location verified: {scannedData}
+              Location verified: {scannedData} - {scannedItemInfo}
             </Typography>
           )}
 
-          {mode === 'item' && scannedData && (
+          {mode === 'item' && scannedData && scannedItemInfo && (
             <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1, mb: 2 }}>
-              Last scanned item: {scannedData}
+              Last scanned item: {scannedData} - {scannedItemInfo}
             </Typography>
           )}
 

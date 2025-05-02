@@ -112,6 +112,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
       });
 
       revalidatePath('/inventory-page');
+      revalidatePath('/logs-page');
       return { message: 'Chemical added successfully.', chemicals: [newChemical] };
     } catch (error) {
       console.error('Full error object:', error);
@@ -146,6 +147,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
 
       revalidatePath('/inventory-page');
       revalidatePath(`/inventory-page/${params.qrID}`);
+      revalidatePath('/logs-page');
       return { message: 'Chemical updated successfully.', chemicals: [updatedChemical] };
     } catch (error) {
       console.error('Error updating chemical:', error);
@@ -187,6 +189,7 @@ export async function validateAndProcessChemical(action: string, params: any): P
         await deleteChemical(id);
       }
       revalidatePath('/inventory-page');
+      revalidatePath('/logs-page');
       return { message: 'Selected chemicals and their QR codes deleted successfully.', chemicals: [] };
     } catch (error) {
       console.error('Error deleting chemicals:', error);
@@ -309,6 +312,7 @@ export async function validateAndProcessImport(chemicals: any[]): Promise<Chemic
 
     if (successfulChemicals.length > 0) {
       revalidatePath('/inventory-page');
+      revalidatePath('/logs-page');
     }
 
     return {

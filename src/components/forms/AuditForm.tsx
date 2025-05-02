@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Box, Button, Grid, TextField } from '@mui/material';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Box, Button, TextField, Stack } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import { LocationWithRelations } from 'types/location';
 
@@ -16,8 +16,21 @@ interface SelectedLocationRow {
   room: string;
 }
 
+const MOBILE_THRESHOLD = 600; // Width threshold in pixels
+
 const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocations }) => {
+  const [isMobile, setIsMobile] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<SelectedLocationRow[]>([{ buildingName: '', room: '' }]);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= MOBILE_THRESHOLD);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const uniqueBuildings = useMemo(() => {
     return Array.from(new Set(initialLocations.map((loc) => loc.buildingName.trim())));
@@ -30,7 +43,7 @@ const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocati
   const handleBuildingChange = (index: number, newValue: string | null) => {
     const updated = [...selectedLocations];
     updated[index].buildingName = newValue || '';
-    updated[index].room = ''; // reset room when building changes
+    updated[index].room = '';
     setSelectedLocations(updated);
   };
 
@@ -39,31 +52,6 @@ const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocati
     updated[index].room = newValue || '';
     setSelectedLocations(updated);
   };
-
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   // Validate that every row has a building and room selected.
-  //   for (const row of selectedLocations) {
-  //     if (!row.buildingName || !row.room) {
-  //       alert('Please select both building and room for every row.');
-  //       return;
-  //     }
-  //   }
-  //   // Map each row to a locationID by finding a matching record.
-  //   const result: { locationID: number }[] = [];
-  //   for (const row of selectedLocations) {
-  //     const matchingLocation = initialLocations.find(loc =>
-  //       loc.buildingName.trim().toLowerCase() === row.buildingName.trim().toLowerCase() &&
-  //       loc.room.trim().toLowerCase() === row.room.trim().toLowerCase()
-  //     );
-  //     if (!matchingLocation) {
-  //       alert(`No location found for building: ${row.buildingName} and room: ${row.room}`);
-  //       return;
-  //     }
-  //     result.push({ locationID: matchingLocation.locationID });
-  //   }
-  //   onSubmit(result);
-  // };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,9 +66,8 @@ const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocati
 
   return (
     <form onSubmit={handleSubmit}>
-      <Grid container spacing={2}>
+      <Stack spacing={2}>
         {selectedLocations.map((row, index) => {
-          // For each row, filter the room options based on the selected building.
           const roomOptions = row.buildingName
             ? Array.from(
                 new Set(
@@ -91,36 +78,42 @@ const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, onCancel, initialLocati
               )
             : [];
           return (
-            <Grid container item spacing={2} key={index}>
-              <Grid item xs={6}>
+            <Stack key={index} direction={isMobile ? 'column' : 'row'} spacing={2} sx={{ width: '100%' }}>
+              <Box sx={{ width: isMobile ? '100%' : '50%' }}>
                 <Autocomplete
                   options={uniqueBuildings}
                   value={row.buildingName}
                   onChange={(event: React.SyntheticEvent<Element, Event>, newValue: string | null) => handleBuildingChange(index, newValue)}
                   renderInput={(params) => <TextField {...params} label="Building" required />}
+                  fullWidth
+                  size="small"
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ width: isMobile ? '100%' : '50%' }}>
                 <Autocomplete
                   options={roomOptions}
                   value={row.room}
                   onChange={(event: React.SyntheticEvent<Element, Event>, newValue: string | null) => handleRoomChange(index, newValue)}
                   renderInput={(params) => <TextField {...params} label="Room" required />}
                   disabled={!row.buildingName}
+                  fullWidth
+                  size="small"
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Stack>
           );
         })}
-      </Grid>
+      </Stack>
       <Box mt={2}>
-        <Button onClick={addLocationRow}>Add New Location</Button>
+        <Button onClick={addLocationRow} size="small">
+          Add New Location
+        </Button>
       </Box>
       <Box display="flex" justifyContent="flex-end" mt={2}>
-        <Button onClick={onCancel} sx={{ mr: 2 }}>
+        <Button onClick={onCancel} sx={{ mr: 2 }} size="small">
           Cancel
         </Button>
-        <Button type="submit" variant="contained" color="primary">
+        <Button type="submit" variant="contained" color="primary" size="small">
           Submit
         </Button>
       </Box>

@@ -14,9 +14,9 @@ jest.mock('next/cache');
 jest.mock('db', () => ({
   prisma: {
     chemical: {
-      findUnique: jest.fn(),
-    },
-  },
+      findUnique: jest.fn()
+    }
+  }
 }));
 
 describe('Chemical Action Handler', () => {
@@ -25,9 +25,9 @@ describe('Chemical Action Handler', () => {
       id: 'test-user-id',
       name: 'Test User',
       email: 'test@ucl.ac.uk',
-      permission: 'ADMIN',
+      permission: 'ADMIN'
     },
-    expires: new Date().toISOString(),
+    expires: new Date().toISOString()
   };
 
   beforeEach(() => {
@@ -44,7 +44,7 @@ describe('Chemical Action Handler', () => {
       locationID: 1,
       chemicalType: 'Chemical',
       researchGroupID: 1,
-      quantity: 100,
+      quantity: 100
     };
 
     it('should successfully add a chemical', async () => {
@@ -53,8 +53,8 @@ describe('Chemical Action Handler', () => {
         chemicalID: 1,
         location: {
           building: 'Test Building',
-          room: 'Test Room',
-        },
+          room: 'Test Room'
+        }
       };
 
       (addChemical as any).mockResolvedValue(mockNewChemical);
@@ -64,7 +64,7 @@ describe('Chemical Action Handler', () => {
 
       expect(result).toEqual({
         message: 'Chemical added successfully.',
-        chemicals: [mockNewChemical],
+        chemicals: [mockNewChemical]
       });
       expect(addChemical).toHaveBeenCalledWith(expect.objectContaining(validChemicalData));
       expect(addLog).toHaveBeenCalled();
@@ -74,7 +74,7 @@ describe('Chemical Action Handler', () => {
     it('should handle validation errors', async () => {
       const invalidData = {
         ...validChemicalData,
-        quantity: -1, // Invalid quantity
+        quantity: -1 // Invalid quantity
       };
 
       const result = await validateAndProcessChemical('add', invalidData);
@@ -94,7 +94,7 @@ describe('Chemical Action Handler', () => {
       locationID: 1,
       chemicalType: 'Chemical',
       researchGroupID: 1,
-      quantity: 100,
+      quantity: 100
     };
 
     it('should successfully update a chemical', async () => {
@@ -102,8 +102,8 @@ describe('Chemical Action Handler', () => {
         ...validUpdateData,
         location: {
           building: 'Test Building',
-          room: 'Test Room',
-        },
+          room: 'Test Room'
+        }
       };
 
       (updateChemical as any).mockResolvedValue(mockUpdatedChemical);
@@ -113,7 +113,7 @@ describe('Chemical Action Handler', () => {
 
       expect(result).toEqual({
         message: 'Chemical updated successfully.',
-        chemicals: [mockUpdatedChemical],
+        chemicals: [mockUpdatedChemical]
       });
       expect(updateChemical).toHaveBeenCalledWith(expect.objectContaining(validUpdateData));
       expect(addLog).toHaveBeenCalled();
@@ -124,7 +124,7 @@ describe('Chemical Action Handler', () => {
 
   describe('Delete Chemical', () => {
     const validDeleteData = {
-      chemicalIDs: [1, 2],
+      chemicalIDs: [1, 2]
     };
 
     it('should successfully delete chemicals', async () => {
@@ -132,8 +132,8 @@ describe('Chemical Action Handler', () => {
         chemicalName: 'Test Chemical',
         location: {
           building: 'Test Building',
-          room: 'Test Room',
-        },
+          room: 'Test Room'
+        }
       };
 
       (deleteChemical as any).mockResolvedValue({});
@@ -147,11 +147,11 @@ describe('Chemical Action Handler', () => {
 
       expect(result).toEqual({
         message: 'Selected chemicals and their QR codes deleted successfully.',
-        chemicals: [],
+        chemicals: []
       });
       expect(deleteChemical).toHaveBeenCalledTimes(2);
       expect(addLog).toHaveBeenCalledTimes(2);
       expect(revalidatePath).toHaveBeenCalledWith('/inventory-page');
     });
   });
-}); 
+});

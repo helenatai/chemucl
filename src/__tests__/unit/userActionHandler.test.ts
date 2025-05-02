@@ -17,19 +17,19 @@ jest.mock('db', () => ({
       findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
-      delete: jest.fn(),
+      delete: jest.fn()
     },
     researchGroup: {
-      findFirst: jest.fn(),
-    },
-  },
+      findFirst: jest.fn()
+    }
+  }
 }));
 
 describe('User Action Handler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { id: 'test-user-id', name: 'Test User', permission: 'ADMIN' },
+      user: { id: 'test-user-id', name: 'Test User', permission: 'ADMIN' }
     });
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_password');
   });
@@ -42,7 +42,7 @@ describe('User Action Handler', () => {
         email: 'test@example.com',
         permission: 'Staff',
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       };
 
       (addUser as jest.Mock).mockResolvedValue(mockUser);
@@ -88,7 +88,7 @@ describe('User Action Handler', () => {
         email: 'updated@example.com',
         permission: 'ADMIN',
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       };
 
       (findUser as jest.Mock).mockResolvedValue([{ id: '1' }]);
@@ -137,7 +137,7 @@ describe('User Action Handler', () => {
   describe('Unauthorized Access', () => {
     it('should handle unauthorized access', async () => {
       (getServerSession as jest.Mock).mockResolvedValue({
-        user: { id: 'test-user-id', name: 'Test User', permission: 'staff' },
+        user: { id: 'test-user-id', name: 'Test User', permission: 'staff' }
       });
 
       const result = await validateAndProcessUser('add', {
@@ -152,4 +152,4 @@ describe('User Action Handler', () => {
       expect(addUser).not.toHaveBeenCalled();
     });
   });
-}); 
+});

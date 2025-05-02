@@ -9,6 +9,7 @@ import { deleteLocationAction } from 'actions/location/server-actions/deleteLoca
 import AddFormModal from 'components/forms/AddFormModal';
 import LocationForm from 'components/forms/LocationForm';
 import QrCodeModal from 'components/modals/QrCodeModal';
+import FilterLocationModal, { FilterState } from 'components/modals/FilterLocationModal';
 
 // Material UI Imports
 import Table from '@mui/material/Table';
@@ -57,14 +58,31 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [selectedQrID, setSelectedQrID] = useState<string | null>(null);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterState>({
+    buildingNames: [],
+    rooms: []
+  });
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value.toLowerCase();
     setSearch(searchValue);
     setPage(0);
 
-    // Filter locations based on search query
-    const filtered = initialLocations.filter((location) => {
+    // Filter locations based on search query and active filters
+    let filtered = initialLocations;
+
+    // Apply active filters first
+    if (activeFilters.buildingNames.length > 0) {
+      filtered = filtered.filter((location) => activeFilters.buildingNames.includes(location.buildingName));
+    }
+
+    if (activeFilters.rooms.length > 0) {
+      filtered = filtered.filter((location) => activeFilters.rooms.includes(location.room));
+    }
+
+    // Then apply search filter
+    filtered = filtered.filter((location) => {
       return (
         location.qrID?.toLowerCase().includes(searchValue) ||
         location.buildingName.toLowerCase().includes(searchValue) ||
@@ -143,6 +161,45 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
     setSelectedQrID(null);
   };
 
+  const handleOpenFilterModal = () => {
+    setIsFilterModalOpen(true);
+  };
+
+  const handleCloseFilterModal = () => {
+    setIsFilterModalOpen(false);
+  };
+
+  const applyFilters = (filters: FilterState) => {
+    setActiveFilters(filters);
+    let filtered = [...initialLocations];
+
+    // Apply building name filters
+    if (filters.buildingNames.length > 0) {
+      filtered = filtered.filter((location) => filters.buildingNames.includes(location.buildingName));
+    }
+
+    // Apply room filters
+    if (filters.rooms.length > 0) {
+      filtered = filtered.filter((location) => filters.rooms.includes(location.room));
+    }
+
+    // Apply search filter if there's a search term
+    if (search) {
+      const searchValue = search.toLowerCase();
+      filtered = filtered.filter((location) => {
+        return (
+          location.qrID?.toLowerCase().includes(searchValue) ||
+          location.buildingName.toLowerCase().includes(searchValue) ||
+          location.building.toLowerCase().includes(searchValue) ||
+          location.room.toLowerCase().includes(searchValue)
+        );
+      });
+    }
+
+    setFilteredLocations(filtered);
+    setPage(0);
+  };
+
   return (
     <>
       <MainCard>
@@ -169,7 +226,7 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
             {/* Filter & Add Buttons */}
             <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
               <Tooltip title="Filter">
-                <IconButton>
+                <IconButton onClick={handleOpenFilterModal}>
                   <FilterListIcon />
                 </IconButton>
               </Tooltip>
@@ -264,6 +321,14 @@ const LocationPage: React.FC<LocationPageProps> = ({ initialLocations }) => {
       </AddFormModal>
 
       <QrCodeModal open={isQrCodeModalOpen} qrID={selectedQrID || ''} onClose={handleQRCodeModalClose} type="location" />
+
+      <FilterLocationModal
+        open={isFilterModalOpen}
+        onClose={handleCloseFilterModal}
+        onApplyFilters={applyFilters}
+        locations={initialLocations}
+        currentFilters={activeFilters}
+      />
 
       <Snackbar
         open={snackbarOpen}

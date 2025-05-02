@@ -18,6 +18,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import type { AuditRecordWithRelations } from 'types/auditRecord';
 import RoleGuard from 'utils/route-guard/RoleGuard';
 import { ROLES } from 'constants/roles';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 interface AuditLocationChemicalsProps {
   auditID: number;
@@ -29,6 +31,10 @@ const AuditLocationChemicals: React.FC<AuditLocationChemicalsProps> = ({ auditID
   const [filteredRecords, setFilteredRecords] = useState(records);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   // Handle search input
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,10 +86,10 @@ const AuditLocationChemicals: React.FC<AuditLocationChemicalsProps> = ({ auditID
               <TableRow>
                 <TableCell>Index</TableCell>
                 <TableCell>Chemical</TableCell>
-                <TableCell>CAS Number</TableCell>
+                {!isMobile && <TableCell>CAS Number</TableCell>}
                 <TableCell>Status</TableCell>
-                <TableCell>Start Date</TableCell>
-                <TableCell>End date</TableCell>
+                {!isTablet && <TableCell>Start Date</TableCell>}
+                {!isTablet && <TableCell>End date</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -93,10 +99,10 @@ const AuditLocationChemicals: React.FC<AuditLocationChemicalsProps> = ({ auditID
                   <TableRow key={rec.auditRecordID}>
                     <TableCell>{seqIndex}</TableCell>
                     <TableCell>{rec.chemical.chemicalName}</TableCell>
-                    <TableCell>{rec.chemical.casNumber}</TableCell>
+                    {!isMobile && <TableCell>{rec.chemical.casNumber}</TableCell>}
                     <TableCell>{rec.status}</TableCell>
-                    <TableCell>{rec.auditDate ? new Date(rec.auditDate).toLocaleString() : 'N/A'}</TableCell>
-                    <TableCell>{rec.lastAuditDate ? new Date(rec.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
+                    {!isTablet && <TableCell>{rec.auditDate ? new Date(rec.auditDate).toLocaleString() : 'N/A'}</TableCell>}
+                    {!isTablet && <TableCell>{rec.lastAuditDate ? new Date(rec.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>}
                   </TableRow>
                 );
               })}

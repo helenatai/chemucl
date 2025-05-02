@@ -6,6 +6,9 @@ import { ChemicalWithRelations } from 'types/chemical';
 export const findChemical = async ({ chemicalID }: { chemicalID?: number } = {}) => {
   const chemicals = await prisma.chemical.findMany({
     where: chemicalID ? { chemicalID } : undefined,
+    orderBy: {
+      dateUpdated: 'desc'
+    },
     select: {
       chemicalID: true,
       qrID: true,
@@ -105,6 +108,9 @@ export const findChemicalsByLocation = async (locationID: number) => {
       location: {
         locationID
       }
+    },
+    orderBy: {
+      dateUpdated: 'desc'
     },
     select: {
       chemicalID: true,

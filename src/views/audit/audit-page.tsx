@@ -11,6 +11,8 @@ import { useRouter } from 'next/navigation';
 import RoleGuard from 'utils/route-guard/RoleGuard';
 import { ROLES } from 'constants/roles';
 import { useSession } from 'next-auth/react';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 // Material UI Imports
 import {
@@ -52,6 +54,10 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value.toLowerCase());
@@ -120,12 +126,15 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
       <MainCard>
         <CardContent>
           <Grid container justifyContent="space-between" alignItems="center" spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={isMobile ? 9 : 'auto'} sm={'auto'}>
               <TextField
                 placeholder="Search Audit"
                 value={search}
                 onChange={handleSearch}
                 size="small"
+                sx={{
+                  width: isMobile ? '100%' : '250px' // Fixed width for desktop, full width for mobile
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -135,15 +144,15 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
+            <Grid item xs={isMobile ? 3 : 'auto'} sm={'auto'} sx={{ textAlign: 'right' }}>
               <Tooltip title="Add Audit">
                 <Fab
                   color="primary"
                   size="small"
                   onClick={handleOpenAddModal}
-                  sx={{ boxShadow: 'none', ml: 1, width: 32, height: 32, minHeight: 32 }}
+                  sx={{ boxShadow: 'none', ml: isMobile ? 0 : 1, width: 32, height: 32, minHeight: 32 }}
                 >
-                  <AddIcon /> {/* Add Item Icon */}
+                  <AddIcon />
                 </Fab>
               </Tooltip>
             </Grid>
@@ -154,11 +163,10 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
             <TableHead>
               <TableRow>
                 <TableCell>Round</TableCell>
-                <TableCell>Progress</TableCell>
+                {!isMobile && <TableCell>Progress</TableCell>}
                 <TableCell>Status</TableCell>
-                <TableCell>Auditor</TableCell>
-                <TableCell>Start Time</TableCell>
-                <TableCell>End Time</TableCell>
+                {!isTablet && <TableCell>Auditor</TableCell>}
+                {!isMobile && <TableCell>Start Time</TableCell>}
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
@@ -166,13 +174,14 @@ const AuditGeneralPage: React.FC<AuditGeneralPageProps> = ({ initialAudits, init
               {currentPageData.map((audit) => (
                 <TableRow key={audit.auditGeneralID}>
                   <TableCell>{audit.round}</TableCell>
-                  <TableCell>
-                    {audit.finishedCount} / {audit.finishedCount + audit.pendingCount}
-                  </TableCell>
+                  {!isMobile && (
+                    <TableCell>
+                      {audit.finishedCount} / {audit.finishedCount + audit.pendingCount}
+                    </TableCell>
+                  )}
                   <TableCell>{audit.status}</TableCell>
-                  <TableCell>{audit.auditor ? audit.auditor.name : 'N/A'}</TableCell>
-                  <TableCell>{audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}</TableCell>
-                  <TableCell>{audit.lastAuditDate ? new Date(audit.lastAuditDate).toLocaleString() : 'N/A'}</TableCell>
+                  {!isTablet && <TableCell>{audit.auditor ? audit.auditor.name : 'N/A'}</TableCell>}
+                  {!isMobile && <TableCell>{audit.startDate ? new Date(audit.startDate).toLocaleString() : 'N/A'}</TableCell>}
                   <TableCell>
                     <Grid container spacing={1}>
                       <Grid item>

@@ -5,19 +5,19 @@ import { validateAndProcessLocation } from 'actions/location/locationActionHandl
 import { ChemicalWithRelations } from 'types/chemical';
 import { LocationWithRelations } from 'types/location';
 import { Session, getServerSession } from 'next-auth';
-import { findChemical, addChemical, updateChemical, deleteChemical } from "db/queries/Chemical";
-import { findLocation, deleteLocation } from "db/queries/Location";
-import { findLogs, addLog } from "db/queries/Log";
+import { findChemical, addChemical, updateChemical, deleteChemical } from 'db/queries/Chemical';
+import { findLocation, deleteLocation } from 'db/queries/Location';
+import { findLogs, addLog } from 'db/queries/Log';
 import { revalidatePath } from 'next/cache';
 
 // Mock next-auth
 jest.mock('next-auth', () => ({
-  getServerSession: jest.fn(),
+  getServerSession: jest.fn()
 }));
 
 // Mock next/cache
 jest.mock('next/cache', () => ({
-  revalidatePath: jest.fn(),
+  revalidatePath: jest.fn()
 }));
 
 // Mock the database
@@ -28,22 +28,22 @@ jest.mock('db', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
-      delete: jest.fn(),
+      delete: jest.fn()
     },
     location: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
-      delete: jest.fn(),
+      delete: jest.fn()
     },
     researchGroup: {
-      findFirst: jest.fn(),
+      findFirst: jest.fn()
     },
     log: {
-      create: jest.fn(),
-    },
-  },
+      create: jest.fn()
+    }
+  }
 }));
 
 // Mock database queries
@@ -51,19 +51,19 @@ jest.mock('db/queries/Chemical', () => ({
   findChemical: jest.fn(),
   addChemical: jest.fn(),
   updateChemical: jest.fn(),
-  deleteChemical: jest.fn(),
+  deleteChemical: jest.fn()
 }));
 
 jest.mock('db/queries/Location', () => ({
   findLocation: jest.fn(),
   addLocation: jest.fn(),
   updateLocation: jest.fn(),
-  deleteLocation: jest.fn(),
+  deleteLocation: jest.fn()
 }));
 
 jest.mock('db/queries/Log', () => ({
   findLogs: jest.fn(),
-  addLog: jest.fn(),
+  addLog: jest.fn()
 }));
 
 describe('Chemical-Location Integration Tests', () => {
@@ -72,9 +72,9 @@ describe('Chemical-Location Integration Tests', () => {
       id: 'test-user-id',
       email: 'test@example.com',
       name: 'Test User',
-      permission: 'ADMIN',
+      permission: 'ADMIN'
     },
-    expires: new Date(Date.now() + 2 * 86400).toISOString(),
+    expires: new Date(Date.now() + 2 * 86400).toISOString()
   };
 
   const mockLocation: LocationWithRelations = {
@@ -83,7 +83,7 @@ describe('Chemical-Location Integration Tests', () => {
     buildingName: 'Building A',
     room: 'Room 101',
     qrID: '123-4567',
-    totalChemicals: 0,
+    totalChemicals: 0
   };
 
   const mockChemical: ChemicalWithRelations = {
@@ -96,12 +96,12 @@ describe('Chemical-Location Integration Tests', () => {
       locationID: mockLocation.locationID,
       building: mockLocation.building,
       buildingName: mockLocation.buildingName,
-      room: mockLocation.room,
+      room: mockLocation.room
     },
     chemicalType: 'Chemical',
     researchGroup: {
       researchGroupID: 1,
-      groupName: 'Test Group',
+      groupName: 'Test Group'
     },
     activeStatus: true,
     supplier: null,
@@ -111,7 +111,7 @@ describe('Chemical-Location Integration Tests', () => {
     subLocation1: null,
     subLocation2: null,
     subLocation3: null,
-    subLocation4: null,
+    subLocation4: null
   };
 
   beforeEach(() => {
@@ -137,7 +137,7 @@ describe('Chemical-Location Integration Tests', () => {
       locationID: mockLocation.locationID,
       chemicalType: 'Chemical',
       researchGroupID: mockLocation.locationID,
-      quantity: 1000,
+      quantity: 1000
     });
 
     expect(result.error).toBeUndefined();
@@ -156,7 +156,7 @@ describe('Chemical-Location Integration Tests', () => {
       locationID: 999,
       chemicalType: 'Chemical',
       researchGroupID: 1,
-      quantity: 1000,
+      quantity: 1000
     });
 
     expect(result.error).toBeDefined();
@@ -170,7 +170,7 @@ describe('Chemical-Location Integration Tests', () => {
       buildingName: 'Building B',
       room: 'Room 202',
       qrID: '123-4567',
-      totalChemicals: 0,
+      totalChemicals: 0
     };
 
     const updatedChemical = {
@@ -179,8 +179,8 @@ describe('Chemical-Location Integration Tests', () => {
         locationID: newLocation.locationID,
         building: newLocation.building,
         buildingName: newLocation.buildingName,
-        room: newLocation.room,
-      },
+        room: newLocation.room
+      }
     };
 
     (findLocation as any).mockResolvedValue([newLocation]);
@@ -195,7 +195,7 @@ describe('Chemical-Location Integration Tests', () => {
       locationID: newLocation.locationID,
       chemicalType: mockChemical.chemicalType,
       researchGroupID: mockChemical.researchGroup.researchGroupID,
-      quantity: mockChemical.quantity,
+      quantity: mockChemical.quantity
     });
 
     expect(result.error).toBeUndefined();
@@ -205,7 +205,7 @@ describe('Chemical-Location Integration Tests', () => {
   it('should handle location deletion with associated chemicals', async () => {
     const locationWithChemicals: LocationWithRelations = {
       ...mockLocation,
-      totalChemicals: 1,
+      totalChemicals: 1
     };
 
     (findLocation as any).mockResolvedValue([locationWithChemicals]);
@@ -215,16 +215,16 @@ describe('Chemical-Location Integration Tests', () => {
         locationID: locationWithChemicals.locationID,
         building: locationWithChemicals.building,
         buildingName: locationWithChemicals.buildingName,
-        room: locationWithChemicals.room,
-      },
+        room: locationWithChemicals.room
+      }
     });
     (deleteLocation as any).mockRejectedValue(new Error('Cannot delete location with associated chemicals'));
 
     const result = await validateAndProcessLocation('delete', {
-      locationIDs: [locationWithChemicals.locationID],
+      locationIDs: [locationWithChemicals.locationID]
     });
 
     expect(result.error).toBeDefined();
     expect(result.error).toContain('Cannot delete location with associated chemicals');
   });
-}); 
+});

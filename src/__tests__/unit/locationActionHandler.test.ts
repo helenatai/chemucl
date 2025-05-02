@@ -15,16 +15,16 @@ jest.mock('db', () => ({
       findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
-      delete: jest.fn(),
-    },
-  },
+      delete: jest.fn()
+    }
+  }
 }));
 
 describe('Location Action Handler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { id: 'test-user-id', name: 'Test User', permission: 'ADMIN' },
+      user: { id: 'test-user-id', name: 'Test User', permission: 'ADMIN' }
     });
   });
 
@@ -37,7 +37,7 @@ describe('Location Action Handler', () => {
         room: 'Room 101',
         qrID: 'QR123',
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       };
 
       (addLocation as jest.Mock).mockResolvedValue(mockLocation);
@@ -82,7 +82,7 @@ describe('Location Action Handler', () => {
         room: 'Room 201',
         qrID: 'QR456',
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       };
 
       (findLocation as jest.Mock).mockResolvedValue([{ locationID: 1 }]);
@@ -131,4 +131,4 @@ describe('Location Action Handler', () => {
       expect(deleteLocation).not.toHaveBeenCalled();
     });
   });
-}); 
+});

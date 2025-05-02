@@ -56,7 +56,6 @@ const Login = () => {
                   <Grid item xs={12}>
                     <Divider />
                   </Grid>
-                  
                 </Grid>
               </AuthCardWrapper>
             </Grid>

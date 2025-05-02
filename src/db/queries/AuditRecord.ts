@@ -20,7 +20,7 @@ export async function findMissingRecordsByAuditGeneralID(auditGeneralID: number)
     where: {
       status: 'Missing',
       audit: {
-        auditGeneralID // ensure the parent Audit belongs to the same round
+        auditGeneralID
       }
     },
     include: {
