@@ -60,10 +60,6 @@ const ImportInventoryDialog: React.FC<ImportInventoryDialogProps> = ({
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [owners] = useState<Owner[]>(initialResearchGroups);
-  const [locations] = useState<Location[]>(initialLocations);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null);
 
   const requiredColumns = [
     'QR ID',
@@ -203,16 +199,6 @@ const ImportInventoryDialog: React.FC<ImportInventoryDialogProps> = ({
       return;
     }
 
-    if (!selectedOwner) {
-      setError('Please select a research group');
-      return;
-    }
-
-    if (!selectedLocation) {
-      setError('Please select a location');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
 
@@ -225,15 +211,8 @@ const ImportInventoryDialog: React.FC<ImportInventoryDialogProps> = ({
 
           const data = validateData(results.data);
 
-          // Update the data with selected location and owner
-          const updatedData = data.map((item) => ({
-            ...item,
-            researchGroup: selectedOwner.groupName,
-            building: selectedLocation.building,
-            room: selectedLocation.room
-          }));
-
-          await onImport(updatedData);
+          // No longer update data with selected location and owner
+          await onImport(data);
           onClose();
         } catch (err) {
           setError(err instanceof Error ? err.message : 'An error occurred while importing');
@@ -271,38 +250,7 @@ const ImportInventoryDialog: React.FC<ImportInventoryDialogProps> = ({
         >
           <DialogContent>
             <Stack spacing={3}>
-              <Autocomplete
-                options={owners}
-                getOptionLabel={(option) => option.groupName}
-                value={selectedOwner}
-                onChange={(_, newValue) => setSelectedOwner(newValue)}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Research Group"
-                    required
-                    error={!selectedOwner && error !== ''}
-                    helperText={!selectedOwner && error !== '' ? 'Research group is required' : ''}
-                  />
-                )}
-              />
-
-              <Autocomplete
-                options={locations}
-                getOptionLabel={(option) => `${option.building} ${option.room}`}
-                value={selectedLocation}
-                onChange={(_, newValue) => setSelectedLocation(newValue)}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Location"
-                    required
-                    error={!selectedLocation && error !== ''}
-                    helperText={!selectedLocation && error !== '' ? 'Location is required' : ''}
-                  />
-                )}
-              />
-
+              <Typography variant="body1">To import inventory, please use our CSV template format below:</Typography>
               <Box sx={{ textAlign: 'center', py: 2 }}>
                 <input type="file" accept=".csv" onChange={handleFileSelect} style={{ display: 'none' }} ref={fileInputRef} />
                 <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleDownloadTemplate} sx={{ mr: 2 }}>
