@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client'; 
-import bcrypt from 'bcrypt';  
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -28,11 +28,61 @@ async function main() {
     // Create initial user with hashed password
     const hashedPassword = await bcrypt.hash('chemucl', 10);
     const initialUsersData = [
-        { email: 'zcabhjy@ucl.ac.uk', name: 'Helena', permission: 'Admin', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'admintest@admin.com', name: 'Fredrick Arnold', permission: 'Admin', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'studenttest@student.com', name: 'Elisa Miller', permission: 'Research Student', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'stafftest@staff.com', name: 'Maryam Nasir', permission: 'Staff', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'auditortest@auditor.com', name: 'Stephanie Ho', permission: 'Auditor', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null }
+      {
+        email: 'zcabhjy@ucl.ac.uk',
+        name: 'Helena',
+        permission: 'Admin',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'admintest@admin.com',
+        name: 'Fredrick Arnold',
+        permission: 'Admin',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'studenttest@student.com',
+        name: 'Elisa Miller',
+        permission: 'Research Student',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'stafftest@staff.com',
+        name: 'Maryam Nasir',
+        permission: 'Staff',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'auditortest@auditor.com',
+        name: 'Stephanie Ho',
+        permission: 'Auditor',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      }
     ];
 
     for (const userData of initialUsersData) {
@@ -48,12 +98,72 @@ async function main() {
 
     // Create additional users and assign to ResearchGroup
     const usersData = [
-        { email: 'uccakpa@ucl.ac.uk', name: 'Kristopher Page', permission: 'Admin', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'ucca245@ucl.ac.uk', name: 'Andrea Sella', permission: 'Admin', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'ucabelf@ucl.ac.uk', name: 'Aurora', permission: 'Admin', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'ucqsmto@ucl.ac.uk', name: 'Martyn Towner', permission: 'Admin', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'ucabyuf@ucl.ac.uk', name: 'Yun Fu', permission: 'Admin', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null },
-        { email: 'uccahgr@ucl.ac.uk', name: 'Helen Allan', permission: 'Admin', researchGroupID: null, activeStatus: true, registrationDate: new Date(), password: null, emailVerified: null, image: null }
+      {
+        email: 'uccakpa@ucl.ac.uk',
+        name: 'Kristopher Page',
+        permission: 'Admin',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'ucca245@ucl.ac.uk',
+        name: 'Andrea Sella',
+        permission: 'Admin',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'ucabelf@ucl.ac.uk',
+        name: 'Aurora',
+        permission: 'Admin',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'ucqsmto@ucl.ac.uk',
+        name: 'Martyn Towner',
+        permission: 'Admin',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'ucabyuf@ucl.ac.uk',
+        name: 'Yun Fu',
+        permission: 'Admin',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      },
+      {
+        email: 'uccahgr@ucl.ac.uk',
+        name: 'Helen Allan',
+        permission: 'Admin',
+        researchGroupID: null,
+        activeStatus: true,
+        registrationDate: new Date(),
+        password: null,
+        emailVerified: null,
+        image: null
+      }
     ];
 
     let lastUser = null;

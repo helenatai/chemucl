@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { DialogContent, DialogActions, Button, Typography, Box, Alert, LinearProgress, Stack, Modal, TextField } from '@mui/material';
-import Autocomplete from '@mui/material/Autocomplete';
+import { DialogContent, DialogActions, Button, Typography, Box, Alert, LinearProgress, Stack, Modal } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DownloadIcon from '@mui/icons-material/Download';
 import Papa from 'papaparse';
@@ -36,17 +35,6 @@ interface ChemicalImportData {
   subLocation4?: string;
   restrictionStatus: boolean;
   quartzyNumber: string;
-}
-
-interface Location {
-  locationID: number;
-  building: string;
-  room: string;
-}
-
-interface Owner {
-  researchGroupID: number;
-  groupName: string;
 }
 
 const ImportInventoryDialog: React.FC<ImportInventoryDialogProps> = ({

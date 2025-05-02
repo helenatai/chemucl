@@ -8,7 +8,7 @@ jest.mock('next/navigation', () => ({
       push: jest.fn(),
       replace: jest.fn(),
       prefetch: jest.fn(),
-      back: jest.fn(),
+      back: jest.fn()
     };
   },
   usePathname() {
@@ -16,7 +16,7 @@ jest.mock('next/navigation', () => ({
   },
   useSearchParams() {
     return new URLSearchParams();
-  },
+  }
 }));
 
 // Mock next-auth
@@ -27,12 +27,12 @@ jest.mock('next-auth/react', () => ({
         id: 'test-user-id',
         name: 'Test User',
         email: 'test@example.com',
-        permission: 'ADMIN',
-      },
+        permission: 'ADMIN'
+      }
     },
-    status: 'authenticated',
+    status: 'authenticated'
   })),
   getSession: jest.fn(() => null),
   signIn: jest.fn(),
-  signOut: jest.fn(),
-})); 
+  signOut: jest.fn()
+}));

@@ -13,8 +13,8 @@ const config: Config.InitialOptions = {
   },
   testMatch: ['**/__tests__/**/*.test.ts', '**/__tests__/**/*.test.tsx'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
+    '^.+\\.tsx?$': 'ts-jest'
+  }
 };
 
-export default config; 
+export default config;
